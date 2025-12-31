@@ -1,8 +1,9 @@
 import { useState, useEffect } from "react";
 import { Link, useLocation } from "react-router-dom";
-import { Menu, X, Phone, Mail, Clock } from "lucide-react";
+import { Menu, X, Phone, Mail, Clock, Moon, Sun } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import logo from "@/assets/logo.jpg";
+import { useTheme } from "@/components/ThemeProvider";
+import logoTransparent from "@/assets/logo-transparent.png";
 
 const navLinks = [
   { name: "Home", href: "/" },
@@ -17,6 +18,7 @@ const Header = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
   const location = useLocation();
+  const { theme, setTheme } = useTheme();
 
   useEffect(() => {
     const handleScroll = () => {
@@ -25,6 +27,10 @@ const Header = () => {
     window.addEventListener("scroll", handleScroll);
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
+
+  const toggleTheme = () => {
+    setTheme(theme === "dark" ? "light" : "dark");
+  };
 
   return (
     <header className="fixed top-0 left-0 right-0 z-50">
@@ -41,9 +47,23 @@ const Header = () => {
               kansadco@gmail.com
             </a>
           </div>
-          <div className="flex items-center gap-2">
-            <Clock className="h-4 w-4" />
-            <span>Mon - Fri: 8:00 AM - 6:00 PM</span>
+          <div className="flex items-center gap-4">
+            <div className="flex items-center gap-2">
+              <Clock className="h-4 w-4" />
+              <span>Mon - Fri: 8:00 AM - 6:00 PM</span>
+            </div>
+            {/* Dark Mode Toggle - Top Bar */}
+            <button
+              onClick={toggleTheme}
+              className="p-1.5 rounded-full hover:bg-primary-foreground/10 transition-colors"
+              aria-label="Toggle theme"
+            >
+              {theme === "dark" ? (
+                <Sun className="h-4 w-4" />
+              ) : (
+                <Moon className="h-4 w-4" />
+              )}
+            </button>
           </div>
         </div>
       </div>
@@ -61,7 +81,7 @@ const Header = () => {
             {/* Logo */}
             <Link to="/" className="flex items-center gap-3">
               <img
-                src={logo}
+                src={logoTransparent}
                 alt="KANSADCO Logo"
                 className="h-14 w-auto object-contain"
               />
@@ -84,25 +104,40 @@ const Header = () => {
               ))}
             </div>
 
-            {/* CTA Button */}
-            <div className="hidden lg:block">
-              <Button asChild className="btn-gold">
-                <Link to="/contact">Get Quote</Link>
-              </Button>
-            </div>
+            {/* CTA Button & Mobile Dark Mode */}
+            <div className="flex items-center gap-3">
+              {/* Mobile Dark Mode Toggle */}
+              <button
+                onClick={toggleTheme}
+                className="md:hidden p-2 rounded-full hover:bg-muted transition-colors"
+                aria-label="Toggle theme"
+              >
+                {theme === "dark" ? (
+                  <Sun className="h-5 w-5" />
+                ) : (
+                  <Moon className="h-5 w-5" />
+                )}
+              </button>
 
-            {/* Mobile Menu Button */}
-            <button
-              className="lg:hidden p-2"
-              onClick={() => setIsMenuOpen(!isMenuOpen)}
-              aria-label="Toggle menu"
-            >
-              {isMenuOpen ? (
-                <X className="h-6 w-6" />
-              ) : (
-                <Menu className="h-6 w-6" />
-              )}
-            </button>
+              <div className="hidden lg:block">
+                <Button asChild className="btn-gold">
+                  <Link to="/contact">Get Quote</Link>
+                </Button>
+              </div>
+
+              {/* Mobile Menu Button */}
+              <button
+                className="lg:hidden p-2"
+                onClick={() => setIsMenuOpen(!isMenuOpen)}
+                aria-label="Toggle menu"
+              >
+                {isMenuOpen ? (
+                  <X className="h-6 w-6" />
+                ) : (
+                  <Menu className="h-6 w-6" />
+                )}
+              </button>
+            </div>
           </div>
         </div>
 
