@@ -125,13 +125,13 @@ const About = () => {
                 Meet Our Founder & CEO
               </h2>
               <h3 className="font-display text-xl font-semibold text-foreground mb-2">
-                Engr. Sadiq Abdullahi Kano
+                Arc. Yunusa Hassan Ibrahim
               </h3>
               <p className="text-accent font-medium mb-6">Chairman/CEO</p>
               
               <p className="text-muted-foreground mb-4 leading-relaxed">
-                Engr. Sadiq Abdullahi Kano is a visionary leader with over two decades of experience 
-                in the construction and real estate industry. A graduate of Civil Engineering from 
+                Arc. Yunusa Hassan Ibrahim is a visionary leader with over two decades of experience 
+                in the construction and real estate industry. A graduate of Architecture from 
                 Ahmadu Bello University, Zaria, he has led KANSADCO from a small construction firm 
                 to a diversified conglomerate with operations across multiple sectors.
               </p>
@@ -141,7 +141,7 @@ const About = () => {
                 thousands of families, and commercial developments that have transformed urban landscapes.
               </p>
               <p className="text-muted-foreground leading-relaxed">
-                Engr. Kano is a Fellow of the Nigerian Society of Engineers (FNSE) and serves on 
+                Arc. Ibrahim is a Fellow of the Nigerian Institute of Architects (FNIA) and serves on 
                 several industry boards. His commitment to excellence, integrity, and national 
                 development continues to drive KANSADCO's growth and impact.
               </p>
@@ -150,7 +150,7 @@ const About = () => {
               <div className="relative">
                 <img
                   src={ceoPortrait}
-                  alt="Engr. Sadiq Abdullahi Kano - CEO of KANSADCO"
+                  alt="Arc. Yunusa Hassan Ibrahim - CEO of KANSADCO"
                   className="w-full max-w-md mx-auto rounded-lg shadow-xl"
                 />
                 <div className="absolute -bottom-4 -right-4 w-48 h-48 bg-accent/20 rounded-lg -z-10 hidden lg:block" />

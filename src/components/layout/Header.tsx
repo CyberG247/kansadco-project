@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { Menu, X, Phone, Mail, Moon, Sun, Globe } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import DigitalClock from "@/components/ui/DigitalClock";
+import DigitalClock from "@/components/ui/digitalclock";
 import { useTheme } from "@/components/ThemeProvider";
 import logoTransparent from "@/assets/logo-transparent.png";
 import { useTranslation } from "react-i18next";
