@@ -1,5 +1,5 @@
 import { Quote } from "lucide-react";
-import ceoPortrait from "@/assets/ceo-portrait.jpg";
+import ceoPortrait from "@/assets/chairman.jpg";
 
 const CEOSection = () => {
   return (
@@ -55,9 +55,9 @@ const CEOSection = () => {
 
             <div className="border-l-4 border-accent pl-4">
               <p className="font-display text-xl font-semibold text-foreground">
-                Engr. Sadiq Abdullahi Kano
+                Arc. Yunusa Hassan Ibrahim
               </p>
-              <p className="text-muted-foreground">Founder & Chief Executive Officer</p>
+              <p className="text-muted-foreground">Chairman/CEO</p>
             </div>
           </div>
         </div>

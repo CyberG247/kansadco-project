@@ -1,53 +1,47 @@
 import Layout from "@/components/layout/Layout";
-import { Linkedin, Mail } from "lucide-react";
+import { Linkedin, Mail, User } from "lucide-react";
+import chairmanImg from "@/assets/chairman.jpg";
 
 const teamMembers = [
   {
-    name: "Engr. Sadiq Abdullahi Kano",
-    position: "Founder & CEO",
-    image: "https://images.unsplash.com/photo-1560250097-0b93528c311a?w=400&h=500&fit=crop&crop=face",
+    name: "Arc. Yunusa Hassan Ibrahim",
+    position: "Chairman/CEO",
+    image: chairmanImg,
     bio: "Visionary leader with 25+ years of experience in construction and real estate.",
   },
   {
     name: "Arc. Fatima Ibrahim",
     position: "Chief Architect",
-    image: "https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=400&h=500&fit=crop&crop=face",
     bio: "Award-winning architect specializing in sustainable residential design.",
   },
   {
     name: "Engr. Chukwuma Okafor",
     position: "Director of Construction",
-    image: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=400&h=500&fit=crop&crop=face",
     bio: "Civil engineer with expertise in large-scale infrastructure projects.",
   },
   {
     name: "Hajia Aisha Mohammed",
     position: "Director of Real Estate",
-    image: "https://images.unsplash.com/photo-1580489944761-15a19d654956?w=400&h=500&fit=crop&crop=face",
     bio: "Real estate expert with extensive knowledge of Nigerian property market.",
   },
   {
     name: "Engr. David Adeleke",
     position: "Chief Engineer",
-    image: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&h=500&fit=crop&crop=face",
     bio: "Structural engineer with experience on major government projects.",
   },
   {
     name: "Mrs. Grace Okonkwo",
     position: "Finance Director",
-    image: "https://images.unsplash.com/photo-1551836022-d5d88e9218df?w=400&h=500&fit=crop&crop=face",
     bio: "Chartered accountant with expertise in real estate finance.",
   },
   {
     name: "Mallam Yusuf Garba",
     position: "Head of Operations",
-    image: "https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?w=400&h=500&fit=crop&crop=face",
     bio: "Operations expert ensuring seamless project delivery.",
   },
   {
     name: "Engr. Amaka Nwosu",
     position: "Project Manager",
-    image: "https://images.unsplash.com/photo-1594744803329-e58b31de8bf5?w=400&h=500&fit=crop&crop=face",
     bio: "PMP-certified project manager with focus on quality delivery.",
   },
 ];
@@ -80,12 +74,16 @@ const Team = () => {
                 key={member.name}
                 className="group bg-card rounded-xl overflow-hidden shadow-lg card-hover"
               >
-                <div className="aspect-[4/5] overflow-hidden">
-                  <img
-                    src={member.image}
-                    alt={member.name}
-                    className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
-                  />
+                <div className="aspect-[4/5] overflow-hidden bg-muted flex items-center justify-center">
+                  {member.image ? (
+                    <img
+                      src={member.image}
+                      alt={member.name}
+                      className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+                    />
+                  ) : (
+                    <User className="w-20 h-20 text-muted-foreground/30" />
+                  )}
                 </div>
                 <div className="p-6">
                   <h3 className="font-display text-lg font-semibold text-foreground mb-1">

@@ -1,6 +1,6 @@
 import Layout from "@/components/layout/Layout";
 import { Award, Target, Eye, Users, Building, Calendar } from "lucide-react";
-import ceoPortrait from "@/assets/ceo-portrait.jpg";
+import ceoPortrait from "@/assets/chairman.jpg";
 import heroEstate from "@/assets/hero-estate.jpg";
 
 const About = () => {
@@ -127,7 +127,7 @@ const About = () => {
               <h3 className="font-display text-xl font-semibold text-foreground mb-2">
                 Engr. Sadiq Abdullahi Kano
               </h3>
-              <p className="text-accent font-medium mb-6">Founder & Chief Executive Officer</p>
+              <p className="text-accent font-medium mb-6">Chairman/CEO</p>
               
               <p className="text-muted-foreground mb-4 leading-relaxed">
                 Engr. Sadiq Abdullahi Kano is a visionary leader with over two decades of experience 

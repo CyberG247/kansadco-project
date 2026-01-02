@@ -1,8 +1,10 @@
 import { Link } from "react-router-dom";
 import { Phone, Mail, MapPin, Facebook, Twitter, Instagram, Linkedin } from "lucide-react";
 import logo from "@/assets/logo.jpg";
+import { useTranslation } from "react-i18next";
 
 const Footer = () => {
+  const { t } = useTranslation();
   const currentYear = new Date().getFullYear();
 
   return (
@@ -20,8 +22,7 @@ const Footer = () => {
               />
             </Link>
             <p className="text-primary-foreground/80 leading-relaxed">
-              Nigeria's premier real estate, construction, property development and paints company. 
-              Building excellence across Abuja and Kano since establishment.
+              {t('footer.description')}
             </p>
             <div className="flex gap-4">
               <a
@@ -57,14 +58,14 @@ const Footer = () => {
 
           {/* Quick Links */}
           <div>
-            <h3 className="text-lg font-display font-semibold mb-6">Quick Links</h3>
+            <h3 className="text-lg font-display font-semibold mb-6">{t('footer.quickLinks')}</h3>
             <ul className="space-y-3">
               {[
-                { name: "About Us", href: "/about" },
-                { name: "Our Services", href: "/services" },
-                { name: "Projects", href: "/projects" },
-                { name: "Our Team", href: "/team" },
-                { name: "Contact", href: "/contact" },
+                { name: t('nav.about'), href: "/about" },
+                { name: t('nav.services'), href: "/services" },
+                { name: t('nav.projects'), href: "/projects" },
+                { name: t('nav.team'), href: "/team" },
+                { name: t('nav.contact'), href: "/contact" },
               ].map((link) => (
                 <li key={link.name}>
                   <Link
@@ -104,7 +105,7 @@ const Footer = () => {
 
           {/* Contact Info */}
           <div>
-            <h3 className="text-lg font-display font-semibold mb-6">Contact Us</h3>
+            <h3 className="text-lg font-display font-semibold mb-6">{t('footer.contactInfo')}</h3>
             <ul className="space-y-4">
               <li className="flex items-start gap-3">
                 <MapPin className="h-5 w-5 text-accent shrink-0 mt-0.5" />
@@ -151,14 +152,14 @@ const Footer = () => {
       <div className="border-t border-primary-foreground/10">
         <div className="container-custom py-6 flex flex-col md:flex-row justify-between items-center gap-4">
           <p className="text-primary-foreground/70 text-sm">
-            &copy; {currentYear} KANSADCO. All rights reserved.
+            &copy; {currentYear} KANSADCO. {t('footer.rights')}
           </p>
           <div className="flex gap-6 text-sm">
             <Link to="/privacy" className="text-primary-foreground/70 hover:text-accent transition-colors">
-              Privacy Policy
+              {t('footer.privacy')}
             </Link>
             <Link to="/terms" className="text-primary-foreground/70 hover:text-accent transition-colors">
-              Terms of Service
+              {t('footer.terms')}
             </Link>
           </div>
         </div>

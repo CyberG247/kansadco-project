@@ -4,26 +4,27 @@ import { ChevronLeft, ChevronRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import heroEstate from "@/assets/hero-estate.jpg";
 import heroConstruction from "@/assets/hero-construction.jpg";
-
-const slides = [
-  {
-    image: heroEstate,
-    title: "Building Tomorrow's Legacy Today",
-    subtitle: "Premier Real Estate & Property Development",
-    description:
-      "Creating world-class residential estates and commercial properties across Nigeria. Excellence in every foundation we lay.",
-  },
-  {
-    image: heroConstruction,
-    title: "Engineering Excellence",
-    subtitle: "Construction & Infrastructure",
-    description:
-      "From roads to bridges, high-rises to industrial facilities – we deliver projects that stand the test of time.",
-  },
-];
+import { useTranslation } from "react-i18next";
 
 const HeroSlider = () => {
+  const { t } = useTranslation();
   const [currentSlide, setCurrentSlide] = useState(0);
+
+  const slides = [
+    {
+      image: heroEstate,
+      title: t('hero.title'),
+      subtitle: t('hero.subtitle'),
+      description: t('footer.description'), // Reusing for demo
+    },
+    {
+      image: heroConstruction,
+      title: "Engineering Excellence",
+      subtitle: "Construction & Infrastructure",
+      description: "From roads to bridges, high-rises to industrial facilities – we deliver projects that stand the test of time.",
+    },
+  ];
+
 
   useEffect(() => {
     const timer = setInterval(() => {
@@ -36,7 +37,7 @@ const HeroSlider = () => {
   const prevSlide = () => setCurrentSlide((prev) => (prev - 1 + slides.length) % slides.length);
 
   return (
-    <section className="relative h-[85vh] min-h-[600px] overflow-hidden">
+    <section className="relative h-[85vh] min-h-[450px] md:min-h-[600px] overflow-hidden">
       {/* Slides */}
       {slides.map((slide, index) => (
         <div
@@ -83,7 +84,7 @@ const HeroSlider = () => {
                 }`}
               >
                 <Button asChild size="lg" className="btn-gold">
-                  <Link to="/projects">View Projects</Link>
+                  <Link to="/projects">{t('hero.explore')}</Link>
                 </Button>
                 <Button
                   asChild
@@ -91,7 +92,7 @@ const HeroSlider = () => {
                   variant="outline"
                   className="border-2 border-primary-foreground text-primary-foreground bg-transparent hover:bg-primary-foreground hover:text-primary"
                 >
-                  <Link to="/contact">Contact Us</Link>
+                  <Link to="/contact">{t('hero.contact')}</Link>
                 </Button>
               </div>
             </div>
