@@ -1,34 +1,30 @@
-import { useState } from "react";
-import { ChevronLeft, ChevronRight, Quote } from "lucide-react";
+import { useState, useEffect } from "react";
+import { ChevronLeft, ChevronRight, Quote, User } from "lucide-react";
 
 const testimonials = [
   {
-    name: "Chief Olusegun Adeyemi",
-    position: "Managing Director, Adeyemi Properties Ltd",
+    name: "Abdullahi Bala Musa",
+    position: "Managing Director, InnovaTech Consultancy Ltd",
     content:
       "KANSADCO's attention to detail and commitment to quality is unmatched. They delivered our office complex ahead of schedule and within budget. Truly a world-class construction company.",
-    image: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=200&h=200&fit=crop&crop=face",
   },
   {
     name: "Alhaji Ibrahim Suleiman",
     position: "Property Investor, Kano",
     content:
       "I've worked with KANSADCO on multiple real estate projects. Their professionalism and integrity set them apart. My investments with them have exceeded all expectations.",
-    image: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=200&h=200&fit=crop&crop=face",
   },
   {
     name: "Dr. Amina Bello",
     position: "Homeowner, Rahmaniyya Estate",
     content:
       "Moving into our KANSADCO home was a dream come true. The quality of construction, the beautiful finishing, and the serene environment - everything exceeded our expectations.",
-    image: "https://images.unsplash.com/photo-1531123897727-8f129e1688ce?w=200&h=200&fit=crop&crop=face",
   },
   {
     name: "Engr. Chukwudi Okonkwo",
     position: "Director, Federal Ministry of Works",
     content:
       "KANSADCO has consistently demonstrated capability in executing major infrastructure projects. Their bridges and roads are built to last, meeting international standards.",
-    image: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=200&h=200&fit=crop&crop=face",
   },
 ];
 
@@ -37,6 +33,13 @@ const Testimonials = () => {
 
   const next = () => setCurrentIndex((prev) => (prev + 1) % testimonials.length);
   const prev = () => setCurrentIndex((prev) => (prev - 1 + testimonials.length) % testimonials.length);
+
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setCurrentIndex((prev) => (prev + 1) % testimonials.length);
+    }, 3000);
+    return () => clearInterval(timer);
+  }, []);
 
   return (
     <section className="section-padding bg-cream">
@@ -66,11 +69,9 @@ const Testimonials = () => {
                     <p className="text-lg md:text-xl text-foreground leading-relaxed mb-8 italic">
                       "{testimonial.content}"
                     </p>
-                    <img
-                      src={testimonial.image}
-                      alt={testimonial.name}
-                      className="w-16 h-16 rounded-full mx-auto mb-4 object-cover"
-                    />
+                    <div className="w-16 h-16 rounded-full mx-auto mb-4 bg-muted flex items-center justify-center">
+                      <User className="h-8 w-8 text-muted-foreground" />
+                    </div>
                     <p className="font-display font-semibold text-foreground">
                       {testimonial.name}
                     </p>

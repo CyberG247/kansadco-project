@@ -141,6 +141,19 @@ const Header = () => {
                 </Button>
               </div>
 
+              {/* Mobile Dark Mode Toggle */}
+              <button
+                onClick={toggleTheme}
+                className="lg:hidden p-2 rounded-full hover:bg-muted transition-colors"
+                aria-label="Toggle theme"
+              >
+                {theme === "dark" ? (
+                  <Sun className="h-5 w-5" />
+                ) : (
+                  <Moon className="h-5 w-5" />
+                )}
+              </button>
+
               {/* Mobile Menu Button */}
               <button
                 className="lg:hidden p-2"
