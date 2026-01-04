@@ -40,10 +40,7 @@ const CEOSection = () => {
             </div>
 
             <p className="text-muted-foreground leading-relaxed mb-6">
-              With decades of combined experience in real estate, construction, and infrastructure 
-              development, our team brings unmatched expertise to every project. We take pride in 
-              delivering quality that exceeds expectations, maintaining transparency in all dealings, 
-              and fostering lasting relationships with our clients, partners, and communities.
+              With decades of combined experience in real estate, construction, and infrastructure development, our team delivers unmatched expertise to every project. We are committed to superior quality, full transparency, and professional integrity, while building lasting relationships with our clients, partners, and the communities we serve across every stage of development.
             </p>
 
             <p className="text-muted-foreground leading-relaxed mb-8">

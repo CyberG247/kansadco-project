@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import heroEstate from "@/assets/hero-estate.jpg";
 import heroConstruction from "@/assets/hero-construction.jpg";
 import { useTranslation } from "react-i18next";
+import { motion, AnimatePresence } from "framer-motion";
 
 const HeroSlider = () => {
   const { t } = useTranslation();
@@ -57,44 +58,59 @@ const HeroSlider = () => {
           {/* Content */}
           <div className="relative h-full container-custom flex items-center">
             <div className="max-w-2xl text-primary-foreground">
-              <span
-                className={`inline-block text-accent font-medium mb-4 ${
-                  index === currentSlide ? "animate-fade-up" : ""
-                }`}
-              >
-                {slide.subtitle}
-              </span>
-              <h1
-                className={`font-display text-4xl md:text-5xl lg:text-6xl font-bold mb-6 leading-tight ${
-                  index === currentSlide ? "animate-fade-up animation-delay-200" : ""
-                }`}
-              >
-                {slide.title}
-              </h1>
-              <p
-                className={`text-lg text-primary-foreground/90 mb-8 max-w-xl ${
-                  index === currentSlide ? "animate-fade-up animation-delay-400" : ""
-                }`}
-              >
-                {slide.description}
-              </p>
-              <div
-                className={`flex flex-wrap gap-4 ${
-                  index === currentSlide ? "animate-fade-up animation-delay-600" : ""
-                }`}
-              >
-                <Button asChild size="lg" className="btn-gold">
-                  <Link to="/projects">{t('hero.explore')}</Link>
-                </Button>
-                <Button
-                  asChild
-                  size="lg"
-                  variant="outline"
-                  className="border-2 border-primary-foreground text-primary-foreground bg-transparent hover:bg-primary-foreground hover:text-primary"
-                >
-                  <Link to="/contact">{t('hero.contact')}</Link>
-                </Button>
-              </div>
+              <AnimatePresence mode="wait">
+                {index === currentSlide && (
+                  <motion.div
+                    initial={{ opacity: 0, y: 30 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -20 }}
+                    transition={{ duration: 0.5 }}
+                  >
+                    <motion.span
+                      initial={{ opacity: 0, y: 20 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: 0.3, duration: 0.5 }}
+                      className="inline-block text-accent font-medium mb-4"
+                    >
+                      {slide.subtitle}
+                    </motion.span>
+                    <motion.h1
+                      initial={{ opacity: 0, y: 20 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: 0.4, duration: 0.5 }}
+                      className="font-display text-4xl md:text-5xl lg:text-6xl font-bold mb-6 leading-tight"
+                    >
+                      {slide.title}
+                    </motion.h1>
+                    <motion.p
+                      initial={{ opacity: 0, y: 20 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: 0.5, duration: 0.5 }}
+                      className="text-lg text-primary-foreground/90 mb-8 max-w-xl"
+                    >
+                      {slide.description}
+                    </motion.p>
+                    <motion.div
+                      initial={{ opacity: 0, y: 20 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: 0.6, duration: 0.5 }}
+                      className="flex flex-wrap gap-4"
+                    >
+                      <Button asChild size="lg" className="btn-gold">
+                        <Link to="/projects">{t('hero.explore')}</Link>
+                      </Button>
+                      <Button
+                        asChild
+                        size="lg"
+                        variant="outline"
+                        className="border-2 border-primary-foreground text-primary-foreground bg-transparent hover:bg-primary-foreground hover:text-primary"
+                      >
+                        <Link to="/contact">{t('hero.contact')}</Link>
+                      </Button>
+                    </motion.div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
             </div>
           </div>
         </div>

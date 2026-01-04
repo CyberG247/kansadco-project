@@ -2,6 +2,7 @@ import Layout from "@/components/layout/Layout";
 import { Award, Target, Eye, Users, Building, Calendar } from "lucide-react";
 import ceoPortrait from "@/assets/chairman.jpg";
 import heroEstate from "@/assets/hero-estate.jpg";
+import { ScrollReveal } from "@/components/ui/ScrollReveal";
 
 const About = () => {
   return (
@@ -17,15 +18,17 @@ const About = () => {
         </div>
         <div className="container-custom relative z-10">
           <div className="max-w-3xl">
-            <span className="inline-block text-accent font-medium mb-4">About Us</span>
-            <h1 className="font-display text-4xl md:text-5xl font-bold text-primary-foreground mb-6">
-              Building Nigeria's Future Since Establishment
-            </h1>
-            <p className="text-primary-foreground/90 text-lg">
-              KANSADCO is a multi-sector company operating in real estate, construction, 
-              property development, and paint manufacturing. We are committed to excellence 
-              and delivering world-class projects across Nigeria.
-            </p>
+            <ScrollReveal width="100%">
+              <span className="inline-block text-accent font-medium mb-4">About Us</span>
+              <h1 className="font-display text-4xl md:text-5xl font-bold text-primary-foreground mb-6">
+                Building Nigeria's Future Since Establishment
+              </h1>
+              <p className="text-primary-foreground/90 text-lg">
+                KANSADCO is a multi-sector company operating in real estate, construction, 
+                property development, and paint manufacturing. We are committed to excellence 
+                and delivering world-class projects across Nigeria.
+              </p>
+            </ScrollReveal>
           </div>
         </div>
       </section>
@@ -35,49 +38,55 @@ const About = () => {
         <div className="container-custom">
           <div className="grid lg:grid-cols-2 gap-16 items-center">
             <div>
-              <span className="inline-block text-accent font-medium mb-4">Our Story</span>
-              <h2 className="font-display text-3xl md:text-4xl font-bold text-foreground mb-6">
-                A Legacy of Excellence and Innovation
-              </h2>
-              <p className="text-muted-foreground mb-6 leading-relaxed">
-                KANSADCO was founded with a singular vision: to transform the Nigerian real estate 
-                and construction landscape through quality, innovation, and integrity. From our 
-                humble beginnings, we have grown into a multi-sector powerhouse with operations 
-                spanning real estate, construction, infrastructure development, and paint manufacturing.
-              </p>
-              <p className="text-muted-foreground mb-6 leading-relaxed">
-                Our journey has been marked by landmark projects that have shaped communities and 
-                contributed to national development. From residential estates that provide homes 
-                for thousands of families to infrastructure projects that connect regions, KANSADCO 
-                has consistently delivered excellence.
-              </p>
-              <p className="text-muted-foreground leading-relaxed">
-                Today, with offices in Abuja and Kano, we continue to expand our footprint while 
-                maintaining the core values that have defined our success: quality without compromise, 
-                customer-centricity, and a commitment to Nigeria's development.
-              </p>
+              <ScrollReveal direction="left" width="100%">
+                <span className="inline-block text-accent font-medium mb-4">Our Story</span>
+                <h2 className="font-display text-3xl md:text-4xl font-bold text-foreground mb-6">
+                  A Legacy of Excellence and Innovation
+                </h2>
+                <p className="text-muted-foreground mb-6 leading-relaxed">
+                  KANSADCO was founded with a singular vision: to transform the Nigerian real estate 
+                  and construction landscape through quality, innovation, and integrity. From our 
+                  humble beginnings, we have grown into a multi-sector powerhouse with operations 
+                  spanning real estate, construction, infrastructure development, and paint manufacturing.
+                </p>
+                <p className="text-muted-foreground mb-6 leading-relaxed">
+                  Our journey has been marked by landmark projects that have shaped communities and 
+                  contributed to national development. From residential estates that provide homes 
+                  for thousands of families to infrastructure projects that connect regions, KANSADCO 
+                  has consistently delivered excellence.
+                </p>
+                <p className="text-muted-foreground leading-relaxed">
+                  Today, with offices in Abuja and Kano, we continue to expand our footprint while 
+                  maintaining the core values that have defined our success: quality without compromise, 
+                  customer-centricity, and a commitment to Nigeria's development.
+                </p>
+              </ScrollReveal>
             </div>
             <div className="grid grid-cols-2 gap-4">
-              <div className="bg-accent/10 rounded-lg p-6 text-center">
-                <Building className="h-10 w-10 text-accent mx-auto mb-3" />
-                <p className="font-display text-3xl font-bold text-foreground">500+</p>
-                <p className="text-muted-foreground text-sm">Projects Completed</p>
-              </div>
-              <div className="bg-accent/10 rounded-lg p-6 text-center">
-                <Users className="h-10 w-10 text-accent mx-auto mb-3" />
-                <p className="font-display text-3xl font-bold text-foreground">10K+</p>
-                <p className="text-muted-foreground text-sm">Happy Clients</p>
-              </div>
-              <div className="bg-accent/10 rounded-lg p-6 text-center">
-                <Calendar className="h-10 w-10 text-accent mx-auto mb-3" />
-                <p className="font-display text-3xl font-bold text-foreground">25+</p>
-                <p className="text-muted-foreground text-sm">Years Experience</p>
-              </div>
-              <div className="bg-accent/10 rounded-lg p-6 text-center">
-                <Award className="h-10 w-10 text-accent mx-auto mb-3" />
-                <p className="font-display text-3xl font-bold text-foreground">50+</p>
-                <p className="text-muted-foreground text-sm">Awards Won</p>
-              </div>
+              <ScrollReveal direction="right" width="100%" delay={0.2}>
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="bg-accent/10 rounded-lg p-6 text-center">
+                    <Building className="h-10 w-10 text-accent mx-auto mb-3" />
+                    <p className="font-display text-3xl font-bold text-foreground">500+</p>
+                    <p className="text-muted-foreground text-sm">Projects Completed</p>
+                  </div>
+                  <div className="bg-accent/10 rounded-lg p-6 text-center">
+                    <Users className="h-10 w-10 text-accent mx-auto mb-3" />
+                    <p className="font-display text-3xl font-bold text-foreground">10K+</p>
+                    <p className="text-muted-foreground text-sm">Happy Clients</p>
+                  </div>
+                  <div className="bg-accent/10 rounded-lg p-6 text-center">
+                    <Calendar className="h-10 w-10 text-accent mx-auto mb-3" />
+                    <p className="font-display text-3xl font-bold text-foreground">25+</p>
+                    <p className="text-muted-foreground text-sm">Years Experience</p>
+                  </div>
+                  <div className="bg-accent/10 rounded-lg p-6 text-center">
+                    <Award className="h-10 w-10 text-accent mx-auto mb-3" />
+                    <p className="font-display text-3xl font-bold text-foreground">50+</p>
+                    <p className="text-muted-foreground text-sm">Awards Won</p>
+                  </div>
+                </div>
+              </ScrollReveal>
             </div>
           </div>
         </div>
@@ -87,30 +96,34 @@ const About = () => {
       <section className="section-padding bg-cream">
         <div className="container-custom">
           <div className="grid md:grid-cols-2 gap-8">
-            <div className="bg-card rounded-xl p-8 md:p-12 shadow-lg">
-              <div className="w-14 h-14 bg-accent rounded-lg flex items-center justify-center mb-6">
-                <Target className="h-7 w-7 text-accent-foreground" />
+            <ScrollReveal direction="up" width="100%" delay={0.1}>
+              <div className="bg-card rounded-xl p-8 md:p-12 shadow-lg h-full">
+                <div className="w-14 h-14 bg-accent rounded-lg flex items-center justify-center mb-6">
+                  <Target className="h-7 w-7 text-accent-foreground" />
+                </div>
+                <h3 className="font-display text-2xl font-bold text-foreground mb-4">Our Mission</h3>
+                <p className="text-muted-foreground leading-relaxed">
+                  To deliver world-class real estate, construction, and infrastructure solutions that 
+                  meet international standards while addressing local needs. We are committed to 
+                  creating value for our clients, partners, and communities through innovation, 
+                  quality, and sustainable practices.
+                </p>
               </div>
-              <h3 className="font-display text-2xl font-bold text-foreground mb-4">Our Mission</h3>
-              <p className="text-muted-foreground leading-relaxed">
-                To deliver world-class real estate, construction, and infrastructure solutions that 
-                meet international standards while addressing local needs. We are committed to 
-                creating value for our clients, partners, and communities through innovation, 
-                quality, and sustainable practices.
-              </p>
-            </div>
-            <div className="bg-card rounded-xl p-8 md:p-12 shadow-lg">
-              <div className="w-14 h-14 bg-accent rounded-lg flex items-center justify-center mb-6">
-                <Eye className="h-7 w-7 text-accent-foreground" />
+            </ScrollReveal>
+            <ScrollReveal direction="up" width="100%" delay={0.2}>
+              <div className="bg-card rounded-xl p-8 md:p-12 shadow-lg h-full">
+                <div className="w-14 h-14 bg-accent rounded-lg flex items-center justify-center mb-6">
+                  <Eye className="h-7 w-7 text-accent-foreground" />
+                </div>
+                <h3 className="font-display text-2xl font-bold text-foreground mb-4">Our Vision</h3>
+                <p className="text-muted-foreground leading-relaxed">
+                  To be Nigeria's most trusted and preferred partner in real estate, construction, 
+                  and property development. We aspire to be recognized as a beacon of excellence, 
+                  setting industry standards and contributing significantly to Nigeria's infrastructural 
+                  development and economic growth.
+                </p>
               </div>
-              <h3 className="font-display text-2xl font-bold text-foreground mb-4">Our Vision</h3>
-              <p className="text-muted-foreground leading-relaxed">
-                To be Nigeria's most trusted and preferred partner in real estate, construction, 
-                and property development. We aspire to be recognized as a beacon of excellence, 
-                setting industry standards and contributing significantly to Nigeria's infrastructural 
-                development and economic growth.
-              </p>
-            </div>
+            </ScrollReveal>
           </div>
         </div>
       </section>
@@ -120,41 +133,45 @@ const About = () => {
         <div className="container-custom">
           <div className="grid lg:grid-cols-2 gap-12 items-center">
             <div className="order-2 lg:order-1">
-              <span className="inline-block text-accent font-medium mb-4">Leadership</span>
-              <h2 className="font-display text-3xl md:text-4xl font-bold text-foreground mb-6">
-                Meet Our Founder & CEO
-              </h2>
-              <h3 className="font-display text-xl font-semibold text-foreground mb-2">
-                Arc. Yunusa Hassan Ibrahim
-              </h3>
-              <p className="text-accent font-medium mb-6">Chairman/CEO</p>
-              
-              <p className="text-muted-foreground mb-4 leading-relaxed">
-                Arc. Yunusa Hassan Ibrahim is a visionary leader with over two decades of experience 
-                in the construction and real estate industry. A graduate of Architecture from 
-                Ahmadu Bello University, Zaria, he has led KANSADCO from a small construction firm 
-                to a diversified conglomerate with operations across multiple sectors.
-              </p>
-              <p className="text-muted-foreground mb-4 leading-relaxed">
-                Under his leadership, KANSADCO has completed over 500 projects, including major 
-                infrastructure works for federal and state governments, residential estates housing 
-                thousands of families, and commercial developments that have transformed urban landscapes.
-              </p>
-              <p className="text-muted-foreground leading-relaxed">
-                Arc. Ibrahim is a Fellow of the Nigerian Institute of Architects (FNIA) and serves on 
-                several industry boards. His commitment to excellence, integrity, and national 
-                development continues to drive KANSADCO's growth and impact.
-              </p>
+              <ScrollReveal direction="right" width="100%">
+                <span className="inline-block text-accent font-medium mb-4">Leadership</span>
+                <h2 className="font-display text-3xl md:text-4xl font-bold text-foreground mb-6">
+                  Meet Our Founder & CEO
+                </h2>
+                <h3 className="font-display text-xl font-semibold text-foreground mb-2">
+                  Arc. Yunusa Hassan Ibrahim
+                </h3>
+                <p className="text-accent font-medium mb-6">Chairman/CEO</p>
+                
+                <p className="text-muted-foreground mb-4 leading-relaxed">
+                  Arc. Yunusa Hassan Ibrahim is a visionary leader with over two decades of experience 
+                  in the construction and real estate industry. A graduate of Architecture from 
+                  Ahmadu Bello University, Zaria, he has led KANSADCO from a small construction firm 
+                  to a diversified conglomerate with operations across multiple sectors.
+                </p>
+                <p className="text-muted-foreground mb-4 leading-relaxed">
+                  Under his leadership, KANSADCO has completed over 500 projects, including major 
+                  infrastructure works for federal and state governments, residential estates housing 
+                  thousands of families, and commercial developments that have transformed urban landscapes.
+                </p>
+                <p className="text-muted-foreground leading-relaxed">
+                  Arc. Ibrahim is a Fellow of the Nigerian Institute of Architects (FNIA) and serves on 
+                  several industry boards. His commitment to excellence, integrity, and national 
+                  development continues to drive KANSADCO's growth and impact.
+                </p>
+              </ScrollReveal>
             </div>
             <div className="order-1 lg:order-2">
-              <div className="relative">
-                <img
-                  src={ceoPortrait}
-                  alt="Arc. Yunusa Hassan Ibrahim - CEO of KANSADCO"
-                  className="w-full max-w-md mx-auto rounded-lg shadow-xl"
-                />
-                <div className="absolute -bottom-4 -right-4 w-48 h-48 bg-accent/20 rounded-lg -z-10 hidden lg:block" />
-              </div>
+              <ScrollReveal direction="left" width="100%">
+                <div className="relative">
+                  <img
+                    src={ceoPortrait}
+                    alt="Arc. Yunusa Hassan Ibrahim - CEO of KANSADCO"
+                    className="w-full max-w-md mx-auto rounded-lg shadow-xl"
+                  />
+                  <div className="absolute -bottom-4 -right-4 w-48 h-48 bg-accent/20 rounded-lg -z-10 hidden lg:block" />
+                </div>
+              </ScrollReveal>
             </div>
           </div>
         </div>

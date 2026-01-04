@@ -7,7 +7,7 @@ import { Calendar, Clock, MapPin, CheckCircle } from "lucide-react";
 import logoTransparent from "@/assets/logo-transparent.png";
 import {
   Dialog,
-  DialogContent,
+  DialogContent, 
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
@@ -254,11 +254,11 @@ const BookTour = () => {
           </DialogHeader>
           
           <div className="text-center py-4 px-2 space-y-4">
-            <p className="text-foreground/80 leading-relaxed">
+            <p className="text-foreground/80 leading-relaxed text-lg">
               Your Book a Tour Request has been received and it is being reviewed by our Team.
             </p>
-            <p className="text-muted-foreground text-sm italic">
-              Kindly exercise patience while we process your request. We will contact you shortly to confirm your appointment.
+            <p className="text-muted-foreground text-base italic">
+              Kindly exercise patience while we process your request.
             </p>
           </div>
 

@@ -1,5 +1,6 @@
 import { Award, Users, Building, Calendar } from "lucide-react";
 import { useEffect, useState, useRef } from "react";
+import { ScrollReveal } from "@/components/ui/ScrollReveal";
 
 const useCounter = (end: number, duration: number = 2000) => {
   const [count, setCount] = useState(0);
@@ -97,7 +98,9 @@ const StatsSection = () => {
       <div className="container-custom relative z-10">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 md:gap-12">
           {stats.map((stat, index) => (
-            <StatItem key={stat.label} stat={stat} index={index} />
+            <ScrollReveal key={stat.label} delay={index * 0.1} width="100%">
+              <StatItem stat={stat} index={index} />
+            </ScrollReveal>
           ))}
         </div>
       </div>
