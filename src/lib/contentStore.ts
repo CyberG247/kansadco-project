@@ -1,4 +1,4 @@
-import { createContext, createElement, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from "react";
+import { createContext, createElement, useCallback, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import project1 from "@/assets/project-1.jpg";
 import project2 from "@/assets/project-2.jpg";
 import project3 from "@/assets/project-3.jpg";
@@ -288,8 +288,11 @@ export const ContentProvider = ({ children }: { children: ReactNode }) => {
   const [loading, setLoading] = useState(true);
   const [backendStatus, setBackendStatus] = useState<BackendStatus>("loading");
   const [backendError, setBackendError] = useState<string | null>(null);
+  const refreshIdRef = useRef(0);
 
   const refreshContent = useCallback(async () => {
+    const refreshId = ++refreshIdRef.current;
+    const isCurrentRefresh = () => refreshId === refreshIdRef.current;
     setLoading(true);
     const projectRequest = supabase.from("projects").select("*").order("updated_at", { ascending: false });
     const galleryRequest = supabase.from("gallery_assets").select("*").order("created_at", { ascending: false });
@@ -308,21 +311,33 @@ export const ContentProvider = ({ children }: { children: ReactNode }) => {
       let [projectsResult, galleryResult, settingsResult, enquiriesResult, repliesResult, activitiesResult] = await Promise.all([
         projectRequest, galleryRequest, settingsRequest, enquiryRequest, replyRequest, activityRequest,
       ]);
+      if (!isCurrentRefresh()) return;
       const firstError = [projectsResult.error, galleryResult.error, settingsResult.error, enquiriesResult.error, repliesResult.error, activitiesResult.error].find(Boolean);
       if (firstError) throw firstError;
 
       if (isAuthorized && settingsResult.data && !settingsResult.data.content_initialized) {
+        // Keep the live inbox usable even if one-time portfolio initialization
+        // encounters an unrelated media or settings failure.
+        setState((current) => ({
+          ...current,
+          enquiries: (enquiriesResult.data ?? []).map(mapEnquiry),
+          enquiryReplies: (repliesResult.data ?? []).map(mapEnquiryReply),
+          activities: (activitiesResult.data ?? []).map((row) => ({ id: row.id, message: row.message, type: row.type, read: row.read, createdAt: row.created_at })),
+        }));
         const legacy = getLegacyState();
         if (!projectsResult.data?.length) {
           const seededProjects = await Promise.all(legacy.projects.map(async ({ id, updatedAt: _updatedAt, ...project }) => projectRow({ ...project, image: await storeSeedMedia(project.image, id) })));
+          if (!isCurrentRefresh()) return;
           const { error } = await supabase.from("projects").insert(seededProjects);
           if (error) throw error;
         }
         if (!galleryResult.data?.length) {
           const seededGallery = await Promise.all(legacy.gallery.map(async ({ id, createdAt: _createdAt, ...asset }) => galleryRow({ ...asset, src: await storeSeedMedia(asset.src, id) })));
+          if (!isCurrentRefresh()) return;
           const { error } = await supabase.from("gallery_assets").insert(seededGallery);
           if (error) throw error;
         }
+        if (!isCurrentRefresh()) return;
         const { error: initializedError } = await supabase.from("site_settings").update({ ...settingsRow(legacy.settings), content_initialized: true }).eq("id", 1);
         if (initializedError) throw initializedError;
         window.localStorage.removeItem("kansadco-content-v1");
@@ -335,6 +350,7 @@ export const ContentProvider = ({ children }: { children: ReactNode }) => {
           supabase.from("enquiry_replies").select("*").order("created_at", { ascending: false }),
           supabase.from("activities").select("*").order("created_at", { ascending: false }).limit(100),
         ]);
+        if (!isCurrentRefresh()) return;
         const retryError = [projectsResult.error, galleryResult.error, settingsResult.error, enquiriesResult.error, repliesResult.error, activitiesResult.error].find(Boolean);
         if (retryError) throw retryError;
       }
@@ -351,13 +367,20 @@ export const ContentProvider = ({ children }: { children: ReactNode }) => {
       setBackendStatus("connected");
       setBackendError(null);
     } catch (unknownError) {
+      if (!isCurrentRefresh()) return;
       const error = unknownError as { code?: string; message: string };
       const message = friendlyDatabaseError(error);
       setBackendStatus(error.code === "PGRST205" || error.message?.includes("schema cache") ? "unconfigured" : "error");
       setBackendError(message);
-      setState((current) => ({ ...cloneDefaults(), settings: current.settings }));
+      setState((current) => ({
+        ...cloneDefaults(),
+        settings: current.settings,
+        enquiries: isAuthorized ? current.enquiries : [],
+        enquiryReplies: isAuthorized ? current.enquiryReplies : [],
+        activities: isAuthorized ? current.activities : [],
+      }));
     } finally {
-      setLoading(false);
+      if (isCurrentRefresh()) setLoading(false);
     }
   }, [isAuthorized]);
 
