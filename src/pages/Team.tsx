@@ -1,140 +1,52 @@
 import Layout from "@/components/layout/Layout";
-import { Linkedin, Mail, User } from "lucide-react";
-import chairmanImg from "@/assets/chairman.jpg";
+import PageHero from "@/components/layout/PageHero";
+import { ArrowUpRight, Mail } from "lucide-react";
+import chairman from "@/assets/chairman.webp";
 
-const teamMembers = [
-  {
-    name: "Arc. Yunusa Hassan Ibrahim",
-    position: "Chairman/CEO",
-    image: chairmanImg,
-    bio: "Visionary leader with 25+ years of experience in construction and real estate.",
-  },
-  {
-    name: "Arc. Fatima Ibrahim",
-    position: "Chief Architect",
-    bio: "Award-winning architect specializing in sustainable residential design.",
-  },
-  {
-    name: "Engr. Chukwuma Okafor",
-    position: "Director of Construction",
-    bio: "Civil engineer with expertise in large-scale infrastructure projects.",
-  },
-  {
-    name: "Hajia Aisha Mohammed",
-    position: "Director of Real Estate",
-    bio: "Real estate expert with extensive knowledge of Nigerian property market.",
-  },
-  {
-    name: "Engr. David Adeleke",
-    position: "Chief Engineer",
-    bio: "Structural engineer with experience on major government projects.",
-  },
-  {
-    name: "Mrs. Grace Okonkwo",
-    position: "Finance Director",
-    bio: "Chartered accountant with expertise in real estate finance.",
-  },
-  {
-    name: "Mallam Yusuf Garba",
-    position: "Head of Operations",
-    bio: "Operations expert ensuring seamless project delivery.",
-  },
-  {
-    name: "Engr. Amaka Nwosu",
-    position: "Project Manager",
-    bio: "PMP-certified project manager with focus on quality delivery.",
-  },
+const people = [
+  ["Arc. Fatima Ibrahim", "Chief Architect", "Architecture · Design"],
+  ["Engr. Chukwuma Okafor", "Director of Construction", "Delivery · Civil works"],
+  ["Hajia Aisha Mohammed", "Director of Real Estate", "Investment · Property"],
+  ["Engr. David Adeleke", "Chief Engineer", "Structures · Infrastructure"],
+  ["Mrs. Grace Okonkwo", "Finance Director", "Finance · Governance"],
+  ["Mallam Yusuf Garba", "Head of Operations", "Operations · Quality"],
+  ["Engr. Amaka Nwosu", "Project Manager", "Projects · Coordination"],
 ];
 
-const Team = () => {
-  return (
-    <Layout>
-      {/* Hero Section */}
-      <section className="py-24 bg-primary">
-        <div className="container-custom">
-          <div className="max-w-3xl">
-            <span className="inline-block text-accent font-medium mb-4">Our Team</span>
-            <h1 className="font-display text-4xl md:text-5xl font-bold text-primary-foreground mb-6">
-              Meet the Experts Behind Our Success
-            </h1>
-            <p className="text-primary-foreground/90 text-lg">
-              Our team comprises experienced professionals in engineering, architecture, 
-              real estate, and project management, all committed to delivering excellence.
-            </p>
+const Team = () => (
+  <Layout>
+    <PageHero eyebrow="Our people" title={<>Expertise with<br /><em className="text-accent">shared intent.</em></>} description="Architects, engineers, property specialists and operators working as one team around the outcomes that matter." index="K / 04" />
+
+    <section className="section-padding bg-background">
+      <div className="container-custom grid gap-14 lg:grid-cols-12">
+        <div className="lg:col-span-5">
+          <div className="image-reveal aspect-[4/5] bg-muted"><img src={chairman} alt="Arc. Yunusa Hassan Ibrahim" className="h-full w-full object-cover object-top" /></div>
+        </div>
+        <div className="flex flex-col justify-between lg:col-span-6 lg:col-start-7 lg:py-8">
+          <div><p className="eyebrow mb-8 text-accent">Leadership</p><h2 className="section-title">Vision, made <em className="text-accent">accountable.</em></h2></div>
+          <div className="mt-12 border-t border-border pt-7">
+            <h3 className="text-3xl">Arc. Yunusa Hassan Ibrahim</h3><p className="mt-2 text-[10px] uppercase tracking-[.17em] text-accent">Chairman / Chief Executive</p>
+            <p className="mt-7 max-w-2xl text-sm leading-7 text-muted-foreground">With more than two decades across architecture, construction and property, he has shaped KANSADCO into an integrated practice defined by clarity, integrity and a commitment to Nigeria's built future.</p>
           </div>
         </div>
-      </section>
+      </div>
+    </section>
 
-      {/* Team Grid */}
-      <section className="section-padding bg-background">
-        <div className="container-custom">
-          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
-            {teamMembers.map((member) => (
-              <div
-                key={member.name}
-                className="group bg-card rounded-xl overflow-hidden shadow-lg card-hover"
-              >
-                <div className="aspect-[4/5] overflow-hidden bg-muted flex items-center justify-center">
-                  {member.image ? (
-                    <img
-                      src={member.image}
-                      alt={member.name}
-                      className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
-                    />
-                  ) : (
-                    <User className="w-20 h-20 text-muted-foreground/30" />
-                  )}
-                </div>
-                <div className="p-6">
-                  <h3 className="font-display text-lg font-semibold text-foreground mb-1">
-                    {member.name}
-                  </h3>
-                  <p className="text-accent font-medium text-sm mb-3">{member.position}</p>
-                  <p className="text-muted-foreground text-sm mb-4">{member.bio}</p>
-                  <div className="flex gap-3">
-                    <a
-                      href="#"
-                      className="w-8 h-8 bg-secondary rounded-full flex items-center justify-center hover:bg-accent hover:text-accent-foreground transition-colors"
-                      aria-label={`${member.name} LinkedIn`}
-                    >
-                      <Linkedin className="h-4 w-4" />
-                    </a>
-                    <a
-                      href="#"
-                      className="w-8 h-8 bg-secondary rounded-full flex items-center justify-center hover:bg-accent hover:text-accent-foreground transition-colors"
-                      aria-label={`Email ${member.name}`}
-                    >
-                      <Mail className="h-4 w-4" />
-                    </a>
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
+    <section className="bg-platinum py-24 md:mx-4 md:my-4 md:rounded-[2.5rem] md:py-32">
+      <div className="container-custom">
+        <div className="mb-14 grid gap-7 md:grid-cols-2 md:items-end"><div><p className="eyebrow mb-7 text-accent">The wider team</p><h2 className="section-title">Different disciplines.<br />One standard.</h2></div><p className="max-w-sm text-sm leading-7 text-muted-foreground md:justify-self-end">The best projects are collaborative. Our leaders connect specialist knowledge to decisive, coordinated delivery.</p></div>
+        <div className="border-t border-border">
+          {people.map(([name, role, discipline], index) => (
+            <div key={name} className="group grid grid-cols-[32px_1fr_auto] gap-x-3 gap-y-3 border-b border-border py-7 transition-colors duration-300 md:grid-cols-[70px_1.2fr_1fr_auto] md:items-center md:rounded-[1.5rem] md:px-4 md:hover:bg-background/55">
+              <span className="font-mono text-[9px] tracking-[.18em] text-muted-foreground">0{index + 2}</span><h3 className="text-2xl md:text-3xl">{name}</h3><div className="col-start-2 md:col-auto"><p className="text-xs font-medium">{role}</p><p className="mt-1 font-mono text-[8px] uppercase tracking-[.15em] text-muted-foreground">{discipline}</p></div><a href="mailto:kansadco@gmail.com" aria-label={`Email ${name}`} className="col-start-3 row-start-1 grid h-10 w-10 place-items-center rounded-full border border-border transition-colors hover:bg-foreground hover:text-background md:col-auto md:row-auto"><Mail className="h-3.5 w-3.5" /></a>
+            </div>
+          ))}
         </div>
-      </section>
+      </div>
+    </section>
 
-      {/* Join Team CTA */}
-      <section className="py-20 bg-cream">
-        <div className="container-custom text-center">
-          <h2 className="font-display text-3xl md:text-4xl font-bold text-foreground mb-4">
-            Join Our Team
-          </h2>
-          <p className="text-muted-foreground mb-8 max-w-2xl mx-auto">
-            We're always looking for talented individuals to join our growing team. 
-            If you're passionate about construction, real estate, or making a difference, 
-            we'd love to hear from you.
-          </p>
-          <a
-            href="/contact"
-            className="inline-flex items-center gap-2 bg-accent text-accent-foreground px-8 py-4 rounded-lg font-medium hover:bg-gold-dark transition-colors shadow-gold"
-          >
-            View Open Positions
-          </a>
-        </div>
-      </section>
-    </Layout>
-  );
-};
+    <section className="border-t border-white/10 bg-slate-dark py-20 text-white md:mx-4 md:my-4 md:rounded-[2.5rem]"><div className="container-custom flex flex-col gap-8 md:flex-row md:items-end md:justify-between"><div><p className="eyebrow mb-6 text-white/55">Careers</p><h2 className="section-title">Do work that <em className="text-white/55">matters.</em></h2></div><a href="mailto:kansadco@gmail.com?subject=Career enquiry" className="group flex items-center gap-3 border-b border-white/40 pb-3 font-mono text-[9px] font-semibold uppercase tracking-[.17em] transition-colors hover:border-white">Introduce yourself <ArrowUpRight className="h-4 w-4 transition-transform group-hover:translate-x-1 group-hover:-translate-y-1" /></a></div></section>
+  </Layout>
+);
 
 export default Team;

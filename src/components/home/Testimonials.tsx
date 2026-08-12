@@ -1,117 +1,38 @@
-import { useState, useEffect } from "react";
-import { ChevronLeft, ChevronRight, Quote, User } from "lucide-react";
+import { useState } from "react";
+import { ArrowLeft, ArrowRight } from "lucide-react";
+import { AnimatePresence, motion } from "framer-motion";
 
 const testimonials = [
-  {
-    name: "Abdullahi Bala Musa",
-    position: "Managing Director, InnovaTech Consultancy Ltd",
-    content:
-      "KANSADCO's attention to detail and commitment to quality is unmatched. They delivered our office complex ahead of schedule and within budget. Truly a world-class construction company.",
-  },
-  {
-    name: "Alhaji Ibrahim Suleiman",
-    position: "Property Investor, Kano",
-    content:
-      "I've worked with KANSADCO on multiple real estate projects. Their professionalism and integrity set them apart. My investments with them have exceeded all expectations.",
-  },
-  {
-    name: "Dr. Amina Bello",
-    position: "Homeowner, Rahmaniyya Estate",
-    content:
-      "Moving into our KANSADCO home was a dream come true. The quality of construction, the beautiful finishing, and the serene environment - everything exceeded our expectations.",
-  },
-  {
-    name: "Engr. Chukwudi Okonkwo",
-    position: "Director, Federal Ministry of Works",
-    content:
-      "KANSADCO has consistently demonstrated capability in executing major infrastructure projects. Their bridges and roads are built to last, meeting international standards.",
-  },
+  { quote: "KANSADCO brought unusual discipline to a complex brief. Every decision felt considered, every milestone was visible, and the finished place exceeded the promise.", name: "Abdullahi Bala Musa", role: "Managing Director, InnovaTech Consultancy" },
+  { quote: "They understand that property is both a financial asset and a lived experience. That balance is why we continue to invest with them.", name: "Ibrahim Suleiman", role: "Property Investor, Kano" },
+  { quote: "The quality is evident in the details you touch every day. Our home feels calm, resolved, and built for the long term.", name: "Dr. Amina Bello", role: "Resident, Rahmaniyya Estate" },
 ];
 
 const Testimonials = () => {
-  const [currentIndex, setCurrentIndex] = useState(0);
-
-  const next = () => setCurrentIndex((prev) => (prev + 1) % testimonials.length);
-  const prev = () => setCurrentIndex((prev) => (prev - 1 + testimonials.length) % testimonials.length);
-
-  useEffect(() => {
-    const timer = setInterval(() => {
-      setCurrentIndex((prev) => (prev + 1) % testimonials.length);
-    }, 3000);
-    return () => clearInterval(timer);
-  }, []);
-
+  const [index, setIndex] = useState(0);
+  const move = (by: number) => setIndex((index + by + testimonials.length) % testimonials.length);
   return (
-    <section className="section-padding bg-cream">
+    <section className="bg-platinum py-24 md:mx-4 md:my-4 md:rounded-[2.5rem] md:py-32">
       <div className="container-custom">
-        {/* Section Header */}
-        <div className="text-center max-w-3xl mx-auto mb-16">
-          <span className="inline-block text-accent font-medium mb-4">Testimonials</span>
-          <h2 className="font-display text-3xl md:text-4xl font-bold text-foreground">
-            What Our Clients Say
-          </h2>
-        </div>
-
-        {/* Testimonial Slider */}
-        <div className="relative max-w-4xl mx-auto">
-          <div className="overflow-hidden">
-            <div
-              className="flex transition-transform duration-500 ease-in-out"
-              style={{ transform: `translateX(-${currentIndex * 100}%)` }}
-            >
-              {testimonials.map((testimonial, index) => (
-                <div
-                  key={index}
-                  className="w-full flex-shrink-0 px-4"
-                >
-                  <div className="bg-card rounded-xl p-8 md:p-12 shadow-lg text-center">
-                    <Quote className="h-12 w-12 text-accent/30 mx-auto mb-6" />
-                    <p className="text-lg md:text-xl text-foreground leading-relaxed mb-8 italic">
-                      "{testimonial.content}"
-                    </p>
-                    <div className="w-16 h-16 rounded-full mx-auto mb-4 bg-muted flex items-center justify-center">
-                      <User className="h-8 w-8 text-muted-foreground" />
-                    </div>
-                    <p className="font-display font-semibold text-foreground">
-                      {testimonial.name}
-                    </p>
-                    <p className="text-muted-foreground text-sm">{testimonial.position}</p>
-                  </div>
-                </div>
-              ))}
-            </div>
+        <div className="grid gap-12 lg:grid-cols-[240px_1fr]">
+          <div>
+            <p className="eyebrow text-accent">Client perspective</p>
+            <p className="mt-8 text-xs leading-6 text-muted-foreground">Relationships measured in repeat partnerships, not transactions.</p>
           </div>
-
-          {/* Navigation */}
-          <div className="flex justify-center items-center gap-4 mt-8">
-            <button
-              onClick={prev}
-              className="p-3 bg-primary rounded-full text-primary-foreground hover:bg-accent transition-colors"
-              aria-label="Previous testimonial"
-            >
-              <ChevronLeft className="h-5 w-5" />
-            </button>
-            <div className="flex gap-2">
-              {testimonials.map((_, index) => (
-                <button
-                  key={index}
-                  onClick={() => setCurrentIndex(index)}
-                  className={`h-2 rounded-full transition-all duration-300 ${
-                    index === currentIndex
-                      ? "w-8 bg-accent"
-                      : "w-2 bg-muted-foreground/30 hover:bg-muted-foreground"
-                  }`}
-                  aria-label={`Go to testimonial ${index + 1}`}
-                />
-              ))}
+          <div>
+            <AnimatePresence mode="wait">
+              <motion.blockquote key={index} initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -12 }} transition={{ duration: .5 }}>
+                <p className="max-w-5xl font-display text-[clamp(2.2rem,4.5vw,5rem)] leading-[1.02] tracking-[-0.03em]">“{testimonials[index].quote}”</p>
+                <footer className="mt-10 border-l border-accent pl-5">
+                  <p className="text-sm font-medium">{testimonials[index].name}</p>
+                  <p className="mt-1 font-mono text-[9px] uppercase tracking-[0.15em] text-muted-foreground">{testimonials[index].role}</p>
+                </footer>
+              </motion.blockquote>
+            </AnimatePresence>
+            <div className="mt-12 flex items-center justify-between border-t border-border pt-5">
+              <span className="font-mono text-[9px] tracking-[0.18em] text-muted-foreground">0{index + 1} / 0{testimonials.length}</span>
+              <div className="flex gap-2"><button onClick={() => move(-1)} aria-label="Previous testimonial" className="grid h-11 w-11 place-items-center rounded-full border border-border transition-all duration-300 hover:-translate-x-0.5 hover:bg-foreground hover:text-background"><ArrowLeft className="h-4 w-4" /></button><button onClick={() => move(1)} aria-label="Next testimonial" className="grid h-11 w-11 place-items-center rounded-full border border-border transition-all duration-300 hover:translate-x-0.5 hover:bg-foreground hover:text-background"><ArrowRight className="h-4 w-4" /></button></div>
             </div>
-            <button
-              onClick={next}
-              className="p-3 bg-primary rounded-full text-primary-foreground hover:bg-accent transition-colors"
-              aria-label="Next testimonial"
-            >
-              <ChevronRight className="h-5 w-5" />
-            </button>
           </div>
         </div>
       </div>

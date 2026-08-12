@@ -1,277 +1,41 @@
-import Layout from "@/components/layout/Layout";
 import { useState } from "react";
-import { Button } from "@/components/ui/button";
+import Layout from "@/components/layout/Layout";
+import PageHero from "@/components/layout/PageHero";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { Calendar, Clock, MapPin, CheckCircle } from "lucide-react";
-import logoTransparent from "@/assets/logo-transparent.png";
-import {
-  Dialog,
-  DialogContent, 
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
+import { ArrowUpRight, Check } from "lucide-react";
+import heroEstate from "@/assets/hero-estate.jpg";
+import logo from "@/assets/logo-transparent.png";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { useContent } from "@/lib/contentStore";
 
 const BookTour = () => {
-  const [showModal, setShowModal] = useState(false);
-  const [formData, setFormData] = useState({
-    name: "",
-    email: "",
-    phone: "",
-    date: "",
-    time: "",
-    interest: "residential",
-    message: "",
-  });
-
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    setShowModal(true);
-    // In a real app, you would send the data to a backend here
-  };
-
-  const handleChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>
-  ) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
-  };
-
+  const { addEnquiry } = useContent();
+  const [confirmed, setConfirmed] = useState(false);
+  const [form, setForm] = useState({ name: "", email: "", phone: "", date: "", time: "", interest: "residential", message: "" });
+  const change = (event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => setForm({ ...form, [event.target.name]: event.target.value });
   return (
     <Layout>
-      {/* Hero Section */}
-      <section className="py-24 bg-primary">
-        <div className="container-custom">
-          <div className="max-w-3xl">
-            <span className="inline-block text-accent font-medium mb-4">Book a Tour</span>
-            <h1 className="font-display text-4xl md:text-5xl font-bold text-primary-foreground mb-6">
-              Experience Our Properties Firsthand
-            </h1>
-            <p className="text-primary-foreground/90 text-lg">
-              Schedule a personalized tour of our ongoing projects and completed developments.
-              Our team will guide you through the details and answer all your questions.
-            </p>
-          </div>
-        </div>
-      </section>
+      <PageHero eyebrow="Private viewings" title={<>See the difference<br /><em className="text-accent">for yourself.</em></>} description="Arrange a focused tour of a KANSADCO property with a team member who can answer the questions that matter to you." image={heroEstate} imageAlt="KANSADCO residence" index="K / VISIT" />
 
-      {/* Booking Form Section */}
       <section className="section-padding bg-background">
-        <div className="container-custom">
-          <div className="grid lg:grid-cols-2 gap-12 items-start">
-            
-            {/* Form */}
-            <div className="bg-card rounded-xl p-8 shadow-lg border border-border">
-              <h2 className="font-display text-2xl font-bold text-foreground mb-6">
-                Schedule Your Visit
-              </h2>
-              <form onSubmit={handleSubmit} className="space-y-6">
-                <div className="grid md:grid-cols-2 gap-6">
-                  <div>
-                    <label className="block text-sm font-medium text-foreground mb-2">
-                      Full Name *
-                    </label>
-                    <Input
-                      name="name"
-                      value={formData.name}
-                      onChange={handleChange}
-                      placeholder="Your full name"
-                      required
-                      className="w-full"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-foreground mb-2">
-                      Email Address *
-                    </label>
-                    <Input
-                      type="email"
-                      name="email"
-                      value={formData.email}
-                      onChange={handleChange}
-                      placeholder="your@email.com"
-                      required
-                      className="w-full"
-                    />
-                  </div>
-                </div>
+        <div className="container-custom grid gap-16 lg:grid-cols-12">
+          <aside className="lg:col-span-4"><p className="eyebrow mb-9 text-accent">What to expect</p><h2 className="text-4xl md:text-5xl">A visit tailored to your priorities.</h2><div className="mt-10 border-t border-border">{["A dedicated property specialist", "A closer look at materials and finishes", "Clear answers on availability and acquisition", "No-pressure, considered guidance"].map((item)=><p key={item} className="flex gap-3 border-b border-border py-4 text-sm text-muted-foreground"><Check className="h-4 w-4 shrink-0 text-accent" />{item}</p>)}</div><div className="mt-10"><p className="text-[9px] uppercase tracking-[.17em] text-accent">Viewing hours</p><p className="mt-3 text-sm leading-7 text-muted-foreground">Monday–Saturday<br />09:00–17:00</p></div></aside>
 
-                <div className="grid md:grid-cols-2 gap-6">
-                  <div>
-                    <label className="block text-sm font-medium text-foreground mb-2">
-                      Phone Number *
-                    </label>
-                    <Input
-                      type="tel"
-                      name="phone"
-                      value={formData.phone}
-                      onChange={handleChange}
-                      placeholder="+234..."
-                      required
-                      className="w-full"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-foreground mb-2">
-                      Area of Interest
-                    </label>
-                    <select
-                      name="interest"
-                      value={formData.interest}
-                      onChange={handleChange}
-                      className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-                    >
-                      <option value="residential">Residential Properties</option>
-                      <option value="commercial">Commercial Properties</option>
-                      <option value="investment">Investment Opportunities</option>
-                      <option value="land">Land Acquisition</option>
-                    </select>
-                  </div>
-                </div>
-
-                <div className="grid md:grid-cols-2 gap-6">
-                  <div>
-                    <label className="block text-sm font-medium text-foreground mb-2">
-                      Preferred Date *
-                    </label>
-                    <div className="relative">
-                      <Input
-                        type="date"
-                        name="date"
-                        value={formData.date}
-                        onChange={handleChange}
-                        required
-                        className="w-full"
-                      />
-                    </div>
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-foreground mb-2">
-                      Preferred Time *
-                    </label>
-                    <div className="relative">
-                      <Input
-                        type="time"
-                        name="time"
-                        value={formData.time}
-                        onChange={handleChange}
-                        required
-                        className="w-full"
-                      />
-                    </div>
-                  </div>
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-foreground mb-2">
-                    Additional Message (Optional)
-                  </label>
-                  <Textarea
-                    name="message"
-                    value={formData.message}
-                    onChange={handleChange}
-                    placeholder="Tell us more about what you're looking for..."
-                    className="min-h-[120px]"
-                  />
-                </div>
-
-                <Button type="submit" className="w-full btn-gold text-lg py-6">
-                  Confirm Booking
-                </Button>
-              </form>
-            </div>
-
-            {/* Info Box */}
-            <div className="space-y-8">
-              <div className="bg-primary/5 p-8 rounded-xl border border-primary/10">
-                <h3 className="font-display text-xl font-bold text-primary mb-4">
-                  Why Tour With Us?
-                </h3>
-                <ul className="space-y-4">
-                  <li className="flex items-start gap-3">
-                    <CheckCircle className="w-6 h-6 text-accent shrink-0 mt-0.5" />
-                    <p className="text-foreground/80">
-                      <span className="font-semibold text-foreground">Expert Guidance:</span> Our
-                      agents are knowledgeable about every detail of construction and design.
-                    </p>
-                  </li>
-                  <li className="flex items-start gap-3">
-                    <CheckCircle className="w-6 h-6 text-accent shrink-0 mt-0.5" />
-                    <p className="text-foreground/80">
-                      <span className="font-semibold text-foreground">See Quality Firsthand:</span>{" "}
-                      Inspect the premium materials and finishings we use in all our projects.
-                    </p>
-                  </li>
-                  <li className="flex items-start gap-3">
-                    <CheckCircle className="w-6 h-6 text-accent shrink-0 mt-0.5" />
-                    <p className="text-foreground/80">
-                      <span className="font-semibold text-foreground">Personalized Experience:</span>{" "}
-                      We tailor the tour to focus on properties that match your specific needs and budget.
-                    </p>
-                  </li>
-                </ul>
-              </div>
-
-              <div className="bg-card p-8 rounded-xl border border-border shadow-sm">
-                <h3 className="font-display text-xl font-bold text-foreground mb-4">
-                  Contact Info
-                </h3>
-                <div className="space-y-4">
-                  <div className="flex items-start gap-4">
-                    <MapPin className="w-5 h-5 text-accent shrink-0 mt-1" />
-                    <p className="text-muted-foreground">
-                      Rahmaniyya Estate 1, Ajose Adeogun Street, Utako 900108, Abuja
-                    </p>
-                  </div>
-                  <div className="flex items-center gap-4">
-                    <Clock className="w-5 h-5 text-accent shrink-0" />
-                    <p className="text-muted-foreground">Mon - Sat: 9:00 AM - 5:00 PM</p>
-                  </div>
-                </div>
-              </div>
-            </div>
-
+          <div className="lg:col-span-7 lg:col-start-6">
+            <p className="mb-10 font-display text-4xl md:text-5xl">Request your private tour.</p>
+            <form onSubmit={(event) => { event.preventDefault(); addEnquiry({ name: form.name, email: form.email, phone: form.phone, subject: `Private viewing · ${form.interest} · ${form.date} ${form.time}`, message: form.message || "Private viewing requested from the website.", source: "Private tour" }); setConfirmed(true); setForm({ name: "", email: "", phone: "", date: "", time: "", interest: "residential", message: "" }); }} className="space-y-6">
+              <div className="grid gap-6 md:grid-cols-2"><label className="text-[10px] uppercase tracking-[.16em]">Full name<Input name="name" value={form.name} onChange={change} placeholder="Your name" required className="premium-field mt-2" /></label><label className="text-[10px] uppercase tracking-[.16em]">Email<Input type="email" name="email" value={form.email} onChange={change} placeholder="name@company.com" required className="premium-field mt-2" /></label></div>
+              <div className="grid gap-6 md:grid-cols-2"><label className="text-[10px] uppercase tracking-[.16em]">Telephone<Input name="phone" value={form.phone} onChange={change} placeholder="+234" required className="premium-field mt-2" /></label><label className="text-[10px] uppercase tracking-[.16em]">Area of interest<select name="interest" value={form.interest} onChange={change} className="premium-field mt-2"><option value="residential">Residential property</option><option value="commercial">Commercial property</option><option value="investment">Investment opportunity</option><option value="land">Land acquisition</option></select></label></div>
+              <div className="grid gap-6 md:grid-cols-2"><label className="text-[10px] uppercase tracking-[.16em]">Preferred date<Input type="date" name="date" value={form.date} onChange={change} required className="premium-field mt-2" /></label><label className="text-[10px] uppercase tracking-[.16em]">Preferred time<Input type="time" name="time" value={form.time} onChange={change} required className="premium-field mt-2" /></label></div>
+              <label className="block text-[10px] uppercase tracking-[.16em]">Anything we should know?<Textarea name="message" value={form.message} onChange={change} placeholder="Tell us what you are looking for" className="premium-field mt-2" /></label>
+              <button type="submit" className="group mt-4 flex h-14 w-full items-center justify-between rounded-full bg-foreground px-6 text-[10px] font-semibold uppercase tracking-[.18em] text-background transition-all duration-300 hover:-translate-y-0.5 hover:bg-accent hover:text-accent-foreground hover:shadow-lg md:w-72">Request a viewing <ArrowUpRight className="h-4 w-4 transition-transform group-hover:translate-x-1 group-hover:-translate-y-1" /></button>
+            </form>
           </div>
         </div>
       </section>
 
-      {/* Success Modal */}
-      <Dialog open={showModal} onOpenChange={setShowModal}>
-        <DialogContent className="sm:max-w-md bg-background border-accent/20">
-          <DialogHeader className="flex flex-col items-center text-center space-y-4 pt-4">
-            <div className="w-24 h-24 mb-2">
-               <img 
-                 src={logoTransparent} 
-                 alt="KANSADCO" 
-                 className="w-full h-full object-contain"
-               />
-            </div>
-            <DialogTitle className="text-2xl font-display font-bold text-primary">
-              Congratulations!
-            </DialogTitle>
-            <div className="text-accent text-lg font-medium">
-              Request Received
-            </div>
-          </DialogHeader>
-          
-          <div className="text-center py-4 px-2 space-y-4">
-            <p className="text-foreground/80 leading-relaxed text-lg">
-              Your Book a Tour Request has been received and it is being reviewed by our Team.
-            </p>
-            <p className="text-muted-foreground text-base italic">
-              Kindly exercise patience while we process your request.
-            </p>
-          </div>
-
-          <div className="flex justify-center pb-4">
-            <Button 
-              onClick={() => setShowModal(false)}
-              className="btn-gold min-w-[150px]"
-            >
-              Close
-            </Button>
-          </div>
-        </DialogContent>
-      </Dialog>
+      <Dialog open={confirmed} onOpenChange={setConfirmed}><DialogContent className="rounded-[2rem] border-border bg-background p-10 sm:max-w-md"><DialogHeader className="items-center text-center"><img src={logo} alt="KANSADCO" className="mb-5 h-20 w-auto dark:brightness-0 dark:invert" /><DialogTitle className="font-display text-4xl font-normal">Your request is with us.</DialogTitle></DialogHeader><p className="mt-4 text-center text-sm leading-7 text-muted-foreground">A member of our property team will review your preferred date and contact you to confirm the details.</p><button onClick={() => setConfirmed(false)} className="mt-7 h-12 rounded-full bg-foreground text-[10px] font-semibold uppercase tracking-[.17em] text-background">Close</button></DialogContent></Dialog>
     </Layout>
   );
 };

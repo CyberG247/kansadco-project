@@ -1,0 +1,25 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630" role="img" aria-label="KANSADCO — Built for generations">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop stop-color="#17231c"/>
+      <stop offset="1" stop-color="#0c120f"/>
+    </linearGradient>
+    <radialGradient id="glow" cx="0" cy="0" r="1" gradientTransform="translate(950 75) rotate(132) scale(700 520)">
+      <stop stop-color="#a9b4a9" stop-opacity=".18"/>
+      <stop offset="1" stop-color="#a9b4a9" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+  <rect width="1200" height="630" rx="36" fill="url(#bg)"/>
+  <rect width="1200" height="630" rx="36" fill="url(#glow)"/>
+  <path d="M76 75h1048M76 555h1048" stroke="#d9ddd6" stroke-opacity=".18"/>
+  <g transform="translate(76 114)">
+    <rect width="90" height="90" rx="22" fill="#e9e5db"/>
+    <path d="M20 20h50v50H20z" fill="none" stroke="#111a15" stroke-width="3"/>
+    <path d="m31 38 25-14 6 6-31 18zM31 55l13-12c1 12 8 20 17 24H31z" fill="#111a15"/>
+    <path d="M56 36c-8 0-13 6-13 13 0 8 6 14 15 18 7 3 14-1 14-9 0-5-4-8-10-9-5-2-8-5-6-13Z" fill="#111a15" opacity=".9"/>
+  </g>
+  <text x="76" y="314" fill="#f4f1e9" font-family="Georgia, 'Times New Roman', serif" font-size="104" letter-spacing="-3">KANSADCO</text>
+  <text x="82" y="383" fill="#d9ddd6" font-family="Arial, Helvetica, sans-serif" font-size="26" letter-spacing="9">BUILT FOR GENERATIONS</text>
+  <text x="82" y="490" fill="#9da8a0" font-family="Arial, Helvetica, sans-serif" font-size="20" letter-spacing="2">REAL ESTATE  ·  CONSTRUCTION  ·  INFRASTRUCTURE</text>
+  <text x="1124" y="518" fill="#d9ddd6" fill-opacity=".7" font-family="Arial, Helvetica, sans-serif" font-size="18" text-anchor="end">ABUJA  /  KANO  /  NIGERIA</text>
+</svg>

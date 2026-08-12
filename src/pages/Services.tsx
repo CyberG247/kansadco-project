@@ -1,188 +1,46 @@
 import Layout from "@/components/layout/Layout";
-import { Building2, HardHat, Home, Key, Paintbrush, Truck, Check } from "lucide-react";
-import paintService from "@/assets/paint-service.jpg";
-import { ScrollReveal } from "@/components/ui/ScrollReveal";
+import PageHero from "@/components/layout/PageHero";
+import { ArrowUpRight } from "lucide-react";
+import heroConstruction from "@/assets/hero-construction.webp";
+import paint from "@/assets/paint-service.jpg";
+import project1 from "@/assets/project-1.jpg";
 
 const services = [
-  {
-    icon: Home,
-    title: "Real Estate Sales",
-    description:
-      "We offer premium residential and commercial properties in strategic locations across Nigeria. From luxury apartments to sprawling estates, we help you find the perfect property.",
-    features: [
-      "Premium locations in Abuja and Kano",
-      "Flexible payment plans",
-      "Title documentation support",
-      "Property valuation services",
-      "Investment advisory",
-    ],
-  },
-  {
-    icon: HardHat,
-    title: "Construction",
-    description:
-      "Our construction division handles projects of all scales, from residential buildings to major infrastructure. We deliver on time, within budget, and to the highest standards.",
-    features: [
-      "Residential construction",
-      "Commercial buildings",
-      "Industrial facilities",
-      "Road construction",
-      "Bridge engineering",
-    ],
-  },
-  {
-    icon: Building2,
-    title: "Property Development",
-    description:
-      "From land acquisition to project delivery, we provide end-to-end property development solutions. Our estates are designed for modern living with world-class amenities.",
-    features: [
-      "Land acquisition & surveying",
-      "Master planning & design",
-      "Infrastructure development",
-      "Estate management",
-      "Smart home integration",
-    ],
-  },
-  {
-    icon: Key,
-    title: "Property Management",
-    description:
-      "Our property management services ensure your investment is well-maintained and profitable. We handle everything from tenant relations to maintenance.",
-    features: [
-      "Tenant screening & placement",
-      "Rent collection",
-      "Maintenance coordination",
-      "Financial reporting",
-      "Property inspections",
-    ],
-  },
-  {
-    icon: Paintbrush,
-    title: "Paint Manufacturing",
-    description:
-      "KANSADCO Paints are manufactured to international standards, offering superior coverage, durability, and a wide range of colors for all applications.",
-    features: [
-      "Interior & exterior paints",
-      "Industrial coatings",
-      "Eco-friendly formulations",
-      "Color matching services",
-      "Technical support",
-    ],
-  },
-  {
-    icon: Truck,
-    title: "Paint Distribution",
-    description:
-      "Our extensive distribution network ensures KANSADCO paints are available across Nigeria. Dealers and retailers can partner with us for competitive pricing.",
-    features: [
-      "Nationwide delivery",
-      "Dealer partnerships",
-      "Bulk order discounts",
-      "Quick turnaround",
-      "Quality guarantee",
-    ],
-  },
+  { title: "Real estate", statement: "Places to live. Assets to hold.", description: "Premium residential and commercial opportunities in strategic Nigerian locations, supported by clear documentation, flexible acquisition pathways and informed investment guidance.", items: ["Residential sales", "Commercial property", "Valuation", "Investment advisory"] },
+  { title: "Construction", statement: "Complexity, made buildable.", description: "End-to-end delivery for residential, commercial and civil projects, led by rigorous planning, technical coordination, transparent controls and uncompromising site standards.", items: ["Building construction", "Civil engineering", "Roads and bridges", "Project controls"] },
+  { title: "Property development", statement: "From raw land to lasting value.", description: "An integrated development service connecting land strategy, surveying, design, approvals, infrastructure and market positioning through one accountable team.", items: ["Land acquisition", "Masterplanning", "Infrastructure", "Development management"] },
+  { title: "Property stewardship", statement: "Performance beyond handover.", description: "Operational care that protects the quality, income and experience of an asset over time—from tenant relationships and inspections to planned maintenance and reporting.", items: ["Asset operations", "Tenant management", "Maintenance", "Performance reporting"] },
+  { title: "Paints & coatings", statement: "Finish that works harder.", description: "Durable interior, exterior and industrial coating systems developed for reliable coverage, climatic performance and consistent colour across projects of every scale.", items: ["Interior and exterior", "Industrial coatings", "Colour matching", "Technical support"] },
+  { title: "Distribution", statement: "Quality, within reach.", description: "A growing dealer and logistics network making KANSADCO coating systems accessible across Nigeria with dependable fulfilment and professional support.", items: ["Nationwide logistics", "Dealer partnerships", "Bulk supply", "Quality assurance"] },
 ];
 
-const Services = () => {
-  return (
-    <Layout>
-      {/* Hero Section */}
-      <section className="relative py-24 bg-primary overflow-hidden">
-        <div className="absolute inset-0 opacity-20">
-          <img
-            src={paintService}
-            alt=""
-            className="w-full h-full object-cover"
-          />
-        </div>
-        <div className="container-custom relative z-10">
-          <div className="max-w-3xl">
-            <ScrollReveal width="100%">
-              <span className="inline-block text-accent font-medium mb-4">Our Services</span>
-              <h1 className="font-display text-4xl md:text-5xl font-bold text-primary-foreground mb-6">
-                Comprehensive Solutions for All Your Needs
-              </h1>
-              <p className="text-primary-foreground/90 text-lg">
-                From real estate and construction to paint manufacturing, KANSADCO delivers 
-                excellence across multiple sectors with world-class standards.
-              </p>
-            </ScrollReveal>
-          </div>
-        </div>
-      </section>
+const Services = () => (
+  <Layout>
+    <PageHero eyebrow="Capabilities" title={<>One partner.<br /><em className="text-accent">Every stage.</em></>} description="We connect the disciplines that make places commercially sound, technically resolved and rewarding to experience." image={heroConstruction} imageAlt="Contemporary KANSADCO development" index="K / 02" />
 
-      {/* Services */}
-      <section className="section-padding bg-background">
-        <div className="container-custom">
-          <div className="space-y-20">
-            {services.map((service, index) => (
-              <div
-                key={service.title}
-                className={`grid lg:grid-cols-2 gap-12 items-center ${
-                  index % 2 === 1 ? "lg:flex-row-reverse" : ""
-                }`}
-              >
-                <div className={index % 2 === 1 ? "lg:order-2" : ""}>
-                  <ScrollReveal direction={index % 2 === 1 ? "left" : "right"} width="100%">
-                    <div className="w-16 h-16 bg-accent/10 rounded-xl flex items-center justify-center mb-6">
-                      <service.icon className="h-8 w-8 text-accent" />
-                    </div>
-                    <h2 className="font-display text-3xl font-bold text-foreground mb-4">
-                      {service.title}
-                    </h2>
-                    <p className="text-muted-foreground mb-6 leading-relaxed">
-                      {service.description}
-                    </p>
-                    <ul className="space-y-3">
-                      {service.features.map((feature) => (
-                        <li key={feature} className="flex items-center gap-3">
-                          <div className="w-5 h-5 bg-accent rounded-full flex items-center justify-center shrink-0">
-                            <Check className="h-3 w-3 text-accent-foreground" />
-                          </div>
-                          <span className="text-foreground">{feature}</span>
-                        </li>
-                      ))}
-                    </ul>
-                  </ScrollReveal>
-                </div>
-                <div
-                  className={`bg-gradient-to-br from-accent/20 to-primary/20 rounded-2xl p-8 flex items-center justify-center min-h-[300px] ${
-                    index % 2 === 1 ? "lg:order-1" : ""
-                  }`}
-                >
-                  <ScrollReveal direction={index % 2 === 1 ? "right" : "left"} width="100%">
-                    <service.icon className="h-32 w-32 text-accent/40" />
-                  </ScrollReveal>
-                </div>
-              </div>
-            ))}
-          </div>
+    <section className="section-padding bg-background">
+      <div className="container-custom">
+        <div className="mb-20 grid gap-8 lg:grid-cols-12"><p className="eyebrow text-accent lg:col-span-3">Our model</p><p className="section-title max-w-5xl lg:col-span-9">Separate expertise is useful. <em className="text-accent">Connected expertise</em> is transformative.</p></div>
+        <div className="border-t border-border">
+          {services.map((service, index) => (
+            <article key={service.title} className="grid grid-cols-[34px_1fr] gap-x-4 gap-y-7 border-b border-border py-12 transition-colors duration-300 md:grid-cols-12 md:rounded-[1.75rem] md:px-5 md:py-16 md:hover:bg-muted/40">
+              <span className="text-[10px] tracking-[.18em] text-muted-foreground md:col-span-1">0{index + 1}</span>
+              <div className="col-start-2 md:col-span-4 md:col-start-auto"><h2 className="text-4xl md:text-5xl">{service.title}</h2><p className="mt-3 font-display text-xl italic text-accent">{service.statement}</p></div>
+              <div className="col-start-2 md:col-span-4 md:col-start-auto"><p className="text-sm leading-7 text-muted-foreground">{service.description}</p></div>
+              <ul className="col-start-2 space-y-2 md:col-span-3 md:col-start-auto md:pl-8">{service.items.map((item) => <li key={item} className="border-b border-border/70 pb-2 font-mono text-[9px] uppercase tracking-[.14em]">{item}</li>)}</ul>
+            </article>
+          ))}
         </div>
-      </section>
+      </div>
+    </section>
 
-      {/* CTA */}
-      <section className="py-20 bg-cream">
-        <div className="container-custom text-center">
-          <ScrollReveal width="100%">
-            <h2 className="font-display text-3xl md:text-4xl font-bold text-foreground mb-4">
-              Ready to Get Started?
-            </h2>
-            <p className="text-muted-foreground mb-8 max-w-2xl mx-auto">
-              Contact us today to discuss your project requirements. Our team is ready to 
-              deliver exceptional results for you.
-            </p>
-            <a
-              href="/contact"
-              className="inline-flex items-center gap-2 bg-accent text-accent-foreground px-8 py-4 rounded-lg font-medium hover:bg-gold-dark transition-colors shadow-gold"
-            >
-              Contact Us Today
-            </a>
-          </ScrollReveal>
-        </div>
-      </section>
-    </Layout>
-  );
-};
+    <section className="grid bg-slate-dark text-white md:mx-4 md:my-4 md:overflow-hidden md:rounded-[2.5rem] lg:grid-cols-2">
+      <div className="relative min-h-[480px]"><img src={paint} alt="KANSADCO paint systems" className="absolute inset-0 h-full w-full object-cover" /></div>
+      <div className="flex flex-col justify-between p-8 md:p-16 lg:p-20"><div><p className="eyebrow mb-8 text-accent">Materials division</p><h2 className="section-title">Colour backed by <em className="text-accent">performance.</em></h2><p className="mt-8 max-w-lg text-sm leading-7 text-white/60">Our coatings capability brings the same standard of thinking to the surfaces that complete and protect built work.</p></div><a href="/contact" className="group mt-12 flex items-center justify-between border-b border-white/40 pb-4 text-[10px] font-semibold uppercase tracking-[.17em]">Discuss supply or distribution <ArrowUpRight className="h-4 w-4 transition-transform group-hover:translate-x-1 group-hover:-translate-y-1" /></a></div>
+    </section>
+
+    <section className="relative min-h-[620px] overflow-hidden text-white md:mx-4 md:my-4 md:rounded-[2.5rem]"><img src={project1} alt="Rahmaniyya Estate" className="absolute inset-0 h-full w-full object-cover" /><div className="absolute inset-0 bg-slate-dark/65" /><div className="container-custom relative flex min-h-[620px] flex-col justify-end py-20"><p className="eyebrow mb-7 text-accent">A shared standard</p><h2 className="section-title max-w-5xl">However we enter a project, we leave it <em className="text-accent">stronger.</em></h2></div></section>
+  </Layout>
+);
 
 export default Services;

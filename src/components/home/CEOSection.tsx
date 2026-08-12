@@ -1,66 +1,43 @@
-import { Quote } from "lucide-react";
-import ceoPortrait from "@/assets/chairman.jpg";
+import { Link } from "react-router-dom";
+import { ArrowUpRight } from "lucide-react";
+import ceoPortrait from "@/assets/chairman.webp";
+import { ScrollReveal } from "@/components/ui/ScrollReveal";
 
-const CEOSection = () => {
-  return (
-    <section className="section-padding bg-cream">
-      <div className="container-custom">
-        <div className="grid lg:grid-cols-2 gap-12 items-center">
-          {/* CEO Image */}
-          <div className="relative">
-            <div className="relative z-10">
-              <img
-                src={ceoPortrait}
-                alt="CEO of KANSADCO"
-                className="w-full max-w-md mx-auto rounded-lg shadow-xl"
-              />
+const CEOSection = () => (
+  <section className="section-padding bg-background">
+    <div className="container-custom">
+      <div className="grid gap-14 lg:grid-cols-12 lg:gap-8">
+        <div className="lg:col-span-4 lg:pt-20">
+          <ScrollReveal direction="left" width="100%">
+            <p className="eyebrow mb-8 text-accent">Our point of view</p>
+            <p className="font-display text-4xl leading-[1.02] md:text-5xl">“We do not simply deliver buildings. We build confidence in what comes next.”</p>
+            <div className="mt-10 border-t border-border pt-5">
+              <p className="text-sm font-medium">Arc. Yunusa Hassan Ibrahim</p>
+              <p className="mt-1 font-mono text-[9px] uppercase tracking-[0.16em] text-muted-foreground">Chairman / Chief Executive</p>
             </div>
-            {/* Decorative Element */}
-            <div className="absolute -bottom-6 -right-6 w-64 h-64 bg-accent/20 rounded-lg -z-0 hidden lg:block" />
-            <div className="absolute -top-6 -left-6 w-32 h-32 border-4 border-accent rounded-lg -z-0 hidden lg:block" />
-          </div>
+          </ScrollReveal>
+        </div>
 
-          {/* Content */}
-          <div>
-            <div className="inline-flex items-center gap-2 bg-accent/10 text-accent px-4 py-2 rounded-full mb-6">
-              <span className="text-sm font-medium">From the CEO's Desk</span>
+        <div className="lg:col-span-5 lg:px-5">
+          <ScrollReveal width="100%">
+            <div className="image-reveal relative aspect-[4/5] bg-muted">
+              <img src={ceoPortrait} alt="Arc. Yunusa Hassan Ibrahim, KANSADCO Chairman and CEO" className="h-full w-full object-cover object-top grayscale-[12%]" />
+              <span className="absolute bottom-4 right-4 rounded-full bg-background px-3 py-2 font-mono text-[9px] uppercase tracking-[0.18em]">Leadership · Abuja</span>
             </div>
+          </ScrollReveal>
+        </div>
 
-            <h2 className="font-display text-3xl md:text-4xl font-bold text-foreground mb-6">
-              Building Nigeria's Future, One Project at a Time
-            </h2>
-
-            <div className="relative mb-6">
-              <Quote className="absolute -left-2 -top-2 h-8 w-8 text-accent/30" />
-              <p className="text-muted-foreground leading-relaxed pl-8">
-                At KANSADCO, we are committed to excellence in every endeavor. Our vision extends beyond 
-                constructing buildings – we are architects of dreams, builders of communities, and 
-                partners in Nigeria's development story.
-              </p>
-            </div>
-
-            <p className="text-muted-foreground leading-relaxed mb-6">
-              With decades of combined experience in real estate, construction, and infrastructure development, our team delivers unmatched expertise to every project. We are committed to superior quality, full transparency, and professional integrity, while building lasting relationships with our clients, partners, and the communities we serve across every stage of development.
-            </p>
-
-            <p className="text-muted-foreground leading-relaxed mb-8">
-              As we continue to expand our footprint across Nigeria, from the federal capital to the 
-              ancient city of Kano, we remain dedicated to our core values: integrity, innovation, 
-              and impact. Together, we are building not just structures, but a legacy of excellence 
-              for generations to come.
-            </p>
-
-            <div className="border-l-4 border-accent pl-4">
-              <p className="font-display text-xl font-semibold text-foreground">
-                Arc. Yunusa Hassan Ibrahim
-              </p>
-              <p className="text-muted-foreground">Chairman/CEO</p>
-            </div>
-          </div>
+        <div className="flex flex-col justify-end lg:col-span-3 lg:pb-8">
+          <ScrollReveal direction="right" width="100%" delay={0.15}>
+            <p className="text-sm leading-7 text-muted-foreground">Our practice connects property insight, design intelligence, engineering discipline and long-term stewardship. That integrated view lets us create more value at every stage—from raw land to thriving communities.</p>
+            <Link to="/about" className="group mt-9 flex items-center justify-between border-b border-foreground pb-3 font-mono text-[10px] font-semibold uppercase tracking-[0.16em]">
+              Discover our story <ArrowUpRight className="h-4 w-4 transition-transform group-hover:translate-x-1 group-hover:-translate-y-1" />
+            </Link>
+          </ScrollReveal>
         </div>
       </div>
-    </section>
-  );
-};
+    </div>
+  </section>
+);
 
 export default CEOSection;

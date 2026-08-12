@@ -1,175 +1,100 @@
+import { ReactNode, useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
-import { Phone, Mail, MapPin, Facebook, Twitter, Instagram, Linkedin } from "lucide-react";
-import logo from "@/assets/logo.jpg";
-import { useTranslation } from "react-i18next";
-import { ScrollReveal } from "@/components/ui/ScrollReveal";
+import { ArrowUpRight } from "lucide-react";
+import logo from "@/assets/logo-transparent.png";
+import { useContent } from "@/lib/contentStore";
+
+const FooterReveal = ({ children, delay = 0, className = "" }: { children: ReactNode; delay?: number; className?: string }) => {
+  const ref = useRef<HTMLDivElement>(null);
+  const [visible, setVisible] = useState(false);
+
+  useEffect(() => {
+    const node = ref.current;
+    if (!node) return;
+    const observer = new IntersectionObserver(([entry]) => {
+      if (entry.isIntersecting) {
+        setVisible(true);
+        observer.disconnect();
+      }
+    }, { threshold: .05, rootMargin: "0px 0px -24px" });
+    observer.observe(node);
+    return () => observer.disconnect();
+  }, []);
+
+  return <div ref={ref} style={{ transitionDelay: `${delay}s` }} className={`${className} transition-[opacity,transform] duration-700 ease-out motion-reduce:translate-y-0 motion-reduce:opacity-100 ${visible ? "translate-y-0 opacity-100" : "translate-y-5 opacity-0"}`}>{children}</div>;
+};
 
 const Footer = () => {
-  const { t } = useTranslation();
-  const currentYear = new Date().getFullYear();
-
+  const { settings } = useContent();
+  const year = new Date().getFullYear();
   return (
-    <footer className="bg-primary text-primary-foreground">
-      {/* Main Footer */}
-      <div className="container-custom section-padding">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-12">
-          {/* Company Info */}
-          <ScrollReveal width="100%" delay={0}>
-            <div className="space-y-6">
-              <Link to="/" className="inline-block">
-                <img
-                  src={logo}
-                  alt="KANSADCO Logo"
-                  className="h-16 w-auto object-contain bg-background rounded-lg p-2"
-                />
-              </Link>
-              <p className="text-primary-foreground/80 leading-relaxed">
-                {t('footer.description')}
-              </p>
-              <div className="flex gap-4">
-                <a
-                  href="#"
-                  className="p-2 bg-primary-foreground/10 rounded-full hover:bg-accent hover:text-accent-foreground transition-colors"
-                  aria-label="Facebook"
-                >
-                  <Facebook className="h-5 w-5" />
-                </a>
-                <a
-                  href="#"
-                  className="p-2 bg-primary-foreground/10 rounded-full hover:bg-accent hover:text-accent-foreground transition-colors"
-                  aria-label="Twitter"
-                >
-                  <Twitter className="h-5 w-5" />
-                </a>
-                <a
-                  href="#"
-                  className="p-2 bg-primary-foreground/10 rounded-full hover:bg-accent hover:text-accent-foreground transition-colors"
-                  aria-label="Instagram"
-                >
-                  <Instagram className="h-5 w-5" />
-                </a>
-                <a
-                  href="#"
-                  className="p-2 bg-primary-foreground/10 rounded-full hover:bg-accent hover:text-accent-foreground transition-colors"
-                  aria-label="LinkedIn"
-                >
-                  <Linkedin className="h-5 w-5" />
-                </a>
+    <footer className="bg-background pb-20 pt-3 text-white md:pb-0 md:pt-0">
+      <div className="mx-3 overflow-hidden rounded-[2rem] bg-slate-dark md:mx-4 md:mb-4 md:rounded-[2.5rem]">
+        <div className="container-custom pt-14 md:pt-24">
+          <div className="grid gap-8 border-b border-white/15 pb-12 lg:grid-cols-[1.35fr_.65fr] lg:items-end lg:gap-16 lg:pb-16">
+            <FooterReveal>
+              <div>
+                <div className="flex items-center justify-between gap-5">
+                  <img src={logo} alt="KANSADCO" className="h-11 w-auto brightness-0 invert md:h-14" />
+                  <p className="font-mono text-[8px] uppercase tracking-[.18em] text-white/35">Nigeria · Since 2007</p>
+                </div>
+                <h2 className="mt-8 max-w-4xl font-display text-[2.65rem] leading-[.94] tracking-[-.035em] text-white/95 sm:text-5xl lg:text-6xl">
+                  Enduring value, built into <em className="text-white/45">every detail.</em>
+                </h2>
               </div>
-            </div>
-          </ScrollReveal>
+            </FooterReveal>
 
-          {/* Quick Links */}
-          <ScrollReveal width="100%" delay={0.1}>
-            <div>
-              <h3 className="text-lg font-display font-semibold mb-6">{t('footer.quickLinks')}</h3>
-              <ul className="space-y-3">
-                {[
-                  { name: t('nav.about'), href: "/about" },
-                  { name: t('nav.services'), href: "/services" },
-                  { name: t('nav.projects'), href: "/projects" },
-                  { name: t('nav.team'), href: "/team" },
-                  { name: t('nav.contact'), href: "/contact" },
-                ].map((link) => (
-                  <li key={link.name}>
-                    <Link
-                      to={link.href}
-                      className="text-primary-foreground/80 hover:text-accent transition-colors"
-                    >
-                      {link.name}
-                    </Link>
-                  </li>
-                ))}
-              </ul>
-            </div>
-          </ScrollReveal>
+            <FooterReveal delay={.12}>
+              <Link to="/contact" className="group flex min-h-36 flex-col justify-between rounded-[1.5rem] border border-white/15 bg-white/[.04] p-5 transition-all duration-500 hover:-translate-y-1 hover:border-white/35 hover:bg-white/[.07]">
+                <div className="flex items-start justify-between">
+                  <p className="font-mono text-[8px] uppercase tracking-[.18em] text-white/40">Start a conversation</p>
+                  <span className="grid h-9 w-9 place-items-center rounded-full border border-white/20 transition-all duration-500 group-hover:rotate-45 group-hover:bg-white group-hover:text-slate-dark"><ArrowUpRight className="h-3.5 w-3.5" /></span>
+                </div>
+                <p className="max-w-xs font-display text-2xl leading-tight">Have a site, brief or investment in mind?</p>
+              </Link>
+            </FooterReveal>
+          </div>
 
-          {/* Services */}
-          <ScrollReveal width="100%" delay={0.2}>
-            <div>
-              <h3 className="text-lg font-display font-semibold mb-6">Our Services</h3>
-              <ul className="space-y-3">
-                {[
-                  "Real Estate Sales",
-                  "Construction",
-                  "Property Development",
-                  "Property Management",
-                  "Paint Manufacturing",
-                  "Paint Distribution",
-                ].map((service) => (
-                  <li key={service}>
-                    <Link
-                      to="/services"
-                      className="text-primary-foreground/80 hover:text-accent transition-colors"
-                    >
-                      {service}
-                    </Link>
-                  </li>
-                ))}
-              </ul>
-            </div>
-          </ScrollReveal>
+          <div className="grid grid-cols-2 gap-x-8 gap-y-10 py-10 sm:grid-cols-3 md:py-14 lg:grid-cols-[.8fr_.8fr_1.4fr]">
+            <FooterReveal delay={.05}>
+              <div>
+                <p className="mb-5 font-mono text-[8px] uppercase tracking-[0.18em] text-white/35">Explore</p>
+                <div className="space-y-3 text-sm text-white/68">
+                  <Link className="block w-fit transition-all duration-300 hover:translate-x-1 hover:text-white" to="/about">About</Link>
+                  <Link className="block w-fit transition-all duration-300 hover:translate-x-1 hover:text-white" to="/services">Services</Link>
+                  <Link className="block w-fit transition-all duration-300 hover:translate-x-1 hover:text-white" to="/projects">Projects</Link>
+                  <Link className="block w-fit transition-all duration-300 hover:translate-x-1 hover:text-white" to="/gallery">Gallery</Link>
+                </div>
+              </div>
+            </FooterReveal>
 
-          {/* Contact Info */}
-          <ScrollReveal width="100%" delay={0.3}>
-            <div>
-              <h3 className="text-lg font-display font-semibold mb-6">{t('footer.contactInfo')}</h3>
-              <ul className="space-y-4">
-                <li className="flex items-start gap-3">
-                  <MapPin className="h-5 w-5 text-accent shrink-0 mt-0.5" />
-                  <div>
-                    <p className="font-medium">Head Office</p>
-                    <p className="text-primary-foreground/80 text-sm">
-                      Rahmaniyya Estate 1, Ajose Adeogun Street, Utako 900108, Abuja
-                    </p>
-                  </div>
-                </li>
-                <li className="flex items-start gap-3">
-                  <MapPin className="h-5 w-5 text-accent shrink-0 mt-0.5" />
-                  <div>
-                    <p className="font-medium">Branch Office</p>
-                    <p className="text-primary-foreground/80 text-sm">
-                      No. 30 Lamido Road, Nassarawa GRA, Kano
-                    </p>
-                  </div>
-                </li>
-                <li>
-                  <a
-                    href="tel:+2348037380434"
-                    className="flex items-center gap-3 text-primary-foreground/80 hover:text-accent transition-colors"
-                  >
-                    <Phone className="h-5 w-5 text-accent" />
-                    +234 (0) 803 738 0434
-                  </a>
-                </li>
-                <li>
-                  <a
-                    href="mailto:kansadco@gmail.com"
-                    className="flex items-center gap-3 text-primary-foreground/80 hover:text-accent transition-colors"
-                  >
-                    <Mail className="h-5 w-5 text-accent" />
-                    kansadco@gmail.com
-                  </a>
-                </li>
-              </ul>
-            </div>
-          </ScrollReveal>
-        </div>
-      </div>
+            <FooterReveal delay={.1}>
+              <div>
+                <p className="mb-5 font-mono text-[8px] uppercase tracking-[0.18em] text-white/35">Company</p>
+                <div className="space-y-3 text-sm text-white/68">
+                  <Link className="block w-fit transition-all duration-300 hover:translate-x-1 hover:text-white" to="/team">People</Link>
+                  <Link className="block w-fit transition-all duration-300 hover:translate-x-1 hover:text-white" to="/contact">Contact</Link>
+                  <a className="group flex w-fit items-center gap-2 transition-all duration-300 hover:translate-x-1 hover:text-white" href="#">Instagram <ArrowUpRight className="h-3 w-3 transition-transform duration-300 group-hover:-translate-y-0.5 group-hover:translate-x-0.5" /></a>
+                  <a className="group flex w-fit items-center gap-2 transition-all duration-300 hover:translate-x-1 hover:text-white" href="#">LinkedIn <ArrowUpRight className="h-3 w-3 transition-transform duration-300 group-hover:-translate-y-0.5 group-hover:translate-x-0.5" /></a>
+                </div>
+              </div>
+            </FooterReveal>
 
-      {/* Bottom Bar */}
-      <div className="border-t border-primary-foreground/10">
-        <div className="container-custom py-6 flex flex-col md:flex-row justify-between items-center gap-4">
-          <p className="text-primary-foreground/70 text-sm">
-            &copy; {currentYear} KANSADCO. {t('footer.rights')}
-          </p>
-          <div className="flex gap-6 text-sm">
-            <Link to="/privacy" className="text-primary-foreground/70 hover:text-accent transition-colors">
-              {t('footer.privacy')}
-            </Link>
-            <Link to="/terms" className="text-primary-foreground/70 hover:text-accent transition-colors">
-              {t('footer.terms')}
-            </Link>
+            <FooterReveal delay={.15} className="col-span-2 sm:col-span-1">
+              <div>
+                <p className="mb-5 font-mono text-[8px] uppercase tracking-[0.18em] text-white/35">Abuja office</p>
+                <p className="max-w-sm text-sm leading-6 text-white/68">{settings.abujaAddress}</p>
+                <div className="mt-5 flex flex-col gap-2 text-sm text-white/68">
+                  <a href={`mailto:${settings.primaryEmail}`} className="w-fit transition-colors duration-300 hover:text-white">{settings.primaryEmail}</a>
+                  <a href={`tel:${settings.telephone.replace(/\s/g, "")}`} className="w-fit transition-colors duration-300 hover:text-white">{settings.telephone}</a>
+                </div>
+              </div>
+            </FooterReveal>
+          </div>
+
+          <div className="flex flex-col gap-3 border-t border-white/15 py-6 font-mono text-[8px] uppercase tracking-[0.15em] text-white/35 sm:flex-row sm:items-center sm:justify-between">
+            <p>© {year} KANSADCO. All rights reserved.</p>
+            <p>Abuja · Kano · Nigeria</p>
           </div>
         </div>
       </div>

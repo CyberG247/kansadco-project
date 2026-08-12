@@ -1,0 +1,373 @@
+import { useEffect, useMemo, useState, type ReactNode } from "react";
+import { createPortal } from "react-dom";
+import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
+import {
+  ArrowUpRight, Bell, Building2, Check, ChevronRight, CircleDot,
+  Download, Eye, Images, LayoutDashboard, Mail, Menu, MessageSquare, Moon,
+  MoreHorizontal, Plus, Search, Settings, Sun, Trash2, TrendingUp, Upload, X,
+} from "lucide-react";
+import { useTheme } from "@/components/ThemeProvider";
+import { useToast } from "@/hooks/use-toast";
+import {
+  formatRelativeDate, useContent, type Enquiry, type GalleryAsset,
+  type ManagedProject, type ProjectStatus, type AssetStatus, type SiteSettings,
+} from "@/lib/contentStore";
+import logo from "@/assets/logo-transparent.png";
+import heroSignature from "@/assets/hero-signature.webp";
+
+type Section = "Overview" | "Projects" | "Gallery" | "Enquiries" | "Settings";
+
+const navItems: { label: Section; icon: typeof LayoutDashboard }[] = [
+  { label: "Overview", icon: LayoutDashboard },
+  { label: "Projects", icon: Building2 },
+  { label: "Gallery", icon: Images },
+  { label: "Enquiries", icon: MessageSquare },
+  { label: "Settings", icon: Settings },
+];
+
+const panelClass = "rounded-[1.5rem] border border-border/80 bg-card shadow-[0_16px_50px_rgba(8,16,12,.045)]";
+type EditorState = { kind: "project"; item?: ManagedProject } | { kind: "gallery"; item?: GalleryAsset } | { kind: "enquiry"; item: Enquiry } | null;
+const initials = (name: string) => name.split(/\s+/).slice(0, 2).map((part) => part[0]).join("").toUpperCase();
+
+const Status = ({ value }: { value: string }) => {
+  const tone = value === "Published" || value === "Replied"
+    ? "bg-emerald-500/10 text-emerald-700 dark:text-emerald-400"
+    : value === "Draft" || value === "Review"
+      ? "bg-amber-500/10 text-amber-700 dark:text-amber-400"
+      : "bg-blue-500/10 text-blue-700 dark:text-blue-400";
+  return <span className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 font-mono text-[7px] uppercase tracking-[.12em] ${tone}`}><span className="h-1 w-1 rounded-full bg-current" />{value}</span>;
+};
+
+const SectionHeading = ({ eyebrow, title, description, action }: { eyebrow: string; title: string; description: string; action?: ReactNode }) => (
+  <div className="mb-6 flex flex-col gap-5 border-b border-border pb-6 sm:mb-8 sm:flex-row sm:items-end sm:justify-between sm:pb-8">
+    <div>
+      <p className="font-mono text-[8px] uppercase tracking-[.2em] text-muted-foreground">{eyebrow}</p>
+      <h1 className="mt-3 font-display text-[2.75rem] leading-[.92] tracking-[-.035em] sm:text-5xl lg:text-[3.5rem]">{title}</h1>
+      <p className="mt-3 max-w-xl text-xs leading-5 text-muted-foreground sm:text-sm sm:leading-6">{description}</p>
+    </div>
+    {action}
+  </div>
+);
+
+const WorkspaceNavigation = ({ section, navigate }: { section: Section; navigate: (section: Section) => void }) => {
+  const { enquiries } = useContent();
+  const unread = enquiries.filter((item) => item.status === "New").length;
+  return <nav className="space-y-1.5" aria-label="Admin navigation">
+    {navItems.map((item, index) => {
+      const active = section === item.label;
+      return <button key={item.label} onClick={() => navigate(item.label)} className={`group relative flex w-full items-center gap-3 overflow-hidden rounded-2xl px-3.5 py-3 text-left text-xs transition-all duration-300 ${active ? "bg-white text-slate-dark shadow-[0_10px_30px_rgba(0,0,0,.12)]" : "text-white/55 hover:bg-white/[.07] hover:text-white"}`}>
+        <span className="font-mono text-[7px] opacity-45">0{index + 1}</span>
+        <item.icon className={`h-4 w-4 transition-transform duration-300 ${active ? "scale-105" : "group-hover:scale-105"}`} />
+        <span>{item.label}</span>
+        {item.label === "Enquiries" && unread > 0 && <span className={`ml-auto grid h-5 min-w-5 place-items-center rounded-full px-1 font-mono text-[7px] ${active ? "bg-slate-dark text-white" : "bg-accent text-accent-foreground"}`}>{unread}</span>}
+        {active && <motion.span layoutId="admin-sidebar-active" className="absolute inset-y-3 left-0 w-0.5 rounded-full bg-accent" />}
+      </button>;
+    })}
+  </nav>;
+};
+
+const SidebarContent = ({ section, navigate, close }: { section: Section; navigate: (section: Section) => void; close?: () => void }) => (
+  <>
+    <div className="flex h-20 items-center justify-between border-b border-white/10 px-5">
+      <div className="flex items-center gap-3"><img src={logo} alt="KANSADCO" className="h-10 w-auto brightness-0 invert" /><span className="h-7 w-px bg-white/15" /><span className="font-mono text-[7px] uppercase tracking-[.18em] text-white/40">Admin</span></div>
+      {close && <button onClick={close} className="grid h-9 w-9 place-items-center rounded-full border border-white/15 transition-colors hover:bg-white hover:text-slate-dark" aria-label="Close admin navigation"><X className="h-4 w-4" /></button>}
+    </div>
+    <div className="px-4 py-7">
+      <div className="mb-5 flex items-center justify-between px-3"><p className="font-mono text-[8px] uppercase tracking-[.2em] text-white/35">Workspace</p><span className="h-1.5 w-1.5 rounded-full bg-emerald-400 shadow-[0_0_12px_rgba(74,222,128,.7)]" /></div>
+      <WorkspaceNavigation section={section} navigate={navigate} />
+    </div>
+    <div className="mt-auto p-4">
+      <div className="rounded-[1.4rem] border border-white/10 bg-white/[.045] p-4">
+        <div className="flex items-center gap-3"><div className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-white/10 font-display text-lg">YH</div><div className="min-w-0"><p className="truncate text-xs font-medium">Yunusa Hassan</p><p className="mt-1 font-mono text-[7px] uppercase tracking-[.15em] text-white/35">Administrator</p></div></div>
+        <a href="/" className="group mt-4 flex items-center justify-between border-t border-white/10 pt-4 font-mono text-[8px] uppercase tracking-[.15em] text-white/40 transition-colors hover:text-white">View live site <ArrowUpRight className="h-3.5 w-3.5 transition-transform duration-300 group-hover:translate-x-0.5 group-hover:-translate-y-0.5" /></a>
+      </div>
+    </div>
+  </>
+);
+
+const Admin = () => {
+  const { theme, setTheme } = useTheme();
+  const { projects, gallery, enquiries, activities, markActivitiesRead } = useContent();
+  const reduceMotion = useReducedMotion();
+  const [section, setSection] = useState<Section>("Overview");
+  const [query, setQuery] = useState("");
+  const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [composerOpen, setComposerOpen] = useState(false);
+  const [notificationsOpen, setNotificationsOpen] = useState(false);
+  const [editor, setEditor] = useState<EditorState>(null);
+
+  const matchingProjects = useMemo(() => projects.filter((project) => `${project.name} ${project.type} ${project.location}`.toLowerCase().includes(query.toLowerCase())), [projects, query]);
+  const unreadActivities = activities.filter((item) => !item.read).length;
+  const newEnquiries = enquiries.filter((item) => item.status === "New").length;
+  const navigate = (next: Section) => { setSection(next); setSidebarOpen(false); setQuery(""); window.scrollTo({ top: 0, behavior: reduceMotion ? "auto" : "smooth" }); };
+  const create = (kind: "project" | "gallery") => { setComposerOpen(false); window.setTimeout(() => setEditor({ kind }), 120); };
+
+  useEffect(() => {
+    document.body.style.overflow = sidebarOpen || composerOpen || editor ? "hidden" : "";
+    return () => { document.body.style.overflow = ""; };
+  }, [sidebarOpen, composerOpen, editor]);
+
+  useEffect(() => {
+    const closeOnEscape = (event: KeyboardEvent) => {
+      if (event.key !== "Escape") return;
+      setSidebarOpen(false); setComposerOpen(false); setNotificationsOpen(false); setEditor(null);
+    };
+    window.addEventListener("keydown", closeOnEscape);
+    return () => window.removeEventListener("keydown", closeOnEscape);
+  }, []);
+
+  return (
+    <div className="min-h-screen bg-background text-foreground lg:bg-[radial-gradient(circle_at_90%_5%,hsl(var(--muted))_0,transparent_30%)]">
+      <aside className="admin-sidebar-shell fixed bottom-4 left-4 top-4 z-40 hidden w-[252px] flex-col overflow-hidden rounded-[2rem] bg-slate-dark text-white shadow-[0_28px_90px_rgba(8,16,12,.22)] lg:flex">
+        <SidebarContent section={section} navigate={navigate} />
+      </aside>
+
+      <AnimatePresence>
+        {sidebarOpen && <>
+          <motion.button initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={() => setSidebarOpen(false)} className="fixed inset-0 z-40 bg-slate-dark/35 backdrop-blur-[2px] lg:hidden" aria-label="Close navigation overlay" />
+          <motion.aside initial={reduceMotion ? { opacity: 1 } : { opacity: 0, x: -28, scale: .98 }} animate={{ opacity: 1, x: 0, scale: 1 }} exit={reduceMotion ? { opacity: 0 } : { opacity: 0, x: -24, scale: .98 }} transition={{ duration: .35, ease: [.2, .8, .2, 1] }} className="fixed bottom-3 left-3 top-3 z-50 flex w-[min(310px,calc(100vw-1.5rem))] flex-col overflow-hidden rounded-[2rem] bg-slate-dark text-white shadow-[0_28px_90px_rgba(8,16,12,.3)] lg:hidden">
+            <SidebarContent section={section} navigate={navigate} close={() => setSidebarOpen(false)} />
+          </motion.aside>
+        </>}
+      </AnimatePresence>
+
+      <div className="lg:pl-[284px]">
+        <div className="sticky top-0 z-30 p-3 pb-0 sm:px-5 lg:px-6 lg:pt-4">
+          <header className="admin-topbar-shell relative flex h-[58px] items-center justify-between rounded-[1.25rem] border border-border/70 bg-background/90 px-3 shadow-[0_14px_40px_rgba(8,16,12,.08)] backdrop-blur-xl sm:h-16 sm:px-4 lg:rounded-[1.5rem] lg:px-5">
+            <div className="flex min-w-0 items-center gap-2.5">
+              <button onClick={() => setSidebarOpen(true)} className="grid h-9 w-9 shrink-0 place-items-center rounded-full border border-border transition-all hover:border-foreground lg:hidden" aria-label="Open admin navigation"><Menu className="h-4 w-4" /></button>
+              <div className="min-w-0 lg:hidden"><p className="font-mono text-[7px] uppercase tracking-[.16em] text-muted-foreground">Workspace</p><p className="mt-0.5 truncate font-display text-lg leading-none">{section}</p></div>
+              <div className="hidden items-center gap-3 rounded-full bg-muted/70 px-4 md:flex"><Search className="h-3.5 w-3.5 text-muted-foreground" /><input value={query} onChange={(event) => { setQuery(event.target.value); if (event.target.value && section !== "Projects") setSection("Projects"); }} placeholder="Search projects" className="h-9 w-40 bg-transparent text-xs outline-none placeholder:text-muted-foreground lg:w-52" /></div>
+            </div>
+            <div className="flex items-center gap-1.5 sm:gap-2">
+              <p className="mr-2 hidden font-mono text-[8px] uppercase tracking-[.14em] text-muted-foreground xl:block">Tuesday · 12 Aug 2026</p>
+              <button onClick={() => setTheme(theme === "dark" ? "light" : "dark")} className="grid h-9 w-9 place-items-center rounded-full transition-all duration-300 hover:rotate-12 hover:bg-muted" aria-label="Toggle color theme">{theme === "dark" ? <Sun className="h-3.5 w-3.5" /> : <Moon className="h-3.5 w-3.5" />}</button>
+              <button onClick={() => setNotificationsOpen((open) => !open)} className="relative grid h-9 w-9 place-items-center rounded-full border border-border transition-colors hover:border-foreground" aria-label="Notifications" aria-expanded={notificationsOpen}><Bell className="h-3.5 w-3.5" />{unreadActivities > 0 && <span className="absolute right-1.5 top-1.5 grid h-3.5 min-w-3.5 place-items-center rounded-full bg-accent px-0.5 font-mono text-[6px] text-accent-foreground">{Math.min(unreadActivities, 9)}</span>}</button>
+              <button onClick={() => setComposerOpen(true)} className="group flex h-9 items-center gap-2 rounded-full bg-foreground px-3.5 font-mono text-[8px] font-medium uppercase tracking-[.13em] text-background transition-all duration-300 hover:-translate-y-0.5 hover:shadow-lg sm:px-4"><Plus className="h-3.5 w-3.5 transition-transform duration-300 group-hover:rotate-90" /><span className="hidden sm:inline">New entry</span></button>
+            </div>
+
+            <AnimatePresence>
+              {notificationsOpen && <motion.div initial={reduceMotion ? { opacity: 1 } : { opacity: 0, y: -8, scale: .97 }} animate={{ opacity: 1, y: 0, scale: 1 }} exit={{ opacity: 0, y: -6, scale: .98 }} transition={{ duration: .25 }} className={`absolute right-0 top-[calc(100%+.6rem)] w-[min(340px,calc(100vw-1.5rem))] ${panelClass} overflow-hidden bg-background p-2 shadow-[0_24px_70px_rgba(8,16,12,.18)]`}>
+                <div className="flex items-center justify-between px-3 py-2"><div><p className="font-mono text-[7px] uppercase tracking-[.18em] text-muted-foreground">Notifications</p><p className="mt-1 text-xs">Workspace activity</p></div><button onClick={markActivitiesRead} className="font-mono text-[7px] uppercase tracking-[.12em] text-muted-foreground hover:text-foreground">Mark read</button></div>
+                {activities.slice(0, 6).map((item) => <button key={item.id} onClick={() => { setNotificationsOpen(false); navigate(item.type === "enquiry" ? "Enquiries" : item.type === "gallery" ? "Gallery" : item.type === "settings" ? "Settings" : "Projects"); }} className="flex w-full items-center gap-3 rounded-xl px-3 py-3 text-left transition-colors hover:bg-muted"><span className={`h-1.5 w-1.5 shrink-0 rounded-full ${item.read ? "bg-border" : "bg-accent"}`} /><span className="min-w-0 flex-1 truncate text-[11px]">{item.message}</span><span className="font-mono text-[7px] text-muted-foreground">{formatRelativeDate(item.createdAt)}</span></button>)}
+                {activities.length === 0 && <p className="px-3 py-5 text-center text-xs text-muted-foreground">No activity yet.</p>}
+              </motion.div>}
+            </AnimatePresence>
+          </header>
+        </div>
+
+        <main className="px-3 pb-28 pt-6 sm:px-5 sm:pt-8 lg:px-6 lg:pb-12 xl:px-8">
+          <AnimatePresence mode="wait">
+            <motion.div key={section} initial={reduceMotion ? { opacity: 1 } : { opacity: 0, y: 14 }} animate={{ opacity: 1, y: 0 }} exit={reduceMotion ? { opacity: 0 } : { opacity: 0, y: -8 }} transition={{ duration: .35, ease: [.2, .75, .2, 1] }} className="mx-auto max-w-[1500px]">
+              {section === "Overview" && <Overview onNavigate={navigate} onEditProject={(item) => setEditor({ kind: "project", item })} onOpenEnquiry={(item) => setEditor({ kind: "enquiry", item })} />}
+              {section === "Projects" && <ProjectsPanel projects={matchingProjects} query={query} setQuery={setQuery} onCreate={() => create("project")} onEdit={(item) => setEditor({ kind: "project", item })} />}
+              {section === "Gallery" && <GalleryPanel gallery={gallery} onUpload={() => create("gallery")} onEdit={(item) => setEditor({ kind: "gallery", item })} />}
+              {section === "Enquiries" && <EnquiriesPanel enquiries={enquiries} onOpen={(item) => setEditor({ kind: "enquiry", item })} />}
+              {section === "Settings" && <SettingsPanel />}
+            </motion.div>
+          </AnimatePresence>
+        </main>
+      </div>
+
+      <nav aria-label="Admin mobile navigation" className="admin-dock-shell fixed inset-x-3 bottom-[max(.75rem,env(safe-area-inset-bottom))] z-30 grid h-[58px] grid-cols-5 rounded-[1.2rem] border border-white/10 bg-slate-dark/95 p-1 text-white shadow-[0_16px_48px_rgba(8,16,12,.28)] backdrop-blur-xl lg:hidden">
+        {navItems.map((item) => {
+          const active = item.label === section;
+          return <button key={item.label} onClick={() => navigate(item.label)} aria-current={active ? "page" : undefined} className={`relative flex flex-col items-center justify-center gap-1 rounded-[.85rem] transition-all duration-300 active:scale-95 ${active ? "bg-white/[.09] text-white" : "text-white/40"}`}>
+            {active && <motion.span layoutId="admin-mobile-active" className="absolute left-1/2 top-0 h-0.5 w-5 -translate-x-1/2 rounded-full bg-accent" />}
+            <item.icon className={`h-[14px] w-[14px] transition-transform duration-300 ${active ? "-translate-y-px" : ""}`} />
+            <span className="font-mono text-[5.5px] uppercase tracking-[.08em]">{item.label}</span>
+            {item.label === "Enquiries" && newEnquiries > 0 && <span className="absolute right-2 top-1.5 h-1.5 w-1.5 rounded-full bg-accent" />}
+          </button>;
+        })}
+      </nav>
+
+      {createPortal(<AnimatePresence>{composerOpen && <Composer close={() => setComposerOpen(false)} reduceMotion={Boolean(reduceMotion)} create={create} />}{editor?.kind === "project" && <ProjectEditor key={`project-${editor.item?.id ?? "new"}`} project={editor.item} close={() => setEditor(null)} />}{editor?.kind === "gallery" && <GalleryEditor key={`gallery-${editor.item?.id ?? "new"}`} asset={editor.item} close={() => setEditor(null)} />}{editor?.kind === "enquiry" && <EnquiryEditor key={`enquiry-${editor.item.id}`} enquiry={editor.item} close={() => setEditor(null)} />}</AnimatePresence>, document.body)}
+    </div>
+  );
+};
+
+const Overview = ({ onNavigate, onEditProject, onOpenEnquiry }: { onNavigate: (section: Section) => void; onEditProject: (project: ManagedProject) => void; onOpenEnquiry: (enquiry: Enquiry) => void }) => {
+  const { projects, gallery, enquiries } = useContent();
+  const reduceMotion = useReducedMotion();
+  const activeProjects = projects.filter((item) => item.status === "In progress");
+  const openEnquiries = enquiries.filter((item) => item.status === "New" || item.status === "Review");
+  const averageProgress = activeProjects.length ? Math.round(activeProjects.reduce((sum, item) => sum + item.progress, 0) / activeProjects.length) : 100;
+  const stats = [
+    { label: "Active projects", value: String(activeProjects.length).padStart(2, "0"), note: `${projects.length} total records`, icon: Building2 },
+    { label: "Gallery assets", value: String(gallery.length).padStart(2, "0"), note: `${gallery.filter((item) => item.status === "Draft").length} unpublished`, icon: Images },
+    { label: "Open enquiries", value: String(openEnquiries.length).padStart(2, "0"), note: `${enquiries.filter((item) => item.status === "New").length} need attention`, icon: MessageSquare },
+    { label: "Delivery health", value: `${averageProgress}%`, note: "Active portfolio average", icon: TrendingUp },
+  ];
+  const bars = [42, 58, 47, 72, 65, 84, 78, 91, 76, 88, 82, 96];
+  return <>
+    <SectionHeading eyebrow="Command centre · 12 August 2026" title="Good morning, Yunusa." description="A clear view of what is moving, what needs attention and what is ready to publish." />
+    <div className="-mx-3 flex snap-x snap-mandatory gap-3 overflow-x-auto px-3 pb-2 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden sm:mx-0 sm:grid sm:grid-cols-2 sm:overflow-visible sm:px-0 xl:grid-cols-4">
+      {stats.map((stat, index) => <motion.article key={stat.label} initial={reduceMotion ? false : { opacity: 0, y: 18 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: index * .06 }} whileHover={reduceMotion ? undefined : { y: -4 }} className={`${panelClass} min-w-[72vw] snap-center p-5 sm:min-w-0`}>
+        <div className="flex items-start justify-between"><p className="font-mono text-[7px] uppercase tracking-[.16em] text-muted-foreground">{stat.label}</p><span className="grid h-8 w-8 place-items-center rounded-full bg-muted"><stat.icon className="h-3.5 w-3.5 text-muted-foreground" /></span></div>
+        <p className="mt-7 font-display text-5xl leading-none">{stat.value}</p><div className="mt-4 flex items-center justify-between border-t border-border pt-3"><p className="text-[10px] text-muted-foreground">{stat.note}</p><ArrowUpRight className="h-3 w-3 text-muted-foreground" /></div>
+      </motion.article>)}
+    </div>
+
+    <div className="mt-4 grid gap-4 xl:grid-cols-[1.35fr_.65fr]">
+      <section className={`${panelClass} overflow-hidden p-5 sm:p-7`}>
+        <div className="flex items-start justify-between"><div><p className="font-mono text-[7px] uppercase tracking-[.17em] text-muted-foreground">Portfolio activity</p><h2 className="mt-2 text-3xl">Delivery momentum</h2></div><span className="rounded-full bg-emerald-500/10 px-2.5 py-1 font-mono text-[7px] uppercase tracking-[.14em] text-emerald-700 dark:text-emerald-400">+12.4%</span></div>
+        <div className="mt-8 flex h-44 items-end gap-2 border-b border-border sm:h-52 sm:gap-3">{bars.map((height, index) => <div key={index} className="group flex h-full flex-1 items-end"><motion.div initial={reduceMotion ? { height: `${height}%` } : { height: 0 }} animate={{ height: `${height}%` }} transition={{ duration: .7, delay: .08 + index * .035, ease: [.2, .7, .2, 1] }} className="w-full rounded-t-full bg-foreground/[.11] transition-colors duration-300 group-hover:bg-accent" /></div>)}</div>
+        <div className="mt-3 flex justify-between font-mono text-[7px] uppercase tracking-[.12em] text-muted-foreground"><span>Sep</span><span>Dec</span><span>Mar</span><span>Jun</span><span>Aug</span></div>
+      </section>
+
+      <section className={`${panelClass} p-5 sm:p-7`}>
+        <div className="flex items-center justify-between"><div><p className="font-mono text-[7px] uppercase tracking-[.17em] text-muted-foreground">Attention</p><h2 className="mt-2 text-3xl">Next actions</h2></div><span className="grid h-9 w-9 place-items-center rounded-full bg-accent/10"><CircleDot className="h-4 w-4 text-accent" /></span></div>
+        <div className="mt-6 space-y-2">{([{ title: "Approve new photography", section: "Gallery", time: `${gallery.filter((item) => item.status === "Draft").length} drafts` }, { title: "Review active delivery", section: "Projects", time: `${activeProjects.length} active` }, { title: "Respond to new enquiries", section: "Enquiries", time: `${enquiries.filter((item) => item.status === "New").length} new` }] as const).map((action, index) => <button key={action.title} onClick={() => onNavigate(action.section)} className="group flex w-full items-center gap-3 rounded-2xl bg-muted/55 p-3.5 text-left transition-all duration-300 hover:bg-muted"><span className="grid h-8 w-8 shrink-0 place-items-center rounded-full bg-background font-mono text-[7px]">0{index + 1}</span><span className="min-w-0 flex-1"><span className="block truncate text-xs">{action.title}</span><span className="mt-1 block font-mono text-[7px] uppercase tracking-[.13em] text-muted-foreground">{action.section} · {action.time}</span></span><ChevronRight className="h-3.5 w-3.5 transition-transform duration-300 group-hover:translate-x-1" /></button>)}</div>
+      </section>
+    </div>
+    <div className="mt-4 grid gap-4 xl:grid-cols-2"><RecentProjects projects={projects} onView={() => onNavigate("Projects")} onEdit={onEditProject} /><RecentEnquiries enquiries={enquiries} onView={() => onNavigate("Enquiries")} onOpen={onOpenEnquiry} /></div>
+  </>;
+};
+
+const RecentProjects = ({ projects, onView, onEdit }: { projects: ManagedProject[]; onView: () => void; onEdit: (project: ManagedProject) => void }) => <section className={`${panelClass} overflow-hidden`}><div className="flex items-center justify-between p-5 sm:p-6"><div><p className="font-mono text-[7px] uppercase tracking-[.16em] text-muted-foreground">Portfolio</p><h2 className="mt-2 text-2xl">Recent projects</h2></div><button onClick={onView} className="rounded-full border border-border px-3 py-2 font-mono text-[7px] uppercase tracking-[.14em] text-muted-foreground transition-colors hover:border-foreground hover:text-foreground">View all</button></div><div className="space-y-1 px-2 pb-2">{projects.slice(0, 4).map((project) => <button key={project.id} onClick={() => onEdit(project)} className="grid w-full grid-cols-[1fr_auto] gap-3 rounded-2xl px-3 py-3.5 text-left transition-colors hover:bg-muted sm:px-4"><span><span className="block text-xs font-medium">{project.name}</span><span className="mt-1 block truncate font-mono text-[7px] uppercase tracking-[.12em] text-muted-foreground">{project.type} · {project.location}</span></span><span className="text-right"><Status value={project.status} /><span className="mt-1 block font-mono text-[7px] text-muted-foreground">{formatRelativeDate(project.updatedAt)}</span></span></button>)}</div></section>;
+
+const RecentEnquiries = ({ enquiries, onView, onOpen }: { enquiries: Enquiry[]; onView: () => void; onOpen: (enquiry: Enquiry) => void }) => <section className={`${panelClass} overflow-hidden`}><div className="flex items-center justify-between p-5 sm:p-6"><div><p className="font-mono text-[7px] uppercase tracking-[.16em] text-muted-foreground">Inbox</p><h2 className="mt-2 text-2xl">Recent enquiries</h2></div><button onClick={onView} className="rounded-full border border-border px-3 py-2 font-mono text-[7px] uppercase tracking-[.14em] text-muted-foreground transition-colors hover:border-foreground hover:text-foreground">View all</button></div><div className="space-y-1 px-2 pb-2">{enquiries.slice(0, 4).map((item) => <button key={item.id} onClick={() => onOpen(item)} className="flex w-full items-center gap-3 rounded-2xl px-3 py-3 text-left transition-colors hover:bg-muted sm:px-4"><span className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-muted font-mono text-[7px]">{initials(item.name)}</span><span className="min-w-0 flex-1"><span className="block text-xs font-medium">{item.name}</span><span className="mt-1 block truncate text-[10px] text-muted-foreground">{item.subject}</span></span><span className="text-right"><Status value={item.status} /><span className="mt-1 block font-mono text-[7px] text-muted-foreground">{formatRelativeDate(item.createdAt)}</span></span></button>)}</div></section>;
+
+const ProjectsPanel = ({ projects, query, setQuery, onCreate, onEdit }: { projects: ManagedProject[]; query: string; setQuery: (value: string) => void; onCreate: () => void; onEdit: (project: ManagedProject) => void }) => <>
+  <SectionHeading eyebrow="Content · Projects" title="Project portfolio" description="Create, review and publish project stories across the public website." action={<button onClick={onCreate} className="group flex h-10 w-fit items-center gap-2 rounded-full bg-foreground px-4 font-mono text-[8px] uppercase tracking-[.14em] text-background transition-all hover:-translate-y-0.5 hover:shadow-lg"><Plus className="h-3.5 w-3.5 transition-transform group-hover:rotate-90" />New project</button>} />
+  <div className="mb-4 flex items-center gap-3 rounded-full bg-muted px-4 md:hidden"><Search className="h-3.5 w-3.5 text-muted-foreground" /><input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Search projects" className="h-11 w-full bg-transparent text-xs outline-none" /></div>
+
+  <div className="space-y-3 md:hidden">{projects.map((project, index) => <motion.article key={project.id} initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: index * .045 }} className={`${panelClass} p-4`}>
+    <div className="flex items-start justify-between gap-3"><div><p className="font-mono text-[7px] uppercase tracking-[.14em] text-muted-foreground">{project.type} · {project.location}</p><h2 className="mt-2 text-2xl leading-tight">{project.name}</h2></div><button onClick={() => onEdit(project)} aria-label={`Edit ${project.name}`} className="grid h-8 w-8 shrink-0 place-items-center rounded-full bg-muted"><MoreHorizontal className="h-4 w-4" /></button></div>
+    <div className="mt-5 flex items-center justify-between"><Status value={project.status} /><span className="font-mono text-[7px] text-muted-foreground">Updated {formatRelativeDate(project.updatedAt)}</span></div>
+    <div className="mt-4"><div className="flex justify-between font-mono text-[7px] uppercase tracking-[.12em] text-muted-foreground"><span>Completion</span><span>{project.progress}%</span></div><div className="mt-2 h-1.5 overflow-hidden rounded-full bg-muted"><motion.div initial={{ width: 0 }} animate={{ width: `${project.progress}%` }} transition={{ duration: .65, delay: .1 + index * .04 }} className="h-full rounded-full bg-foreground" /></div></div>
+  </motion.article>)}{projects.length === 0 && <EmptyState text="No projects match that search." />}</div>
+
+  <div className={`${panelClass} hidden overflow-x-auto md:block`}><table className="w-full min-w-[760px] text-left"><thead><tr className="border-b border-border font-mono text-[7px] uppercase tracking-[.15em] text-muted-foreground"><th className="px-5 py-4 font-normal">Project</th><th className="px-5 py-4 font-normal">Status</th><th className="px-5 py-4 font-normal">Progress</th><th className="px-5 py-4 font-normal">Updated</th><th className="px-5 py-4 font-normal" /></tr></thead><tbody>{projects.map((project) => <tr key={project.id} className="group border-b border-border last:border-0 transition-colors hover:bg-muted/45"><td className="px-5 py-5"><p className="text-sm font-medium">{project.name}</p><p className="mt-1 font-mono text-[7px] uppercase tracking-[.12em] text-muted-foreground">{project.type} · {project.location}</p></td><td className="px-5 py-5"><Status value={project.status} /></td><td className="px-5 py-5"><div className="flex items-center gap-3"><span className="h-1.5 w-28 overflow-hidden rounded-full bg-muted"><span className="block h-full rounded-full bg-foreground transition-all duration-700" style={{ width: `${project.progress}%` }} /></span><span className="font-mono text-[7px] text-muted-foreground">{project.progress}%</span></div></td><td className="px-5 py-5 font-mono text-[7px] text-muted-foreground">{formatRelativeDate(project.updatedAt)}</td><td className="px-5 py-5"><button onClick={() => onEdit(project)} aria-label={`Edit ${project.name}`} className="grid h-8 w-8 place-items-center rounded-full transition-colors group-hover:bg-background"><MoreHorizontal className="h-4 w-4" /></button></td></tr>)}</tbody></table>{projects.length === 0 && <EmptyState text="No projects match that search." />}</div>
+</>;
+
+const GalleryPanel = ({ gallery, onUpload, onEdit }: { gallery: GalleryAsset[]; onUpload: () => void; onEdit: (asset: GalleryAsset) => void }) => <>
+  <SectionHeading eyebrow="Content · Media" title="Gallery library" description="Curate the visual archive and control which images appear on the public gallery." action={<button onClick={onUpload} className="group flex h-10 w-fit items-center gap-2 rounded-full bg-foreground px-4 font-mono text-[8px] uppercase tracking-[.14em] text-background transition-all hover:-translate-y-0.5 hover:shadow-lg"><Upload className="h-3.5 w-3.5 transition-transform group-hover:-translate-y-0.5" />Upload assets</button>} />
+  <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
+    <button onClick={onUpload} className={`${panelClass} group grid min-h-52 place-items-center border-dashed p-6 text-center transition-all duration-500 hover:-translate-y-1 hover:bg-muted sm:min-h-72`}><span><span className="mx-auto grid h-11 w-11 place-items-center rounded-full border border-border transition-all duration-500 group-hover:rotate-90 group-hover:bg-foreground group-hover:text-background"><Plus className="h-4 w-4" /></span><span className="mt-4 block text-sm">Add images or video</span><span className="mt-2 block font-mono text-[7px] uppercase tracking-[.13em] text-muted-foreground">JPG · PNG · WEBP · MP4</span></span></button>
+    {gallery.map((item, index) => <motion.article key={item.id} initial={{ opacity: 0, y: 14 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: index * .035 }} className={`${panelClass} group overflow-hidden`}><div className="relative aspect-[4/3] overflow-hidden"><img src={item.src} alt={item.name} className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-[1.035]" /><div className="absolute inset-x-3 top-3 flex justify-between"><span className="rounded-full bg-slate-dark/80 px-2.5 py-1 font-mono text-[7px] uppercase tracking-[.13em] text-white backdrop-blur">{item.status}</span><button onClick={() => onEdit(item)} aria-label={`Edit ${item.name}`} className="grid h-8 w-8 place-items-center rounded-full bg-background/90 backdrop-blur"><MoreHorizontal className="h-4 w-4" /></button></div></div><div className="flex items-end justify-between p-4"><div><h3 className="text-lg">{item.name}</h3><p className="mt-1 font-mono text-[7px] uppercase tracking-[.13em] text-muted-foreground">{item.type} · {item.year}</p></div><a href={item.src} target="_blank" rel="noreferrer" aria-label={`Preview ${item.name}`} className="grid h-8 w-8 place-items-center rounded-full border border-border transition-colors hover:bg-foreground hover:text-background"><Eye className="h-3.5 w-3.5" /></a></div></motion.article>)}
+  </div>
+</>;
+
+const EnquiriesPanel = ({ enquiries, onOpen }: { enquiries: Enquiry[]; onOpen: (enquiry: Enquiry) => void }) => <>
+  <SectionHeading eyebrow="Inbox · Client relations" title="Enquiries" description="Review new conversations, viewing requests and partnership opportunities." />
+  <div className="grid gap-4 xl:grid-cols-[1fr_330px]">
+    <section className={`${panelClass} space-y-1 overflow-hidden p-2`}>{enquiries.map((item, index) => <motion.button key={item.id} onClick={() => onOpen(item)} initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: index * .04 }} className={`group flex w-full items-center gap-3 rounded-2xl px-3 py-3.5 text-left transition-colors hover:bg-muted sm:px-4 ${item.status === "New" ? "bg-muted/60" : ""}`}><span className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-background font-mono text-[8px] shadow-sm">{initials(item.name)}</span><span className="min-w-0 flex-1"><span className="block text-xs font-medium sm:text-sm">{item.name}</span><span className="mt-1 block truncate text-[10px] text-muted-foreground sm:text-xs">{item.subject}</span></span><span className="shrink-0 text-right"><Status value={item.status} /><span className="mt-1.5 block font-mono text-[7px] text-muted-foreground">{formatRelativeDate(item.createdAt)}</span></span><ChevronRight className="hidden h-3.5 w-3.5 transition-transform group-hover:translate-x-1 sm:block" /></motion.button>)}{enquiries.length === 0 && <EmptyState text="No enquiries yet." />}</section>
+    <aside className="overflow-hidden rounded-[1.5rem] bg-slate-dark p-6 text-white shadow-[0_22px_70px_rgba(8,16,12,.16)]"><div className="flex items-center justify-between"><MessageSquare className="h-5 w-5 text-white/45" /><span className="h-2 w-2 rounded-full bg-emerald-400 shadow-[0_0_14px_rgba(74,222,128,.7)]" /></div><p className="mt-10 font-mono text-[7px] uppercase tracking-[.17em] text-white/40">Response health</p><p className="mt-3 font-display text-6xl">{enquiries.filter((item) => item.status === "New").length}</p><p className="mt-2 text-xs text-white/50">New conversations</p><div className="mt-9 rounded-[1.25rem] bg-white/[.06] p-4"><p className="font-mono text-[7px] uppercase tracking-[.14em] text-white/40">All records</p><div className="mt-4 space-y-3">{[["Received", enquiries.length], ["Replied", enquiries.filter((item) => item.status === "Replied").length], ["In review", enquiries.filter((item) => item.status === "Review").length]].map(([label, value]) => <div key={label} className="flex justify-between text-xs"><span className="text-white/55">{label}</span><span>{String(value).padStart(2, "0")}</span></div>)}</div></div></aside>
+  </div>
+</>;
+
+const SettingsPanel = () => {
+  const { settings, updateSettings, projects, gallery, enquiries, activities } = useContent();
+  const { toast } = useToast();
+  const [form, setForm] = useState<SiteSettings>(settings);
+  const change = (key: keyof SiteSettings, value: string) => setForm((current) => ({ ...current, [key]: value }));
+  const save = () => { updateSettings(form); toast({ title: "Settings saved", description: "Public contact details were updated immediately." }); };
+  const exportData = () => {
+    const blob = new Blob([JSON.stringify({ projects, gallery, enquiries, settings: form, activities }, null, 2)], { type: "application/json" });
+    const url = URL.createObjectURL(blob); const link = document.createElement("a"); link.href = url; link.download = `kansadco-content-${new Date().toISOString().slice(0, 10)}.json`; link.click(); URL.revokeObjectURL(url);
+  };
+  const groups: { title: string; icon: typeof Building2; fields: [string, keyof SiteSettings][] }[] = [
+    { title: "Company profile", icon: Building2, fields: [["Display name", "displayName"], ["Primary email", "primaryEmail"], ["Telephone", "telephone"], ["Abuja address", "abujaAddress"], ["Kano address", "kanoAddress"]] },
+    { title: "Publishing", icon: Check, fields: [["Default author", "defaultAuthor"], ["Review workflow", "reviewWorkflow"], ["Image quality", "imageQuality"]] },
+  ];
+  return <><SectionHeading eyebrow="Workspace · Configuration" title="Settings" description="Control brand details, public contact information and publishing defaults." action={<button onClick={exportData} className="flex h-10 w-fit items-center gap-2 rounded-full border border-border px-4 font-mono text-[7px] uppercase tracking-[.14em] transition-colors hover:border-foreground"><Download className="h-3.5 w-3.5" />Export content</button>} /><div className="grid gap-4 xl:grid-cols-2">{groups.map((group, groupIndex) => <motion.section key={group.title} initial={{ opacity: 0, y: 14 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: groupIndex * .08 }} className={`${panelClass} p-5 sm:p-6`}><div className="flex items-center justify-between"><div className="flex items-center gap-3"><span className="grid h-9 w-9 place-items-center rounded-full bg-muted"><group.icon className="h-4 w-4 text-muted-foreground" /></span><h2 className="text-2xl">{group.title}</h2></div><span className="font-mono text-[7px] uppercase tracking-[.14em] text-muted-foreground">0{groupIndex + 1}</span></div><div className="mt-6 space-y-2">{group.fields.map(([label, key]) => <label key={key} className="block rounded-2xl bg-muted/55 px-4 py-3 transition-colors focus-within:bg-muted"><span className="font-mono text-[7px] uppercase tracking-[.14em] text-muted-foreground">{label}</span><input value={form[key]} onChange={(event) => change(key, event.target.value)} className="mt-1.5 block w-full bg-transparent text-xs outline-none sm:text-sm" /></label>)}</div><button onClick={save} className="mt-5 h-10 rounded-full bg-foreground px-5 font-mono text-[7px] uppercase tracking-[.15em] text-background transition-all hover:-translate-y-0.5 hover:shadow-lg">Save changes</button></motion.section>)}</div></>;
+};
+
+const EmptyState = ({ text }: { text: string }) => <div className="p-10 text-center"><Search className="mx-auto h-5 w-5 text-muted-foreground" /><p className="mt-3 text-xs text-muted-foreground">{text}</p></div>;
+
+const Composer = ({ close, reduceMotion, create }: { close: () => void; reduceMotion: boolean; create: (kind: "project" | "gallery") => void }) => (
+  <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: .25 }} className="fixed inset-0 z-[70] flex items-end justify-center bg-slate-dark/50 p-3 backdrop-blur-sm sm:items-center sm:p-5" role="dialog" aria-modal="true" aria-label="Create new entry">
+    <button onClick={close} className="absolute inset-0" aria-label="Close create dialog" />
+    <motion.div initial={reduceMotion ? { opacity: 1 } : { opacity: 0, y: 30, scale: .97 }} animate={{ opacity: 1, y: 0, scale: 1 }} exit={reduceMotion ? { opacity: 0 } : { opacity: 0, y: 22, scale: .98 }} transition={{ duration: .4, ease: [.2, .8, .2, 1] }} className="relative w-full max-w-xl rounded-[2rem] border border-border bg-background p-5 shadow-[0_30px_100px_rgba(8,16,12,.3)] sm:p-7">
+      <div className="flex items-start justify-between gap-4"><div><p className="font-mono text-[8px] uppercase tracking-[.18em] text-muted-foreground">Quick create</p><h2 className="mt-2 text-[2.5rem] leading-none sm:text-5xl">Add to the workspace.</h2></div><button onClick={close} className="grid h-9 w-9 shrink-0 place-items-center rounded-full border border-border transition-colors hover:bg-foreground hover:text-background"><X className="h-4 w-4" /></button></div>
+      <div className="mt-7 grid grid-cols-2 gap-2 sm:gap-3">{([{ label: "Project", kind: "project" }, { label: "Gallery asset", kind: "gallery" }] as const).map((item, index) => <motion.button key={item.kind} initial={reduceMotion ? false : { opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: .1 + index * .05 }} onClick={() => create(item.kind)} className="group flex min-h-28 flex-col justify-between rounded-[1.25rem] border border-border p-3 text-left transition-all duration-300 hover:-translate-y-1 hover:bg-foreground hover:text-background sm:min-h-36 sm:p-4"><Plus className="h-4 w-4 transition-transform duration-300 group-hover:rotate-90" /><span><span className="block text-[11px] sm:text-sm">{item.label}</span><ArrowUpRight className="ml-auto mt-2 h-3.5 w-3.5 transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5" /></span></motion.button>)}</div>
+      <p className="mt-5 font-mono text-[7px] uppercase leading-5 tracking-[.13em] text-muted-foreground">New entries remain drafts until reviewed and published.</p>
+    </motion.div>
+  </motion.div>
+);
+
+const editorField = "mt-2 h-11 w-full rounded-xl border border-border bg-background px-3 text-xs outline-none transition-colors focus:border-foreground";
+const editorLabel = "font-mono text-[7px] uppercase tracking-[.14em] text-muted-foreground";
+
+const EditorShell = ({ label, title, close, children }: { label: string; title: string; close: () => void; children: ReactNode }) => (
+  <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 z-[80] flex items-end justify-center bg-slate-dark/55 p-3 backdrop-blur-sm sm:items-center sm:p-5" role="dialog" aria-modal="true" aria-label={title}>
+    <button onClick={close} className="absolute inset-0" aria-label="Close editor" />
+    <motion.div initial={{ opacity: 0, y: 28, scale: .98 }} animate={{ opacity: 1, y: 0, scale: 1 }} exit={{ opacity: 0, y: 18, scale: .985 }} transition={{ duration: .35, ease: [.2, .8, .2, 1] }} className="relative max-h-[calc(100svh-1.5rem)] w-full max-w-2xl overflow-y-auto rounded-[2rem] border border-border bg-background p-5 shadow-[0_30px_100px_rgba(8,16,12,.35)] sm:p-7">
+      <div className="sticky top-0 z-10 -mx-1 flex items-start justify-between gap-4 bg-background/95 px-1 pb-5 backdrop-blur"><div><p className="font-mono text-[8px] uppercase tracking-[.18em] text-muted-foreground">{label}</p><h2 className="mt-2 text-[2.35rem] leading-none sm:text-5xl">{title}</h2></div><button onClick={close} className="grid h-9 w-9 shrink-0 place-items-center rounded-full border border-border transition-colors hover:bg-foreground hover:text-background"><X className="h-4 w-4" /></button></div>
+      {children}
+    </motion.div>
+  </motion.div>
+);
+
+const ProjectEditor = ({ project, close }: { project?: ManagedProject; close: () => void }) => {
+  const { addProject, updateProject, deleteProject } = useContent();
+  const { toast } = useToast();
+  const [form, setForm] = useState({
+    name: project?.name ?? "", type: project?.type ?? "Residential", location: project?.location ?? "",
+    progress: project?.progress ?? 0, status: project?.status ?? "Draft" as ProjectStatus,
+    year: project?.year ?? new Date().getFullYear().toString(), description: project?.description ?? "", image: project?.image ?? heroSignature,
+  });
+  const change = (key: keyof typeof form, value: string | number) => setForm((current) => ({ ...current, [key]: value }));
+  const submit = (event: React.FormEvent) => {
+    event.preventDefault();
+    if (project) updateProject(project.id, form); else addProject(form);
+    toast({ title: project ? "Project updated" : "Project created", description: `${form.name} is ${form.status.toLowerCase()}.` }); close();
+  };
+  const remove = () => { if (!project || !window.confirm(`Delete ${project.name}? This cannot be undone.`)) return; deleteProject(project.id); toast({ title: "Project deleted" }); close(); };
+  return <EditorShell label={project ? "Portfolio · Edit" : "Portfolio · New"} title={project ? "Edit project." : "Create a project."} close={close}>
+    <form onSubmit={submit} className="grid gap-4 sm:grid-cols-2">
+      <label className={editorLabel}>Project name<input value={form.name} onChange={(e) => change("name", e.target.value)} required className={editorField} /></label>
+      <label className={editorLabel}>Category<input value={form.type} onChange={(e) => change("type", e.target.value)} required className={editorField} /></label>
+      <label className={editorLabel}>Location<input value={form.location} onChange={(e) => change("location", e.target.value)} required className={editorField} /></label>
+      <label className={editorLabel}>Year<input value={form.year} onChange={(e) => change("year", e.target.value)} required className={editorField} /></label>
+      <label className={editorLabel}>Status<select value={form.status} onChange={(e) => change("status", e.target.value as ProjectStatus)} className={editorField}><option>Draft</option><option>In progress</option><option>Published</option></select></label>
+      <label className={editorLabel}>Completion · {form.progress}%<input type="range" min="0" max="100" value={form.progress} onChange={(e) => change("progress", Number(e.target.value))} className="mt-4 h-6 w-full accent-current" /></label>
+      <label className={`${editorLabel} sm:col-span-2`}>Image URL<input value={form.image} onChange={(e) => change("image", e.target.value)} required className={editorField} /></label>
+      <label className={`${editorLabel} sm:col-span-2`}>Description<textarea value={form.description} onChange={(e) => change("description", e.target.value)} required rows={4} className={`${editorField} h-auto py-3`} /></label>
+      {form.image && <div className="sm:col-span-2"><img src={form.image} alt="Project preview" className="h-40 w-full rounded-2xl object-cover" /></div>}
+      <div className="mt-2 flex items-center justify-between gap-3 sm:col-span-2">{project ? <button type="button" onClick={remove} className="flex h-10 items-center gap-2 rounded-full border border-destructive/30 px-4 font-mono text-[7px] uppercase tracking-[.14em] text-destructive"><Trash2 className="h-3.5 w-3.5" />Delete</button> : <span />}<button type="submit" className="h-11 rounded-full bg-foreground px-6 font-mono text-[8px] uppercase tracking-[.15em] text-background">{project ? "Save changes" : "Create project"}</button></div>
+    </form>
+  </EditorShell>;
+};
+
+const GalleryEditor = ({ asset, close }: { asset?: GalleryAsset; close: () => void }) => {
+  const { addGalleryAsset, updateGalleryAsset, deleteGalleryAsset } = useContent();
+  const { toast } = useToast();
+  const [form, setForm] = useState({ name: asset?.name ?? "", type: asset?.type ?? "Residential", location: asset?.location ?? "Abuja", year: asset?.year ?? new Date().getFullYear().toString(), status: asset?.status ?? "Draft" as AssetStatus, src: asset?.src ?? heroSignature });
+  const change = (key: keyof typeof form, value: string) => setForm((current) => ({ ...current, [key]: value }));
+  const chooseFile = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0]; if (!file) return;
+    if (file.size > 1_500_000) { toast({ title: "Image too large", description: "Use an image below 1.5 MB for browser storage.", variant: "destructive" }); return; }
+    const reader = new FileReader(); reader.onload = () => change("src", String(reader.result)); reader.readAsDataURL(file);
+  };
+  const submit = (event: React.FormEvent) => { event.preventDefault(); if (asset) updateGalleryAsset(asset.id, form); else addGalleryAsset(form); toast({ title: asset ? "Asset updated" : "Asset added", description: `${form.name} is ${form.status.toLowerCase()}.` }); close(); };
+  const remove = () => { if (!asset || !window.confirm(`Delete ${asset.name}? This cannot be undone.`)) return; deleteGalleryAsset(asset.id); toast({ title: "Gallery asset deleted" }); close(); };
+  return <EditorShell label={asset ? "Gallery · Edit" : "Gallery · Upload"} title={asset ? "Edit asset." : "Add to the archive."} close={close}>
+    <form onSubmit={submit} className="grid gap-4 sm:grid-cols-2">
+      <label className={editorLabel}>Title<input value={form.name} onChange={(e) => change("name", e.target.value)} required className={editorField} /></label>
+      <label className={editorLabel}>Category<input value={form.type} onChange={(e) => change("type", e.target.value)} required className={editorField} /></label>
+      <label className={editorLabel}>Location<input value={form.location} onChange={(e) => change("location", e.target.value)} required className={editorField} /></label>
+      <label className={editorLabel}>Year<input value={form.year} onChange={(e) => change("year", e.target.value)} required className={editorField} /></label>
+      <label className={editorLabel}>Status<select value={form.status} onChange={(e) => change("status", e.target.value as AssetStatus)} className={editorField}><option>Draft</option><option>Published</option></select></label>
+      <label className={editorLabel}>Upload image<input type="file" accept="image/*" onChange={chooseFile} className="mt-2 block w-full text-[10px] file:mr-3 file:rounded-full file:border-0 file:bg-foreground file:px-3 file:py-2 file:text-[8px] file:uppercase file:text-background" /></label>
+      <label className={`${editorLabel} sm:col-span-2`}>Image URL or saved file<input value={form.src} onChange={(e) => change("src", e.target.value)} required className={editorField} /></label>
+      {form.src && <div className="sm:col-span-2"><img src={form.src} alt="Asset preview" className="h-56 w-full rounded-2xl object-cover" /></div>}
+      <div className="mt-2 flex items-center justify-between gap-3 sm:col-span-2">{asset ? <button type="button" onClick={remove} className="flex h-10 items-center gap-2 rounded-full border border-destructive/30 px-4 font-mono text-[7px] uppercase tracking-[.14em] text-destructive"><Trash2 className="h-3.5 w-3.5" />Delete</button> : <span />}<button type="submit" className="h-11 rounded-full bg-foreground px-6 font-mono text-[8px] uppercase tracking-[.15em] text-background">{asset ? "Save changes" : "Add asset"}</button></div>
+    </form>
+  </EditorShell>;
+};
+
+const EnquiryEditor = ({ enquiry, close }: { enquiry: Enquiry; close: () => void }) => {
+  const { updateEnquiry, deleteEnquiry } = useContent();
+  const { toast } = useToast();
+  const setStatus = (status: Enquiry["status"]) => { updateEnquiry(enquiry.id, { status }); toast({ title: `Enquiry marked ${status.toLowerCase()}` }); close(); };
+  const remove = () => { if (!window.confirm(`Delete the enquiry from ${enquiry.name}?`)) return; deleteEnquiry(enquiry.id); toast({ title: "Enquiry deleted" }); close(); };
+  return <EditorShell label={`${enquiry.source} · ${formatRelativeDate(enquiry.createdAt)}`} title={enquiry.subject} close={close}>
+    <div className="grid gap-3 sm:grid-cols-2"><div className="rounded-2xl bg-muted p-4"><p className={editorLabel}>From</p><p className="mt-2 text-sm">{enquiry.name}</p><p className="mt-1 text-xs text-muted-foreground">{enquiry.email}</p><p className="mt-1 text-xs text-muted-foreground">{enquiry.phone || "No telephone"}</p></div><div className="rounded-2xl bg-muted p-4"><p className={editorLabel}>Status</p><div className="mt-2"><Status value={enquiry.status} /></div><p className="mt-3 font-mono text-[7px] uppercase tracking-[.12em] text-muted-foreground">{new Date(enquiry.createdAt).toLocaleString()}</p></div></div>
+    <div className="mt-3 rounded-2xl border border-border p-4"><p className={editorLabel}>Message</p><p className="mt-3 whitespace-pre-wrap text-sm leading-7 text-muted-foreground">{enquiry.message}</p></div>
+    <div className="mt-5 flex flex-wrap items-center gap-2"><a href={`mailto:${enquiry.email}?subject=Re: ${encodeURIComponent(enquiry.subject)}`} onClick={() => updateEnquiry(enquiry.id, { status: "Replied" })} className="flex h-10 items-center gap-2 rounded-full bg-foreground px-4 font-mono text-[7px] uppercase tracking-[.14em] text-background"><Mail className="h-3.5 w-3.5" />Reply</a>{(["New", "Review", "Replied", "Archived"] as const).filter((status) => status !== enquiry.status).map((status) => <button key={status} onClick={() => setStatus(status)} className="h-10 rounded-full border border-border px-4 font-mono text-[7px] uppercase tracking-[.13em] transition-colors hover:border-foreground">Mark {status}</button>)}<button onClick={remove} className="ml-auto grid h-10 w-10 place-items-center rounded-full border border-destructive/30 text-destructive" aria-label="Delete enquiry"><Trash2 className="h-3.5 w-3.5" /></button></div>
+  </EditorShell>;
+};
+
+export default Admin;

@@ -1,96 +1,48 @@
 import { Link } from "react-router-dom";
-import { MapPin, ArrowRight } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { ArrowUpRight } from "lucide-react";
 import { ScrollReveal } from "@/components/ui/ScrollReveal";
-import project1 from "@/assets/project-1.jpg";
-import project2 from "@/assets/project-2.jpg";
-import project3 from "@/assets/project-3.jpg";
-import project4 from "@/assets/project-4.jpg";
+import { useContent } from "@/lib/contentStore";
 
-const projects = [
-  {
-    image: project1,
-    title: "Rahmaniyya Estate Phase 1",
-    location: "Utako, Abuja",
-    category: "Residential Estate",
-  },
-  {
-    image: project2,
-    title: "Kano-Zaria Expressway",
-    location: "Kano State",
-    category: "Infrastructure",
-  },
-  {
-    image: project3,
-    title: "KANSADCO Corporate Tower",
-    location: "Central Business District, Abuja",
-    category: "Commercial Building",
-  },
-  {
-    image: project4,
-    title: "River Kaduna Bridge",
-    location: "Kaduna State",
-    category: "Government Project",
-  },
+const placements = [
+  { className: "lg:col-span-7", ratio: "aspect-[5/4]" },
+  { className: "lg:col-span-5 lg:mt-32", ratio: "aspect-[4/5]" },
+  { className: "lg:col-span-5 lg:ml-16", ratio: "aspect-[4/5]" },
+  { className: "lg:col-span-7 lg:mt-24", ratio: "aspect-[5/4]" },
 ];
 
 const ProjectsPreview = () => {
+  const { projects } = useContent();
+  const featured = projects.filter((project) => project.status === "Published").slice(0, 4);
   return (
-    <section className="section-padding bg-platinum">
-      <div className="container-custom">
-        {/* Section Header */}
-        <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-6 mb-12">
-          <ScrollReveal width="100%">
-            <div>
-              <span className="inline-block text-accent font-medium mb-4">Our Portfolio</span>
-              <h2 className="font-display text-3xl md:text-4xl font-bold text-foreground">
-                Featured Projects
-              </h2>
-            </div>
-          </ScrollReveal>
-          <ScrollReveal width="fit-content" delay={0.2} className="self-start md:self-auto">
-            <Button asChild variant="outline" className="btn-outline-gold">
-              <Link to="/projects">
-                View All Projects <ArrowRight className="h-4 w-4 ml-2" />
-              </Link>
-            </Button>
-          </ScrollReveal>
-        </div>
-
-        {/* Projects Grid */}
-        <div className="grid md:grid-cols-2 gap-8">
-          {projects.map((project, index) => (
-            <ScrollReveal key={project.title} delay={index * 0.1} width="100%">
-              <Link
-                to="/projects"
-                className="group relative overflow-hidden rounded-lg card-hover block h-full"
-              >
-                <div className="aspect-[4/3] overflow-hidden">
-                  <img
-                    src={project.image}
-                    alt={project.title}
-                    className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
-                  />
-                </div>
-                <div className="absolute inset-0 bg-gradient-to-t from-slate-dark/90 via-slate-dark/30 to-transparent" />
-                <div className="absolute bottom-0 left-0 right-0 p-6">
-                  <span className="inline-block bg-accent text-accent-foreground text-sm font-medium px-3 py-1 rounded mb-3">
-                    {project.category}
-                  </span>
-                  <h3 className="font-display text-xl font-semibold text-primary-foreground mb-2">
-                    {project.title}
-                  </h3>
-                  <div className="flex items-center gap-2 text-primary-foreground/80">
-                    <MapPin className="h-4 w-4" />
-                    <span className="text-sm">{project.location}</span>
-                  </div>
-                </div>
-              </Link>
-            </ScrollReveal>
-          ))}
-        </div>
+  <section className="section-padding bg-background">
+    <div className="container-custom">
+      <div className="mb-16 grid gap-8 border-b border-border pb-10 lg:grid-cols-[1fr_auto] lg:items-end">
+        <ScrollReveal width="100%">
+          <p className="eyebrow mb-7 text-accent">Selected work</p>
+          <h2 className="section-title max-w-4xl">Built for the life that happens <em className="text-accent">next.</em></h2>
+        </ScrollReveal>
+        <Link to="/projects" className="link-underline mb-2 flex w-fit items-center gap-3 font-mono text-[10px] font-semibold uppercase tracking-[0.17em]">All projects <ArrowUpRight className="h-4 w-4" /></Link>
       </div>
-    </section>
+
+      <div className="grid gap-x-7 gap-y-16 max-md:-mx-5 max-md:flex max-md:snap-x max-md:snap-mandatory max-md:overflow-x-auto max-md:px-5 max-md:pb-4 [scrollbar-width:none] max-md:[&::-webkit-scrollbar]:hidden lg:grid-cols-12 lg:gap-y-28">
+        {featured.map((project, index) => (
+          <ScrollReveal key={project.id} width="100%" delay={index % 2 ? .12 : 0} className={`max-md:min-w-[84vw] max-md:snap-center ${placements[index].className}`}>
+            <Link to="/projects" className="group block">
+              <div className={`image-reveal relative bg-muted ${placements[index].ratio}`}>
+                <img src={project.image} alt={project.name} loading="lazy" className="h-full w-full object-cover" />
+                <div className="absolute inset-0 bg-slate-dark/0 transition-colors duration-700 group-hover:bg-slate-dark/10" />
+                <span className="absolute right-4 top-4 grid h-11 w-11 translate-y-2 place-items-center rounded-full bg-background text-foreground opacity-0 transition-all duration-500 group-hover:translate-y-0 group-hover:rotate-45 group-hover:opacity-100"><ArrowUpRight className="h-4 w-4" /></span>
+              </div>
+              <div className="mt-5 grid grid-cols-[1fr_auto] gap-4 border-b border-border pb-5">
+                <div><h3 className="text-2xl md:text-3xl">{project.name}</h3><p className="mt-2 font-mono text-[9px] uppercase tracking-[0.16em] text-muted-foreground">{project.location}</p></div>
+                <span className="pt-1 font-mono text-[9px] uppercase tracking-[0.16em] text-muted-foreground">{project.type}</span>
+              </div>
+            </Link>
+          </ScrollReveal>
+        ))}
+      </div>
+    </div>
+  </section>
   );
 };
 

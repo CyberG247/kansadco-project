@@ -1,141 +1,41 @@
 import { useState } from "react";
 import Layout from "@/components/layout/Layout";
-import { MapPin } from "lucide-react";
-import project1 from "@/assets/project-1.jpg";
-import project2 from "@/assets/project-2.jpg";
-import project3 from "@/assets/project-3.jpg";
+import PageHero from "@/components/layout/PageHero";
+import { ArrowUpRight } from "lucide-react";
 import project4 from "@/assets/project-4.jpg";
-import heroEstate from "@/assets/hero-estate.jpg";
-import heroConstruction from "@/assets/hero-construction.jpg";
-
-const projects = [
-  {
-    image: project1,
-    title: "Rahmaniyya Estate Phase 1",
-    location: "Utako, Abuja",
-    category: "Estate",
-    description: "A premium residential estate featuring 250 luxury homes with modern amenities, landscaped gardens, and 24/7 security.",
-  },
-  {
-    image: project2,
-    title: "Kano-Zaria Expressway Rehabilitation",
-    location: "Kano State",
-    category: "Road",
-    description: "Complete rehabilitation of 45km stretch of the Kano-Zaria expressway, including bridges and drainage systems.",
-  },
-  {
-    image: project3,
-    title: "KANSADCO Corporate Tower",
-    location: "Central Business District, Abuja",
-    category: "Commercial",
-    description: "A 15-storey commercial building featuring Grade A office spaces, retail areas, and underground parking.",
-  },
-  {
-    image: project4,
-    title: "River Kaduna Bridge",
-    location: "Kaduna State",
-    category: "Bridge",
-    description: "A 500-meter dual carriageway bridge connecting communities across River Kaduna with modern engineering standards.",
-  },
-  {
-    image: heroEstate,
-    title: "Rahmaniyya Estate Phase 2",
-    location: "Gwarinpa, Abuja",
-    category: "Estate",
-    description: "Expansion of our flagship estate with 400 additional homes, shopping complex, and recreational facilities.",
-  },
-  {
-    image: heroConstruction,
-    title: "Federal Ministry Complex",
-    location: "Abuja",
-    category: "Government",
-    description: "Construction of a multi-building government complex housing three federal ministries with modern facilities.",
-  },
-];
-
-const categories = ["All", "Estate", "Commercial", "Road", "Bridge", "Government"];
+import { useContent } from "@/lib/contentStore";
 
 const Projects = () => {
-  const [activeCategory, setActiveCategory] = useState("All");
-
-  const filteredProjects =
-    activeCategory === "All"
-      ? projects
-      : projects.filter((p) => p.category === activeCategory);
-
+  const { projects } = useContent();
+  const [active, setActive] = useState("All");
+  const published = projects.filter((project) => project.status !== "Draft");
+  const categories = ["All", ...Array.from(new Set(published.map((project) => project.type)))];
+  const visible = active === "All" ? published : published.filter((project) => project.type === active);
   return (
     <Layout>
-      {/* Hero Section */}
-      <section className="relative py-24 bg-primary overflow-hidden">
-        <div className="container-custom relative z-10">
-          <div className="max-w-3xl">
-            <span className="inline-block text-accent font-medium mb-4">Our Portfolio</span>
-            <h1 className="font-display text-4xl md:text-5xl font-bold text-primary-foreground mb-6">
-              Projects That Define Excellence
-            </h1>
-            <p className="text-primary-foreground/90 text-lg">
-              Explore our portfolio of completed and ongoing projects across residential estates, 
-              commercial buildings, roads, bridges, and government infrastructure.
-            </p>
-          </div>
+      <PageHero eyebrow="Selected portfolio" title={<>Work with weight.<br /><em className="text-accent">Places with purpose.</em></>} description="A selection of residential, commercial and civic work shaped by local intelligence and delivered for long-term value." image={project4} imageAlt="River Kaduna Bridge" index="K / 03" />
+
+      <section className="bg-background">
+        <div className="container-custom flex gap-7 overflow-x-auto border-b border-border py-7 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+          {categories.map((category) => <button key={category} onClick={() => setActive(category)} className={`shrink-0 rounded-full border px-3.5 py-2 font-mono text-[9px] font-medium uppercase tracking-[.17em] transition-all duration-300 ${active === category ? "border-foreground bg-foreground text-background" : "border-border text-muted-foreground hover:border-foreground hover:text-foreground"}`}>{category}</button>)}
         </div>
       </section>
 
-      {/* Filter */}
-      <section className="py-8 bg-background border-b">
-        <div className="container-custom">
-          <div className="flex flex-wrap gap-3">
-            {categories.map((category) => (
-              <button
-                key={category}
-                onClick={() => setActiveCategory(category)}
-                className={`px-6 py-2 rounded-full font-medium transition-colors ${
-                  activeCategory === category
-                    ? "bg-accent text-accent-foreground"
-                    : "bg-secondary text-secondary-foreground hover:bg-accent/20"
-                }`}
-              >
-                {category}
-              </button>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* Projects Grid */}
       <section className="section-padding bg-background">
-        <div className="container-custom">
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {filteredProjects.map((project) => (
-              <div
-                key={project.title}
-                className="group bg-card rounded-xl overflow-hidden shadow-lg card-hover"
-              >
-                <div className="aspect-[4/3] overflow-hidden">
-                  <img
-                    src={project.image}
-                    alt={project.title}
-                    className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
-                  />
-                </div>
-                <div className="p-6">
-                  <span className="inline-block bg-accent/10 text-accent text-sm font-medium px-3 py-1 rounded mb-3">
-                    {project.category}
-                  </span>
-                  <h3 className="font-display text-xl font-semibold text-foreground mb-2">
-                    {project.title}
-                  </h3>
-                  <div className="flex items-center gap-2 text-muted-foreground mb-3">
-                    <MapPin className="h-4 w-4" />
-                    <span className="text-sm">{project.location}</span>
-                  </div>
-                  <p className="text-muted-foreground text-sm line-clamp-3">
-                    {project.description}
-                  </p>
-                </div>
+        <div className="container-custom mb-7 flex items-center justify-between md:hidden"><p className="font-mono text-[8px] uppercase tracking-[.16em] text-muted-foreground">Swipe through projects</p><p className="font-mono text-[8px] text-muted-foreground">{String(visible.length).padStart(2, "0")}</p></div>
+        <div className="container-custom grid gap-x-8 gap-y-20 max-md:flex max-md:snap-x max-md:snap-mandatory max-md:overflow-x-auto max-md:pb-4 [scrollbar-width:none] max-md:[&::-webkit-scrollbar]:hidden md:grid-cols-2">
+          {visible.map((project, index) => (
+            <article key={project.id} className={`group max-md:min-w-[84vw] max-md:snap-center ${index % 2 ? "md:mt-28" : ""}`}>
+              <div className={`image-reveal relative bg-muted ${index % 3 === 1 ? "aspect-[4/5]" : "aspect-[5/4]"}`}>
+                <img src={project.image} alt={project.name} className="h-full w-full object-cover" />
+                <span className="absolute right-4 top-4 grid h-12 w-12 translate-y-2 place-items-center rounded-full bg-background opacity-0 transition-all group-hover:translate-y-0 group-hover:rotate-45 group-hover:opacity-100"><ArrowUpRight className="h-4 w-4" /></span>
               </div>
-            ))}
-          </div>
+              <div className="mt-5 grid gap-5 border-b border-border pb-6 sm:grid-cols-[1fr_auto]">
+                <div><p className="mb-2 text-[9px] uppercase tracking-[.18em] text-accent">{project.type} · {project.year}</p><h2 className="text-3xl md:text-4xl">{project.name}</h2><p className="mt-2 text-xs text-muted-foreground">{project.location}</p></div>
+                <p className="max-w-xs text-xs leading-6 text-muted-foreground sm:text-right">{project.description}</p>
+              </div>
+            </article>
+          ))}
         </div>
       </section>
     </Layout>

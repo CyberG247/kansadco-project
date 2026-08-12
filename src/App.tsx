@@ -1,71 +1,53 @@
-import { useState, useEffect } from "react";
+import { lazy, Suspense } from "react";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { ThemeProvider } from "@/components/ThemeProvider";
-import { useTranslation } from "react-i18next";
-import LoadingScreen from "@/components/LoadingScreen";
+import { ContentProvider } from "@/lib/contentStore";
+import SeoManager from "@/components/SeoManager";
 import Index from "./pages/Index";
-import About from "./pages/About";
-import Services from "./pages/Services";
-import Projects from "./pages/Projects";
-import Team from "./pages/Team";
-import Contact from "./pages/Contact";
-import BookTour from "./booktour";
-import NotFound from "./pages/NotFound";
+
+const About = lazy(() => import("./pages/About"));
+const Services = lazy(() => import("./pages/Services"));
+const Projects = lazy(() => import("./pages/Projects"));
+const Team = lazy(() => import("./pages/Team"));
+const Gallery = lazy(() => import("./pages/Gallery"));
+const Admin = lazy(() => import("./pages/Admin"));
+const Contact = lazy(() => import("./pages/Contact"));
+const BookTour = lazy(() => import("./booktour"));
+const NotFound = lazy(() => import("./pages/NotFound"));
 
 const queryClient = new QueryClient();
 
-const LanguageWrapper = ({ children }: { children: React.ReactNode }) => {
-  const { i18n } = useTranslation();
-  const [animating, setAnimating] = useState(false);
-  const [key, setKey] = useState(0);
-
-  useEffect(() => {
-    setAnimating(true);
-    const timer = setTimeout(() => {
-      setAnimating(false);
-      setKey(prev => prev + 1);
-    }, 600); // Match animation duration
-    return () => clearTimeout(timer);
-  }, [i18n.language]);
-
-  return (
-    <div key={key} className={animating ? "animate-lang-switch" : ""}>
-      {children}
-    </div>
-  );
-};
-
 const App = () => {
-  const [isLoading, setIsLoading] = useState(true);
-
   return (
     <QueryClientProvider client={queryClient}>
       <ThemeProvider defaultTheme="light" storageKey="kansadco-ui-theme">
-        <TooltipProvider>
+        <ContentProvider><TooltipProvider>
           <Toaster />
           <Sonner />
-          {isLoading && <LoadingScreen onComplete={() => setIsLoading(false)} />}
-          <div className={isLoading ? "opacity-0" : "animate-fade-in"}>
+          <div>
             <BrowserRouter>
-              <LanguageWrapper>
+              <SeoManager />
+              <Suspense fallback={<div className="min-h-screen bg-background" />}>
                 <Routes>
                   <Route path="/" element={<Index />} />
                   <Route path="/about" element={<About />} />
                   <Route path="/services" element={<Services />} />
                   <Route path="/projects" element={<Projects />} />
                   <Route path="/team" element={<Team />} />
+                  <Route path="/gallery" element={<Gallery />} />
                   <Route path="/contact" element={<Contact />} />
                   <Route path="/book-tour" element={<BookTour />} />
+                  <Route path="/admin" element={<Admin />} />
                   <Route path="*" element={<NotFound />} />
                 </Routes>
-              </LanguageWrapper>
+              </Suspense>
             </BrowserRouter>
           </div>
-        </TooltipProvider>
+        </TooltipProvider></ContentProvider>
       </ThemeProvider>
     </QueryClientProvider>
   );

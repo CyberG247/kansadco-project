@@ -1,48 +1,16 @@
 import { Link } from "react-router-dom";
-import { Button } from "@/components/ui/button";
-import { Phone, ArrowRight } from "lucide-react";
-import { ScrollReveal } from "@/components/ui/ScrollReveal";
+import { ArrowUpRight } from "lucide-react";
 
-const CTASection = () => {
-  return (
-    <section className="py-20 bg-primary relative overflow-hidden">
-      {/* Decorative Elements */}
-      <div className="absolute top-0 right-0 w-96 h-96 bg-accent/10 rounded-full blur-3xl" />
-      <div className="absolute bottom-0 left-0 w-64 h-64 bg-accent/5 rounded-full blur-2xl" />
-
-      <div className="container-custom relative z-10">
-        <div className="max-w-3xl mx-auto text-center">
-          <ScrollReveal width="100%">
-            <h2 className="font-display text-3xl md:text-4xl lg:text-5xl font-bold text-primary-foreground mb-6">
-              Ready to Start Your Next Project?
-            </h2>
-            <p className="text-primary-foreground/80 text-lg mb-8 max-w-2xl mx-auto">
-              Whether you're looking to buy property, build your dream home, or undertake a 
-              major infrastructure project, KANSADCO is your trusted partner for excellence.
-            </p>
-            <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-              <Button asChild size="lg" className="btn-gold">
-                <Link to="/contact">
-                  Get Started <ArrowRight className="h-5 w-5 ml-2" />
-                </Link>
-              </Button>
-              <Button
-                asChild
-                size="lg"
-                variant="outline"
-                className="border-2 border-primary-foreground text-primary-foreground bg-transparent hover:bg-primary-foreground hover:text-primary"
-              >
-                <a href="tel:+2348037380434">
-                  <Phone className="h-5 w-5 mr-2" />
-                  Call Us Now
-                </a>
-              </Button>
-            </div>
-          </ScrollReveal>
-        </div>
+const CTASection = () => (
+  <section className="border-t border-border bg-background px-0 text-foreground md:border-0 md:px-4 md:py-4">
+    <Link to="/contact" className="group container-custom block py-24 md:rounded-[2.5rem] md:border md:border-border md:bg-card md:px-12 md:py-28 lg:px-16">
+      <p className="eyebrow mb-9">Start a conversation</p>
+      <div className="flex items-end justify-between gap-8">
+        <h2 className="max-w-6xl font-display text-[clamp(3.5rem,9.5vw,10rem)] leading-[.82] tracking-[-.05em]">Let's shape what comes next.</h2>
+        <span className="mb-2 hidden h-20 w-20 shrink-0 place-items-center rounded-full border border-current transition-all duration-500 group-hover:rotate-45 group-hover:border-accent group-hover:bg-accent group-hover:text-accent-foreground md:grid"><ArrowUpRight className="h-7 w-7" /></span>
       </div>
-    </section>
-  );
-};
+    </Link>
+  </section>
+);
 
 export default CTASection;

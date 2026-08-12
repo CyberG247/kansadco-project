@@ -4,17 +4,17 @@ const WhatsAppButton = () => {
       href="https://wa.me/2348037380434"
       target="_blank"
       rel="noopener noreferrer"
-      className="fixed bottom-6 right-6 z-50 transition-transform duration-300 hover:scale-110"
+      className="whatsapp-float fixed bottom-[max(1.125rem,env(safe-area-inset-bottom))] right-3 z-40 grid h-11 w-11 place-items-center rounded-full border border-white/20 bg-[#1d6b4b] text-white shadow-[0_12px_30px_rgba(10,60,39,.3)] transition-all duration-300 hover:-translate-y-1 hover:scale-105 hover:bg-[#17583e] md:bottom-7 md:right-7"
       aria-label="Chat on WhatsApp"
     >
-      <div className="w-16 h-16 filter drop-shadow-xl">
+      <div className="relative z-10 h-[21px] w-[21px]">
         <svg
           viewBox="0 0 24 24"
           className="w-full h-full"
           xmlns="http://www.w3.org/2000/svg"
         >
           <path
-            fill="#25D366"
+            fill="none"
             d="M12.01 0C5.38 0 0 5.38 0 12.01c0 2.12.55 4.17 1.6 6l-1.6 5.9 6-1.5c1.8 1 3.8 1.6 5.9 1.6 6.63 0 12.01-5.38 12.01-12.01S18.64 0 12.01 0z"
           />
           <path

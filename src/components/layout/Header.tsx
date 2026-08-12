@@ -1,239 +1,113 @@
-import { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
 import { Link, useLocation } from "react-router-dom";
-import { Menu, X, Phone, Mail, Moon, Sun, Globe } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import DigitalClock from "@/components/ui/digitalclock";
+import { ArrowUpRight, Globe, Menu, Moon, Sun, X } from "lucide-react";
 import { useTheme } from "@/components/ThemeProvider";
-import logoTransparent from "@/assets/logo-transparent.png";
+import logo from "@/assets/logo-transparent.png";
 import { useTranslation } from "react-i18next";
 
 const Header = () => {
   const { t, i18n } = useTranslation();
-  const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const [isScrolled, setIsScrolled] = useState(false);
-  const location = useLocation();
   const { theme, setTheme } = useTheme();
+  const location = useLocation();
+  const [open, setOpen] = useState(false);
+  const [scrolled, setScrolled] = useState(false);
+  const atTop = !scrolled && !open;
+  const overHero = location.pathname === "/" && !scrolled && !open;
 
-  const navLinks = [
-    { name: t('nav.home'), href: "/" },
-    { name: t('nav.about'), href: "/about" },
-    { name: t('nav.services'), href: "/services" },
-    { name: t('nav.projects'), href: "/projects" },
-    { name: t('nav.team'), href: "/team" },
-    { name: t('nav.contact'), href: "/contact" },
+  const links = [
+    [t("nav.about"), "/about"], [t("nav.services"), "/services"],
+    [t("nav.projects"), "/projects"], [t("nav.gallery"), "/gallery"], [t("nav.team"), "/team"],
+    [t("nav.contact"), "/contact"],
   ];
 
   useEffect(() => {
-    const handleScroll = () => {
-      setIsScrolled(window.scrollY > 20);
-    };
-    window.addEventListener("scroll", handleScroll);
-    return () => window.removeEventListener("scroll", handleScroll);
+    const onScroll = () => setScrolled(window.scrollY > 32);
+    onScroll();
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => window.removeEventListener("scroll", onScroll);
   }, []);
 
   useEffect(() => {
-    document.dir = i18n.language === 'ar' ? 'rtl' : 'ltr';
-  }, [i18n.language]);
+    setOpen(false);
+    document.dir = i18n.language === "ar" ? "rtl" : "ltr";
+  }, [location.pathname, i18n.language]);
 
-  const toggleTheme = () => {
-    setTheme(theme === "dark" ? "light" : "dark");
-  };
+  useEffect(() => {
+    document.body.style.overflow = open ? "hidden" : "";
+    return () => { document.body.style.overflow = ""; };
+  }, [open]);
 
-  const changeLanguage = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    i18n.changeLanguage(e.target.value);
-  };
+  useEffect(() => {
+    if (!open) return;
+    const closeOnEscape = (event: KeyboardEvent) => {
+      if (event.key === "Escape") setOpen(false);
+    };
+    window.addEventListener("keydown", closeOnEscape);
+    return () => window.removeEventListener("keydown", closeOnEscape);
+  }, [open]);
 
   return (
-    <header className="fixed top-0 left-0 right-0 z-50">
-      {/* Top Bar */}
-      <div className="bg-primary text-primary-foreground py-2 hidden md:block">
-        <div className="container-custom flex justify-between items-center text-sm">
-          <div className="flex items-center gap-6">
-            <a href="tel:+2348037380434" className="flex items-center gap-2 hover:text-accent transition-colors">
-              <Phone className="h-4 w-4" />
-              +234 (0) 803 738 0434
-            </a>
-            <a href="mailto:kansadco@gmail.com" className="flex items-center gap-2 hover:text-accent transition-colors">
-              <Mail className="h-4 w-4" />
-              kansadco@gmail.com
-            </a>
-          </div>
-          <div className="flex items-center gap-4">
-            <DigitalClock />
-            
-            {/* Language Selector */}
-            <div className="flex items-center gap-1 cursor-pointer hover:text-accent transition-colors">
-               <Globe className="h-4 w-4" />
-               <select 
-                 className="bg-transparent border-none text-sm focus:ring-0 cursor-pointer outline-none"
-                 value={i18n.language}
-                 onChange={changeLanguage}
-               >
-                 <option value="en" className="text-foreground bg-background">English</option>
-                 <option value="ha" className="text-foreground bg-background">Hausa</option>
-                 <option value="ar" className="text-foreground bg-background">العربية</option>
-                 <option value="zh" className="text-foreground bg-background">中文</option>
-                 <option value="yo" className="text-foreground bg-background">Yoruba</option>
-                 <option value="ig" className="text-foreground bg-background">Igbo</option>
-                 <option value="tr" className="text-foreground bg-background">Türkçe</option>
-                 <option value="es" className="text-foreground bg-background">Español</option>
-               </select>
-            </div>
+    <header className={`fixed inset-x-0 top-0 z-50 transition-colors duration-500 ${overHero ? "text-white" : "text-foreground"} ${atTop ? "max-md:text-white" : ""}`}>
+      <div className={`public-header-shell mobile-header-shell mx-auto flex w-full items-center justify-between transition-all duration-500 ease-out max-md:mt-3 max-md:h-[58px] max-md:max-w-[calc(100%_-_1.5rem)] max-md:rounded-[1.25rem] max-md:border max-md:px-3 max-md:shadow-[0_16px_44px_rgba(8,16,12,.14)] max-md:backdrop-blur-xl ${
+        scrolled && !open
+          ? "mt-3 h-[68px] max-w-[calc(100%_-_1.5rem)] rounded-[1.25rem] border border-border/70 bg-background/95 px-4 shadow-[0_18px_60px_rgba(8,16,12,0.12)] backdrop-blur-xl sm:max-w-[calc(100%_-_2rem)] sm:rounded-[1.5rem] sm:px-6 lg:h-[64px] lg:max-w-[1320px]"
+          : `h-[88px] max-w-[1440px] px-5 sm:px-8 md:mt-4 md:h-[72px] md:max-w-[calc(100%_-_2rem)] md:rounded-[1.5rem] md:border md:px-6 md:shadow-[0_18px_60px_rgba(8,16,12,.1)] md:backdrop-blur-xl xl:px-8 ${overHero ? "md:border-white/15 md:bg-slate-dark/20" : "border-b border-border/60 bg-background/95 backdrop-blur-xl"}`
+      } ${atTop ? "max-md:border-white/15 max-md:bg-slate-dark/20" : "max-md:border-border/70 max-md:bg-background/95 max-md:text-foreground"}`}>
+        <Link to="/" aria-label="KANSADCO home" className="relative z-50 shrink-0">
+          <img src={logo} alt="KANSADCO" className={`${scrolled && !open ? "h-10" : "h-12"} w-auto transition-all duration-500 max-md:h-9 ${overHero ? "brightness-0 invert" : "dark:brightness-0 dark:invert"} ${atTop ? "max-md:brightness-0 max-md:invert" : ""}`} />
+        </Link>
 
-            {/* Dark Mode Toggle - Top Bar */}
-            <button
-              onClick={toggleTheme}
-              className="p-1.5 rounded-full hover:bg-primary-foreground/10 transition-colors"
-              aria-label="Toggle theme"
-            >
-              {theme === "dark" ? (
-                <Sun className="h-4 w-4" />
-              ) : (
-                <Moon className="h-4 w-4" />
-              )}
-            </button>
+        <nav className="hidden items-center gap-5 xl:gap-8 lg:flex" aria-label="Primary navigation">
+          {links.map(([label, href]) => (
+            <Link key={href} to={href} className={`link-underline font-mono text-[10px] font-medium uppercase tracking-[0.16em] ${location.pathname === href ? "text-accent" : ""}`}>
+              {label}
+            </Link>
+          ))}
+        </nav>
+
+        <div className="flex items-center gap-1 sm:gap-3">
+          <div className="relative hidden sm:block">
+            <Globe className="pointer-events-none absolute left-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2" />
+            <select value={i18n.language} onChange={(e) => i18n.changeLanguage(e.target.value)} aria-label="Language" className="h-9 appearance-none bg-transparent pl-8 pr-3 font-mono text-[10px] font-medium uppercase tracking-widest outline-none">
+              <option value="en">EN</option><option value="ha">HA</option><option value="ar">AR</option><option value="zh">ZH</option><option value="yo">YO</option><option value="ig">IG</option>
+            </select>
           </div>
+          <button onClick={() => setTheme(theme === "dark" ? "light" : "dark")} className="grid h-10 w-10 place-items-center rounded-full transition-all duration-300 hover:rotate-12 hover:bg-current/10 max-md:h-9 max-md:w-9" aria-label="Toggle color theme">
+            {theme === "dark" ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
+          </button>
+          <Link to="/book-tour" className={`hidden h-11 items-center gap-2 rounded-full px-5 font-mono text-[9px] font-semibold uppercase tracking-[0.15em] transition-all duration-300 hover:-translate-y-0.5 md:flex ${overHero ? "bg-white text-slate-dark hover:bg-accent" : "bg-foreground text-background hover:bg-accent hover:text-accent-foreground"}`}>
+            {t("nav.quote")} <ArrowUpRight className="h-3.5 w-3.5" />
+          </Link>
+          <button onClick={() => setOpen(!open)} className="relative z-50 grid h-11 w-11 place-items-center transition-transform duration-300 lg:hidden max-md:h-9 max-md:w-9" aria-label="Toggle menu" aria-controls="mobile-menu" aria-expanded={open}>
+            <span className={`absolute transition-all duration-300 ${open ? "rotate-90 scale-75 opacity-0" : "rotate-0 scale-100 opacity-100"}`}><Menu className="h-5 w-5 max-md:h-[18px] max-md:w-[18px]" /></span>
+            <span className={`absolute transition-all duration-300 ${open ? "rotate-0 scale-100 opacity-100" : "-rotate-90 scale-75 opacity-0"}`}><X className="h-5 w-5 max-md:h-[18px] max-md:w-[18px]" /></span>
+          </button>
         </div>
       </div>
 
-      {/* Main Navigation */}
-      <nav
-        className={`transition-all duration-300 ${
-          isScrolled
-            ? "bg-background/95 backdrop-blur-md shadow-lg"
-            : "bg-background/80 backdrop-blur-sm"
-        }`}
-      >
-        <div className="container-custom">
-          <div className="flex items-center justify-between h-20">
-            {/* Logo */}
-            <Link to="/" className="flex items-center gap-3">
-              <img
-                src={logoTransparent}
-                alt="KANSADCO Logo"
-                className="h-14 w-auto object-contain"
-              />
-              <span className="text-2xl font-bold font-display text-primary tracking-tight">KANSADCO</span>
-            </Link>
-
-            {/* Desktop Navigation */}
-            <div className="hidden lg:flex items-center gap-8">
-              {navLinks.map((link) => (
-                <Link
-                  key={link.name}
-                  to={link.href}
-                  className={`font-medium transition-colors link-underline py-1 ${
-                    location.pathname === link.href
-                      ? "text-accent"
-                      : "text-foreground hover:text-accent"
-                  }`}
-                >
-                  {link.name}
-                </Link>
-              ))}
-            </div>
-
-            {/* CTA Button & Mobile Dark Mode */}
-            <div className="flex items-center gap-3">
-              <div className="hidden lg:block">
-                <Button asChild className="btn-gold">
-                  <Link to="/book-tour">{t('nav.quote')}</Link>
-                </Button>
-              </div>
-
-              {/* Mobile Dark Mode Toggle */}
-              <button
-                onClick={toggleTheme}
-                className="lg:hidden p-2 rounded-full hover:bg-muted transition-colors"
-                aria-label="Toggle theme"
-              >
-                {theme === "dark" ? (
-                  <Sun className="h-5 w-5" />
-                ) : (
-                  <Moon className="h-5 w-5" />
-                )}
-              </button>
-
-              {/* Mobile Menu Button */}
-              <button
-                className="lg:hidden p-2"
-                onClick={() => setIsMenuOpen(!isMenuOpen)}
-                aria-label="Toggle menu"
-              >
-                {isMenuOpen ? (
-                  <X className="h-6 w-6" />
-                ) : (
-                  <Menu className="h-6 w-6" />
-                )}
-              </button>
-            </div>
+      <div className={`fixed inset-0 z-40 text-foreground transition-all duration-300 lg:hidden ${open ? "visible bg-slate-dark/25 opacity-100 backdrop-blur-[2px]" : "pointer-events-none invisible bg-transparent opacity-0"}`} aria-hidden={!open}>
+        <button className="absolute inset-0" onClick={() => setOpen(false)} aria-label="Close menu" tabIndex={open ? 0 : -1} />
+        <div id="mobile-menu" role="dialog" aria-modal="true" aria-label="Mobile navigation menu" className={`absolute inset-x-3 top-[76px] max-h-[calc(100svh-92px)] overflow-y-auto rounded-[1.75rem] border border-border/80 bg-background p-4 shadow-[0_28px_90px_rgba(8,16,12,.24)] transition-all duration-500 ease-out sm:left-auto sm:right-4 sm:top-[92px] sm:w-[430px] ${open ? "translate-y-0 scale-100 opacity-100" : "-translate-y-3 scale-[.97] opacity-0"}`}>
+          <div className="flex items-center justify-between px-2 pb-3">
+            <p className="font-mono text-[8px] uppercase tracking-[.2em] text-muted-foreground">Navigate</p>
+            <p className="font-mono text-[8px] uppercase tracking-[.16em] text-muted-foreground">K / Menu</p>
+          </div>
+          <nav className="grid grid-cols-2 gap-2">
+            {links.map(([label, href], index) => (
+              <Link key={href} to={href} tabIndex={open ? 0 : -1} style={{ transitionDelay: open ? `${80 + index * 35}ms` : "0ms" }} className={`group flex min-h-[72px] flex-col justify-between rounded-2xl border p-3.5 transition-all duration-500 ${location.pathname === href ? "border-foreground bg-foreground text-background" : "border-border bg-card hover:border-foreground"} ${open ? "translate-y-0 opacity-100" : "translate-y-2 opacity-0"}`}>
+                <span className={`font-mono text-[8px] ${location.pathname === href ? "text-background/55" : "text-muted-foreground"}`}>0{index + 1}</span>
+                <span className="flex items-end justify-between gap-2 font-display text-[1.55rem] leading-none">{label}<ArrowUpRight className="h-3.5 w-3.5 shrink-0 transition-transform duration-300 group-hover:translate-x-0.5 group-hover:-translate-y-0.5" /></span>
+              </Link>
+            ))}
+          </nav>
+          <div className="mt-3 flex items-center justify-between rounded-2xl bg-muted px-4 py-3 font-mono text-[8px] uppercase tracking-[.12em] text-muted-foreground">
+            <a href="tel:+2348037380434" tabIndex={open ? 0 : -1} className="transition-colors hover:text-foreground">+234 (0) 803 738 0434</a>
+            <select value={i18n.language} onChange={(event) => i18n.changeLanguage(event.target.value)} tabIndex={open ? 0 : -1} aria-label="Language" className="bg-transparent font-mono text-[10px] font-medium uppercase tracking-widest outline-none">
+              <option value="en">EN</option><option value="ha">HA</option><option value="ar">AR</option><option value="zh">ZH</option><option value="yo">YO</option><option value="ig">IG</option>
+            </select>
           </div>
         </div>
-
-        {/* Mobile Menu */}
-        {isMenuOpen && (
-          <div className="lg:hidden bg-background border-t animate-fade-in">
-            <div className="container-custom py-4 space-y-4">
-              {navLinks.map((link) => (
-                <Link
-                  key={link.name}
-                  to={link.href}
-                  className={`block py-2 font-medium transition-colors ${
-                    location.pathname === link.href
-                      ? "text-accent"
-                      : "text-foreground hover:text-accent"
-                  }`}
-                  onClick={() => setIsMenuOpen(false)}
-                >
-                  {link.name}
-                </Link>
-              ))}
-              
-              <div className="border-t border-border pt-4 mt-4 space-y-4">
-                <div className="flex items-center justify-between">
-                   <DigitalClock />
-                   {/* Mobile Dark Mode Toggle */}
-                   <button
-                    onClick={toggleTheme}
-                    className="p-2 rounded-full hover:bg-muted transition-colors"
-                    aria-label="Toggle theme"
-                  >
-                    {theme === "dark" ? (
-                      <Sun className="h-5 w-5" />
-                    ) : (
-                      <Moon className="h-5 w-5" />
-                    )}
-                  </button>
-                </div>
-
-                <div className="flex items-center gap-2 text-sm text-foreground/80">
-                   <Globe className="h-4 w-4" />
-                   <select 
-                     className="bg-transparent border border-input rounded p-1 text-sm w-full"
-                     value={i18n.language}
-                     onChange={changeLanguage}
-                   >
-                     <option value="en">English</option>
-                     <option value="ha">Hausa</option>
-                     <option value="ar">العربية</option>
-                     <option value="zh">中文</option>
-                     <option value="yo">Yoruba</option>
-                     <option value="ig">Igbo</option>
-                     <option value="tr">Türkçe</option>
-                     <option value="es">Español</option>
-                   </select>
-                </div>
-              </div>
-
-              <Button asChild className="w-full btn-gold mt-4">
-                <Link to="/contact" onClick={() => setIsMenuOpen(false)}>
-                  {t('nav.quote')}
-                </Link>
-              </Button>
-            </div>
-          </div>
-        )}
-      </nav>
+      </div>
     </header>
   );
 };

@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="KANSADCO">
+  <rect width="64" height="64" rx="16" fill="#111a15"/>
+  <path d="M14 14h36v36H14z" fill="none" stroke="#e9e5db" stroke-width="2.5"/>
+  <path d="m22 27 18-10 4 4-22 13z" fill="#e9e5db"/>
+  <path d="M22 39 31 31c1 9 6 14 12 17H22z" fill="#e9e5db"/>
+  <path d="M40 26c-6 0-9 4-9 9 0 6 4 10 10 13 5 2 10-1 10-6 0-4-3-6-7-7-4-1-6-3-4-9Z" fill="#e9e5db" opacity=".92"/>
+</svg>

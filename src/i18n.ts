@@ -11,6 +11,7 @@ const resources = {
         about: "About",
         services: "Services",
         projects: "Projects",
+        gallery: "Gallery",
         team: "Team",
         contact: "Contact",
         quote: "Book a Tour"
@@ -36,6 +37,7 @@ const resources = {
         about: "Game da Mu",
         services: "Ayyuka",
         projects: "Ayyukan",
+        gallery: "Hotuna",
         team: "Tawaga",
         contact: "Tuntube Mu",
         quote: "Nemi Farashi"
@@ -61,6 +63,7 @@ const resources = {
         about: "من نحن",
         services: "خدماتنا",
         projects: "مشاريعنا",
+        gallery: "المعرض",
         team: "الفريق",
         contact: "اتصل بنا",
         quote: "احصل على عرض سعر"
@@ -86,6 +89,7 @@ const resources = {
         about: "关于我们",
         services: "服务",
         projects: "项目",
+        gallery: "图库",
         team: "团队",
         contact: "联系我们",
         quote: "获取报价"
@@ -111,6 +115,7 @@ const resources = {
         about: "Nipa Wa",
         services: "Awọn Iṣẹ",
         projects: "Awọn Ise agbese",
+        gallery: "Àwòrán",
         team: "Ẹgbẹ",
         contact: "Kan si Wa",
         quote: "Gba Iye"
@@ -136,6 +141,7 @@ const resources = {
         about: "Banyere Anyị",
         services: "Ọrụ",
         projects: "Ọrụ Anyị",
+        gallery: "Foto",
         team: "Otu",
         contact: "Kpọtụrụ Anyị",
         quote: "Nweta Ọnụahịa"
@@ -161,6 +167,7 @@ const resources = {
         about: "Hakkımızda",
         services: "Hizmetler",
         projects: "Projeler",
+        gallery: "Galeri",
         team: "Takım",
         contact: "İletişim",
         quote: "Teklif Al"
@@ -186,6 +193,7 @@ const resources = {
         about: "Nosotros",
         services: "Servicios",
         projects: "Proyectos",
+        gallery: "Galería",
         team: "Equipo",
         contact: "Contacto",
         quote: "Obtener Cotización"

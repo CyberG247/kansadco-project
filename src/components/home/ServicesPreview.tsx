@@ -1,96 +1,45 @@
 import { Link } from "react-router-dom";
-import { Building2, HardHat, Home, Key, Paintbrush, Truck, ArrowRight } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { ArrowRight, ArrowUpRight } from "lucide-react";
 import { ScrollReveal } from "@/components/ui/ScrollReveal";
 
 const services = [
-  {
-    icon: Home,
-    title: "Real Estate Sales",
-    description: "Premium residential and commercial properties in prime locations across Nigeria.",
-  },
-  {
-    icon: HardHat,
-    title: "Construction",
-    description: "Residential, commercial, and infrastructure construction with world-class standards.",
-  },
-  {
-    icon: Building2,
-    title: "Property Development",
-    description: "Comprehensive property development from land acquisition to project delivery.",
-  },
-  {
-    icon: Key,
-    title: "Property Management",
-    description: "Professional management services ensuring optimal value for property owners.",
-  },
-  {
-    icon: Paintbrush,
-    title: "Paint Manufacturing",
-    description: "High-quality paints manufactured to international standards for lasting finish.",
-  },
-  {
-    icon: Truck,
-    title: "Paint Distribution",
-    description: "Nationwide distribution network ensuring accessibility across all regions.",
-  },
+  ["01", "Real estate", "Investment-led residential and commercial opportunities in Nigeria's most consequential growth corridors."],
+  ["02", "Construction", "Exacting delivery across buildings, civil works and infrastructure—from technical coordination to handover."],
+  ["03", "Development", "End-to-end development shaped by market insight, thoughtful masterplanning and long-term value creation."],
+  ["04", "Property stewardship", "Operational care, tenant experience and asset performance that protect value well beyond completion."],
+  ["05", "Materials & finishes", "High-performance coatings and nationwide distribution engineered for the realities of our climate."],
 ];
 
-const ServicesPreview = () => {
-  return (
-    <section className="section-padding bg-background">
-      <div className="container-custom">
-        {/* Section Header */}
-        <div className="text-center max-w-3xl mx-auto mb-16">
-          <ScrollReveal width="100%">
-            <span className="inline-block text-accent font-medium mb-4">What We Do</span>
-            <h2 className="font-display text-3xl md:text-4xl font-bold text-foreground mb-4">
-              Comprehensive Solutions Across Industries
-            </h2>
-            <p className="text-muted-foreground">
-              From real estate and construction to paint manufacturing, KANSADCO delivers 
-              excellence across multiple sectors, providing end-to-end solutions for all 
-              your property and construction needs.
-            </p>
-          </ScrollReveal>
-        </div>
-
-        {/* Services Grid */}
-        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
-          {services.map((service, index) => (
-            <ScrollReveal key={service.title} delay={index * 0.1} width="100%">
-              <div
-                className="group p-8 bg-card rounded-lg border border-border hover:border-accent/50 card-hover h-full"
-              >
-                <div className="w-14 h-14 bg-accent/10 rounded-lg flex items-center justify-center mb-6 group-hover:bg-accent group-hover:text-accent-foreground transition-colors">
-                  <service.icon className="h-7 w-7 text-accent group-hover:text-accent-foreground" />
-                </div>
-                <h3 className="font-display text-xl font-semibold text-foreground mb-3">
-                  {service.title}
-                </h3>
-                <p className="text-muted-foreground mb-4">{service.description}</p>
-                <Link
-                  to="/services"
-                  className="inline-flex items-center gap-2 text-accent font-medium hover:gap-3 transition-all"
-                >
-                  Learn More <ArrowRight className="h-4 w-4" />
-                </Link>
-              </div>
-            </ScrollReveal>
-          ))}
-        </div>
-
-        {/* CTA */}
-        <div className="text-center mt-12">
-          <ScrollReveal width="100%" delay={0.4}>
-            <Button asChild size="lg" className="btn-gold">
-              <Link to="/services">View All Services</Link>
-            </Button>
-          </ScrollReveal>
-        </div>
+const ServicesPreview = () => (
+  <section className="section-padding bg-slate-dark text-primary-foreground md:mx-4 md:my-4 md:overflow-hidden md:rounded-[2.5rem]">
+    <div className="container-custom">
+      <div className="mb-16 grid gap-8 lg:grid-cols-2 lg:items-end">
+        <ScrollReveal width="100%">
+          <p className="eyebrow mb-7 text-accent">One integrated practice</p>
+          <h2 className="section-title max-w-3xl">From possibility to <em className="text-accent">place.</em></h2>
+        </ScrollReveal>
+        <ScrollReveal direction="right" width="100%">
+          <div className="flex items-end justify-between gap-6 lg:justify-end">
+            <p className="max-w-sm text-sm leading-7 text-white/60">Five connected disciplines. One accountable partner across the entire life of a built asset.</p>
+            <Link to="/services" aria-label="View all services" className="grid h-12 w-12 shrink-0 place-items-center rounded-full border border-white/30 transition-all duration-300 hover:rotate-45 hover:border-accent hover:bg-accent hover:text-slate-dark"><ArrowRight className="h-4 w-4" /></Link>
+          </div>
+        </ScrollReveal>
       </div>
-    </section>
-  );
-};
+
+      <div className="border-t border-white/20">
+        {services.map(([number, title, description], index) => (
+          <ScrollReveal key={title} width="100%" delay={index * .04}>
+            <Link to="/services" className="group grid grid-cols-[38px_1fr_auto] gap-x-4 gap-y-5 border-b border-white/20 py-7 transition-all duration-300 hover:bg-white/[0.035] md:grid-cols-[70px_1fr_1.2fr_auto] md:items-center md:rounded-[1.5rem] md:px-5 lg:py-9">
+              <span className="font-mono text-[9px] tracking-[0.18em] text-white/35">{number}</span>
+              <h3 className="text-3xl md:text-4xl lg:text-5xl">{title}</h3>
+              <p className="col-span-2 col-start-2 max-w-xl text-sm leading-6 text-white/55 md:col-auto">{description}</p>
+              <ArrowUpRight className="col-start-3 row-start-1 h-5 w-5 transition-transform group-hover:translate-x-1 group-hover:-translate-y-1 md:col-auto md:row-auto" />
+            </Link>
+          </ScrollReveal>
+        ))}
+      </div>
+    </div>
+  </section>
+);
 
 export default ServicesPreview;
