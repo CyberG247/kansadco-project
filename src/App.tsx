@@ -6,7 +6,9 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { ThemeProvider } from "@/components/ThemeProvider";
 import { ContentProvider } from "@/lib/contentStore";
+import { AuthProvider } from "@/lib/auth";
 import SeoManager from "@/components/SeoManager";
+import AdminAccess from "@/components/admin/AdminAccess";
 import Index from "./pages/Index";
 
 const About = lazy(() => import("./pages/About"));
@@ -25,7 +27,7 @@ const App = () => {
   return (
     <QueryClientProvider client={queryClient}>
       <ThemeProvider defaultTheme="light" storageKey="kansadco-ui-theme">
-        <ContentProvider><TooltipProvider>
+        <AuthProvider><ContentProvider><TooltipProvider>
           <Toaster />
           <Sonner />
           <div>
@@ -41,13 +43,13 @@ const App = () => {
                   <Route path="/gallery" element={<Gallery />} />
                   <Route path="/contact" element={<Contact />} />
                   <Route path="/book-tour" element={<BookTour />} />
-                  <Route path="/admin" element={<Admin />} />
+                  <Route path="/admin" element={<AdminAccess><Admin /></AdminAccess>} />
                   <Route path="*" element={<NotFound />} />
                 </Routes>
               </Suspense>
             </BrowserRouter>
           </div>
-        </TooltipProvider></ContentProvider>
+        </TooltipProvider></ContentProvider></AuthProvider>
       </ThemeProvider>
     </QueryClientProvider>
   );

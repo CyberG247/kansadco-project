@@ -9,6 +9,8 @@ The public website and content workspace for KANSADCO Engineering Nigeria Limite
 - React Router
 - Tailwind CSS and Radix UI
 - Framer Motion
+- Supabase Auth, Postgres, Storage and Edge Functions
+- Brevo transactional mail
 
 ## Local development
 
@@ -43,4 +45,10 @@ Import the GitHub repository into Vercel and select the Vite framework preset. T
 - `/contact`
 - `/book-tour`
 
-The `/admin` workspace is deliberately excluded from the sitemap and search indexing. Content currently persists in browser storage; a shared production workspace requires an authenticated API and database.
+The `/admin` workspace is deliberately excluded from the sitemap and search indexing. Its content is synchronized through the configured Supabase project.
+
+## Authentication and content database
+
+The admin workspace uses Supabase Auth, Postgres Row Level Security and Storage. Public projects and gallery records are readable without a session, enquiry forms pass through a rate-limited Edge Function, and content writes require an approved `admin` or `editor` profile. Brevo sends internal enquiry notifications, visitor confirmations and Supabase Auth recovery mail.
+
+Follow [supabase/README.md](supabase/README.md) to install the schema, create the first administrator, connect Brevo and configure Vercel.

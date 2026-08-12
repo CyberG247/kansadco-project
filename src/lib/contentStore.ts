@@ -1,4 +1,4 @@
-import { createContext, createElement, useContext, useEffect, useMemo, useState, type ReactNode } from "react";
+import { createContext, createElement, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from "react";
 import project1 from "@/assets/project-1.jpg";
 import project2 from "@/assets/project-2.jpg";
 import project3 from "@/assets/project-3.jpg";
@@ -7,10 +7,14 @@ import heroSignature from "@/assets/hero-signature.webp";
 import heroEstate from "@/assets/hero-estate.jpg";
 import heroConstruction from "@/assets/hero-construction.webp";
 import paint from "@/assets/paint-service.jpg";
+import { useAuth } from "@/lib/auth";
+import { MEDIA_BUCKET, supabase } from "@/lib/supabase";
 
 export type ProjectStatus = "Published" | "In progress" | "Draft";
 export type AssetStatus = "Published" | "Draft";
 export type EnquiryStatus = "New" | "Review" | "Replied" | "Archived";
+export type EnquiryNotificationStatus = "Pending" | "Sent" | "Partial" | "Failed";
+export type BackendStatus = "loading" | "connected" | "unconfigured" | "error";
 
 export interface ManagedProject {
   id: string;
@@ -46,6 +50,9 @@ export interface Enquiry {
   status: EnquiryStatus;
   source: "Contact" | "Private tour" | "Admin";
   createdAt: string;
+  notificationStatus: EnquiryNotificationStatus;
+  notificationError: string | null;
+  notifiedAt: string | null;
 }
 
 export interface SiteSettings {
@@ -75,27 +82,33 @@ interface ContentState {
   activities: Activity[];
 }
 
-type ProjectInput = Omit<ManagedProject, "id" | "updatedAt">;
-type AssetInput = Omit<GalleryAsset, "id" | "createdAt">;
-type EnquiryInput = Omit<Enquiry, "id" | "createdAt" | "status"> & { status?: EnquiryStatus };
+export type ProjectInput = Omit<ManagedProject, "id" | "updatedAt">;
+export type AssetInput = Omit<GalleryAsset, "id" | "createdAt">;
+export type EnquiryInput = Omit<Enquiry, "id" | "createdAt" | "status" | "notificationStatus" | "notificationError" | "notifiedAt"> & {
+  status?: EnquiryStatus;
+  website?: string;
+  formStartedAt?: number;
+};
 
 interface ContentContextValue extends ContentState {
-  addProject: (project: ProjectInput) => ManagedProject;
-  updateProject: (id: string, updates: Partial<ProjectInput>) => void;
-  deleteProject: (id: string) => void;
-  addGalleryAsset: (asset: AssetInput) => GalleryAsset;
-  updateGalleryAsset: (id: string, updates: Partial<AssetInput>) => void;
-  deleteGalleryAsset: (id: string) => void;
-  addEnquiry: (enquiry: EnquiryInput) => Enquiry;
-  updateEnquiry: (id: string, updates: Partial<Pick<Enquiry, "status" | "subject" | "message">>) => void;
-  deleteEnquiry: (id: string) => void;
-  updateSettings: (settings: SiteSettings) => void;
-  markActivitiesRead: () => void;
-  resetContent: () => void;
+  loading: boolean;
+  backendStatus: BackendStatus;
+  backendError: string | null;
+  refreshContent: () => Promise<void>;
+  addProject: (project: ProjectInput) => Promise<ManagedProject>;
+  updateProject: (id: string, updates: Partial<ProjectInput>) => Promise<void>;
+  deleteProject: (id: string) => Promise<void>;
+  addGalleryAsset: (asset: AssetInput) => Promise<GalleryAsset>;
+  updateGalleryAsset: (id: string, updates: Partial<AssetInput>) => Promise<void>;
+  deleteGalleryAsset: (id: string) => Promise<void>;
+  uploadMedia: (file: File) => Promise<string>;
+  addEnquiry: (enquiry: EnquiryInput) => Promise<Enquiry>;
+  retryEnquiryNotification: (id: string) => Promise<void>;
+  updateEnquiry: (id: string, updates: Partial<Pick<Enquiry, "status" | "subject" | "message">>) => Promise<void>;
+  deleteEnquiry: (id: string) => Promise<void>;
+  updateSettings: (settings: SiteSettings) => Promise<void>;
+  markActivitiesRead: () => Promise<void>;
 }
-
-const now = () => new Date().toISOString();
-const uid = (prefix: string) => `${prefix}-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`;
 
 const defaultState: ContentState = {
   projects: [
@@ -116,12 +129,7 @@ const defaultState: ContentState = {
     { id: "asset-garden", src: heroConstruction, name: "Garden Residence", type: "Residential", location: "Nigeria", year: "2026", status: "Draft", createdAt: "2026-07-12T08:00:00.000Z" },
     { id: "asset-material", src: paint, name: "Material Library", type: "Materials", location: "KANSADCO Studio", year: "2026", status: "Published", createdAt: "2026-07-08T08:00:00.000Z" },
   ],
-  enquiries: [
-    { id: "enquiry-musa", name: "Musa Abdullahi", email: "musa@example.com", phone: "+234 803 111 0202", subject: "Residential investment", message: "I would like to understand the current residential investment options in Abuja.", status: "New", source: "Contact", createdAt: "2026-08-12T10:48:00.000Z" },
-    { id: "enquiry-nneka", name: "Nneka & Co.", email: "projects@nnekaco.example", phone: "+234 805 442 0101", subject: "Commercial construction brief", message: "We are preparing a commercial construction brief and would like an introductory meeting.", status: "New", source: "Contact", createdAt: "2026-08-12T09:55:00.000Z" },
-    { id: "enquiry-amina", name: "Amina Bello", email: "amina@example.com", phone: "+234 806 100 3030", subject: "Private viewing request", message: "Please confirm availability for a private viewing this week.", status: "Replied", source: "Private tour", createdAt: "2026-08-12T07:20:00.000Z" },
-    { id: "enquiry-kano", name: "Kano State Works", email: "works@example.gov.ng", phone: "+234 809 440 0011", subject: "Infrastructure partnership", message: "Our team would like to discuss a potential infrastructure delivery partnership.", status: "Review", source: "Contact", createdAt: "2026-08-11T14:00:00.000Z" },
-  ],
+  enquiries: [],
   settings: {
     displayName: "KANSADCO Engineering Nig. Ltd.",
     primaryEmail: "kansadco@gmail.com",
@@ -132,82 +140,300 @@ const defaultState: ContentState = {
     reviewWorkflow: "Approval required",
     imageQuality: "Web optimized",
   },
-  activities: [
-    { id: "activity-enquiry", message: "New investment enquiry", createdAt: "2026-08-12T10:48:00.000Z", read: false, type: "enquiry" },
-    { id: "activity-gallery", message: "Gallery upload ready", createdAt: "2026-08-12T09:00:00.000Z", read: false, type: "gallery" },
-    { id: "activity-project", message: "Project update awaiting review", createdAt: "2026-08-12T08:30:00.000Z", read: false, type: "project" },
-  ],
+  activities: [],
 };
 
-const STORAGE_KEY = "kansadco-content-v1";
 const cloneDefaults = (): ContentState => JSON.parse(JSON.stringify(defaultState)) as ContentState;
 
-const loadState = (): ContentState => {
-  if (typeof window === "undefined") return cloneDefaults();
+const getLegacyState = () => {
   try {
-    const saved = window.localStorage.getItem(STORAGE_KEY);
+    const saved = window.localStorage.getItem("kansadco-content-v1");
     if (!saved) return cloneDefaults();
     const parsed = JSON.parse(saved) as Partial<ContentState>;
     return {
-      projects: Array.isArray(parsed.projects) ? parsed.projects : cloneDefaults().projects,
-      gallery: Array.isArray(parsed.gallery) ? parsed.gallery : cloneDefaults().gallery,
-      enquiries: Array.isArray(parsed.enquiries) ? parsed.enquiries : cloneDefaults().enquiries,
-      settings: { ...cloneDefaults().settings, ...parsed.settings },
-      activities: Array.isArray(parsed.activities) ? parsed.activities : cloneDefaults().activities,
+      ...cloneDefaults(),
+      projects: Array.isArray(parsed.projects) ? parsed.projects : defaultState.projects,
+      gallery: Array.isArray(parsed.gallery) ? parsed.gallery : defaultState.gallery,
+      settings: { ...defaultState.settings, ...parsed.settings },
     };
   } catch {
     return cloneDefaults();
   }
 };
 
+const mapProject = (row: { id: string; name: string; type: string; location: string; progress: number; status: ProjectStatus; year: string; description: string; image: string; updated_at: string }): ManagedProject => ({
+  id: row.id, name: row.name, type: row.type, location: row.location, progress: row.progress,
+  status: row.status, year: row.year, description: row.description, image: row.image, updatedAt: row.updated_at,
+});
+
+const mapGallery = (row: { id: string; src: string; name: string; type: string; location: string; year: string; status: AssetStatus; created_at: string }): GalleryAsset => ({
+  id: row.id, src: row.src, name: row.name, type: row.type, location: row.location,
+  year: row.year, status: row.status, createdAt: row.created_at,
+});
+
+const mapEnquiry = (row: { id: string; name: string; email: string; phone: string; subject: string; message: string; status: EnquiryStatus; source: Enquiry["source"]; created_at: string; notification_status: EnquiryNotificationStatus; notification_error: string | null; notified_at: string | null }): Enquiry => ({
+  id: row.id, name: row.name, email: row.email, phone: row.phone, subject: row.subject,
+  message: row.message, status: row.status, source: row.source, createdAt: row.created_at,
+  notificationStatus: row.notification_status, notificationError: row.notification_error, notifiedAt: row.notified_at,
+});
+
+const mapSettings = (row: { display_name: string; primary_email: string; telephone: string; abuja_address: string; kano_address: string; default_author: string; review_workflow: string; image_quality: string }): SiteSettings => ({
+  displayName: row.display_name, primaryEmail: row.primary_email, telephone: row.telephone,
+  abujaAddress: row.abuja_address, kanoAddress: row.kano_address, defaultAuthor: row.default_author,
+  reviewWorkflow: row.review_workflow, imageQuality: row.image_quality,
+});
+
+const projectRow = (project: ProjectInput) => ({
+  name: project.name, type: project.type, location: project.location, progress: project.progress,
+  status: project.status, year: project.year, description: project.description, image: project.image,
+});
+
+const galleryRow = (asset: AssetInput) => ({
+  src: asset.src, name: asset.name, type: asset.type, location: asset.location,
+  year: asset.year, status: asset.status,
+});
+
+const settingsRow = (settings: SiteSettings) => ({
+  display_name: settings.displayName, primary_email: settings.primaryEmail, telephone: settings.telephone,
+  abuja_address: settings.abujaAddress, kano_address: settings.kanoAddress, default_author: settings.defaultAuthor,
+  review_workflow: settings.reviewWorkflow, image_quality: settings.imageQuality,
+});
+
+const friendlyDatabaseError = (error: { code?: string; message: string }) => {
+  if (error.code === "PGRST205" || error.message.includes("schema cache")) {
+    return "Supabase is connected, but the KANSADCO database migration has not been installed.";
+  }
+  return error.message;
+};
+
+const friendlyFunctionError = async (error: unknown) => {
+  const functionError = error as { message?: string; context?: Response };
+  if (functionError.context instanceof Response) {
+    try {
+      const payload = await functionError.context.clone().json() as { error?: string };
+      if (payload.error) return payload.error;
+    } catch {
+      // Fall back to the SDK message when the response is not JSON.
+    }
+  }
+  return functionError.message ?? "The enquiry service could not be reached.";
+};
+
+const storeSeedMedia = async (url: string, slug: string) => {
+  const storageMarker = `/storage/v1/object/public/${MEDIA_BUCKET}/`;
+  if (url.includes(storageMarker)) return url;
+  try {
+    const response = await fetch(url);
+    if (!response.ok) return url;
+    const blob = await response.blob();
+    const extension = blob.type === "image/webp" ? "webp"
+      : blob.type === "image/png" ? "png"
+        : blob.type === "image/avif" ? "avif"
+          : blob.type === "image/gif" ? "gif"
+            : "jpg";
+    const path = `seed/${slug.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "")}.${extension}`;
+    const { error } = await supabase.storage.from(MEDIA_BUCKET).upload(path, blob, { contentType: blob.type, cacheControl: "31536000", upsert: true });
+    if (error) return url;
+    return supabase.storage.from(MEDIA_BUCKET).getPublicUrl(path).data.publicUrl;
+  } catch {
+    return url;
+  }
+};
+
 const ContentContext = createContext<ContentContextValue | null>(null);
 
 export const ContentProvider = ({ children }: { children: ReactNode }) => {
-  const [state, setState] = useState<ContentState>(loadState);
+  const { isAuthorized, session } = useAuth();
+  const [state, setState] = useState<ContentState>(cloneDefaults);
+  const [loading, setLoading] = useState(true);
+  const [backendStatus, setBackendStatus] = useState<BackendStatus>("loading");
+  const [backendError, setBackendError] = useState<string | null>(null);
+
+  const refreshContent = useCallback(async () => {
+    setLoading(true);
+    const projectRequest = supabase.from("projects").select("*").order("updated_at", { ascending: false });
+    const galleryRequest = supabase.from("gallery_assets").select("*").order("created_at", { ascending: false });
+    const settingsRequest = supabase.from("site_settings").select("*").eq("id", 1).maybeSingle();
+    const enquiryRequest = isAuthorized
+      ? supabase.from("enquiries").select("*").order("created_at", { ascending: false })
+      : Promise.resolve({ data: [], error: null });
+    const activityRequest = isAuthorized
+      ? supabase.from("activities").select("*").order("created_at", { ascending: false }).limit(100)
+      : Promise.resolve({ data: [], error: null });
+
+    try {
+      let [projectsResult, galleryResult, settingsResult, enquiriesResult, activitiesResult] = await Promise.all([
+        projectRequest, galleryRequest, settingsRequest, enquiryRequest, activityRequest,
+      ]);
+      const firstError = [projectsResult.error, galleryResult.error, settingsResult.error, enquiriesResult.error, activitiesResult.error].find(Boolean);
+      if (firstError) throw firstError;
+
+      if (isAuthorized && settingsResult.data && !settingsResult.data.content_initialized) {
+        const legacy = getLegacyState();
+        if (!projectsResult.data?.length) {
+          const seededProjects = await Promise.all(legacy.projects.map(async ({ id, updatedAt: _updatedAt, ...project }) => projectRow({ ...project, image: await storeSeedMedia(project.image, id) })));
+          const { error } = await supabase.from("projects").insert(seededProjects);
+          if (error) throw error;
+        }
+        if (!galleryResult.data?.length) {
+          const seededGallery = await Promise.all(legacy.gallery.map(async ({ id, createdAt: _createdAt, ...asset }) => galleryRow({ ...asset, src: await storeSeedMedia(asset.src, id) })));
+          const { error } = await supabase.from("gallery_assets").insert(seededGallery);
+          if (error) throw error;
+        }
+        const { error: initializedError } = await supabase.from("site_settings").update({ ...settingsRow(legacy.settings), content_initialized: true }).eq("id", 1);
+        if (initializedError) throw initializedError;
+        window.localStorage.removeItem("kansadco-content-v1");
+
+        [projectsResult, galleryResult, settingsResult, enquiriesResult, activitiesResult] = await Promise.all([
+          supabase.from("projects").select("*").order("updated_at", { ascending: false }),
+          supabase.from("gallery_assets").select("*").order("created_at", { ascending: false }),
+          supabase.from("site_settings").select("*").eq("id", 1).maybeSingle(),
+          supabase.from("enquiries").select("*").order("created_at", { ascending: false }),
+          supabase.from("activities").select("*").order("created_at", { ascending: false }).limit(100),
+        ]);
+        const retryError = [projectsResult.error, galleryResult.error, settingsResult.error, enquiriesResult.error, activitiesResult.error].find(Boolean);
+        if (retryError) throw retryError;
+      }
+
+      const useBundledContent = settingsResult.data?.content_initialized === false;
+      setState({
+        projects: useBundledContent ? cloneDefaults().projects : (projectsResult.data ?? []).map(mapProject),
+        gallery: useBundledContent ? cloneDefaults().gallery : (galleryResult.data ?? []).map(mapGallery),
+        enquiries: (enquiriesResult.data ?? []).map(mapEnquiry),
+        settings: settingsResult.data ? mapSettings(settingsResult.data) : cloneDefaults().settings,
+        activities: (activitiesResult.data ?? []).map((row) => ({ id: row.id, message: row.message, type: row.type, read: row.read, createdAt: row.created_at })),
+      });
+      setBackendStatus("connected");
+      setBackendError(null);
+    } catch (unknownError) {
+      const error = unknownError as { code?: string; message: string };
+      const message = friendlyDatabaseError(error);
+      setBackendStatus(error.code === "PGRST205" || error.message?.includes("schema cache") ? "unconfigured" : "error");
+      setBackendError(message);
+      setState((current) => ({ ...cloneDefaults(), settings: current.settings }));
+    } finally {
+      setLoading(false);
+    }
+  }, [isAuthorized]);
 
   useEffect(() => {
-    try {
-      window.localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
-    } catch (error) {
-      console.error("Unable to persist KANSADCO content", error);
-    }
-  }, [state]);
+    void refreshContent();
+  }, [refreshContent, session?.user.id]);
 
-  const addActivity = (message: string, type: Activity["type"]): Activity => ({ id: uid("activity"), message, type, read: false, createdAt: now() });
+  const requireData = <T,>(data: T | null, error: { message: string } | null): T => {
+    if (error) throw new Error(error.message);
+    if (!data) throw new Error("Supabase returned no data.");
+    return data;
+  };
 
   const value = useMemo<ContentContextValue>(() => ({
     ...state,
-    addProject: (input) => {
-      const project = { ...input, id: uid("project"), updatedAt: now() };
-      setState((current) => ({ ...current, projects: [project, ...current.projects], activities: [addActivity(`Project created: ${project.name}`, "project"), ...current.activities] }));
+    loading,
+    backendStatus,
+    backendError,
+    refreshContent,
+    addProject: async (input) => {
+      const result = await supabase.from("projects").insert(projectRow(input)).select("*").single();
+      const project = mapProject(requireData(result.data, result.error));
+      await refreshContent();
       return project;
     },
-    updateProject: (id, updates) => setState((current) => {
-      const existing = current.projects.find((item) => item.id === id);
-      return { ...current, projects: current.projects.map((item) => item.id === id ? { ...item, ...updates, progress: Math.max(0, Math.min(100, updates.progress ?? item.progress)), updatedAt: now() } : item), activities: existing ? [addActivity(`Project updated: ${updates.name ?? existing.name}`, "project"), ...current.activities] : current.activities };
-    }),
-    deleteProject: (id) => setState((current) => ({ ...current, projects: current.projects.filter((item) => item.id !== id) })),
-    addGalleryAsset: (input) => {
-      const asset = { ...input, id: uid("asset"), createdAt: now() };
-      setState((current) => ({ ...current, gallery: [asset, ...current.gallery], activities: [addActivity(`Gallery asset added: ${asset.name}`, "gallery"), ...current.activities] }));
+    updateProject: async (id, updates) => {
+      const payload = {
+        ...(updates.name !== undefined && { name: updates.name }),
+        ...(updates.type !== undefined && { type: updates.type }),
+        ...(updates.location !== undefined && { location: updates.location }),
+        ...(updates.progress !== undefined && { progress: Math.max(0, Math.min(100, updates.progress)) }),
+        ...(updates.status !== undefined && { status: updates.status }),
+        ...(updates.year !== undefined && { year: updates.year }),
+        ...(updates.description !== undefined && { description: updates.description }),
+        ...(updates.image !== undefined && { image: updates.image }),
+      };
+      const { error } = await supabase.from("projects").update(payload).eq("id", id);
+      if (error) throw new Error(error.message);
+      await refreshContent();
+    },
+    deleteProject: async (id) => {
+      const { error } = await supabase.from("projects").delete().eq("id", id);
+      if (error) throw new Error(error.message);
+      await refreshContent();
+    },
+    addGalleryAsset: async (input) => {
+      const result = await supabase.from("gallery_assets").insert(galleryRow(input)).select("*").single();
+      const asset = mapGallery(requireData(result.data, result.error));
+      await refreshContent();
       return asset;
     },
-    updateGalleryAsset: (id, updates) => setState((current) => {
-      const existing = current.gallery.find((item) => item.id === id);
-      return { ...current, gallery: current.gallery.map((item) => item.id === id ? { ...item, ...updates } : item), activities: existing ? [addActivity(`Gallery asset updated: ${updates.name ?? existing.name}`, "gallery"), ...current.activities] : current.activities };
-    }),
-    deleteGalleryAsset: (id) => setState((current) => ({ ...current, gallery: current.gallery.filter((item) => item.id !== id) })),
-    addEnquiry: (input) => {
-      const enquiry: Enquiry = { ...input, id: uid("enquiry"), status: input.status ?? "New", createdAt: now() };
-      setState((current) => ({ ...current, enquiries: [enquiry, ...current.enquiries], activities: [addActivity(`New enquiry: ${enquiry.subject}`, "enquiry"), ...current.activities] }));
-      return enquiry;
+    updateGalleryAsset: async (id, updates) => {
+      const { error } = await supabase.from("gallery_assets").update(updates).eq("id", id);
+      if (error) throw new Error(error.message);
+      await refreshContent();
     },
-    updateEnquiry: (id, updates) => setState((current) => ({ ...current, enquiries: current.enquiries.map((item) => item.id === id ? { ...item, ...updates } : item) })),
-    deleteEnquiry: (id) => setState((current) => ({ ...current, enquiries: current.enquiries.filter((item) => item.id !== id) })),
-    updateSettings: (settings) => setState((current) => ({ ...current, settings, activities: [addActivity("Workspace settings updated", "settings"), ...current.activities] })),
-    markActivitiesRead: () => setState((current) => ({ ...current, activities: current.activities.map((item) => ({ ...item, read: true })) })),
-    resetContent: () => setState(cloneDefaults()),
-  }), [state]);
+    deleteGalleryAsset: async (id) => {
+      const current = state.gallery.find((asset) => asset.id === id);
+      const { error } = await supabase.from("gallery_assets").delete().eq("id", id);
+      if (error) throw new Error(error.message);
+      const marker = `/storage/v1/object/public/${MEDIA_BUCKET}/`;
+      if (current?.src.includes(marker)) {
+        const path = decodeURIComponent(current.src.split(marker)[1]);
+        await supabase.storage.from(MEDIA_BUCKET).remove([path]);
+      }
+      await refreshContent();
+    },
+    uploadMedia: async (file) => {
+      if (!file.type.startsWith("image/")) throw new Error("Choose a valid image file.");
+      if (file.size > 10 * 1024 * 1024) throw new Error("Images must be smaller than 10 MB.");
+      const safeName = file.name.toLowerCase().replace(/[^a-z0-9.]+/g, "-").replace(/^-|-$/g, "");
+      const path = `gallery/${new Date().getFullYear()}/${crypto.randomUUID()}-${safeName}`;
+      const { error } = await supabase.storage.from(MEDIA_BUCKET).upload(path, file, { cacheControl: "31536000", upsert: false });
+      if (error) throw new Error(error.message);
+      return supabase.storage.from(MEDIA_BUCKET).getPublicUrl(path).data.publicUrl;
+    },
+    addEnquiry: async (input) => {
+      const { data, error } = await supabase.functions.invoke("submit-enquiry", {
+        body: {
+          name: input.name,
+          email: input.email,
+          phone: input.phone,
+          subject: input.subject,
+          message: input.message,
+          source: input.source === "Private tour" ? "Private tour" : "Contact",
+          website: input.website ?? "",
+          formStartedAt: input.formStartedAt,
+        },
+      });
+      if (error) throw new Error(await friendlyFunctionError(error));
+      const row = (data as { enquiry?: Parameters<typeof mapEnquiry>[0] } | null)?.enquiry;
+      if (!row) throw new Error("The enquiry service did not confirm your submission.");
+      if (isAuthorized) await refreshContent();
+      return mapEnquiry(row);
+    },
+    retryEnquiryNotification: async (id) => {
+      const { error } = await supabase.functions.invoke("retry-enquiry-email", { body: { enquiryId: id } });
+      if (error) throw new Error(await friendlyFunctionError(error));
+      await refreshContent();
+    },
+    updateEnquiry: async (id, updates) => {
+      const { error } = await supabase.from("enquiries").update(updates).eq("id", id);
+      if (error) throw new Error(error.message);
+      await refreshContent();
+    },
+    deleteEnquiry: async (id) => {
+      const { error } = await supabase.from("enquiries").delete().eq("id", id);
+      if (error) throw new Error(error.message);
+      await refreshContent();
+    },
+    updateSettings: async (settings) => {
+      const { error } = await supabase.from("site_settings").update(settingsRow(settings)).eq("id", 1);
+      if (error) throw new Error(error.message);
+      await refreshContent();
+    },
+    markActivitiesRead: async () => {
+      const { error } = await supabase.from("activities").update({ read: true }).eq("read", false);
+      if (error) throw new Error(error.message);
+      setState((current) => ({ ...current, activities: current.activities.map((item) => ({ ...item, read: true })) }));
+    },
+  }), [backendError, backendStatus, isAuthorized, loading, refreshContent, state]);
 
   return createElement(ContentContext.Provider, { value }, children);
 };

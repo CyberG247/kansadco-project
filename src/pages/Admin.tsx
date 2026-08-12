@@ -3,8 +3,8 @@ import { createPortal } from "react-dom";
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 import {
   ArrowUpRight, Bell, Building2, Check, ChevronRight, CircleDot,
-  Download, Eye, Images, LayoutDashboard, Mail, Menu, MessageSquare, Moon,
-  MoreHorizontal, Plus, Search, Settings, Sun, Trash2, TrendingUp, Upload, X,
+  Cloud, CloudOff, Download, Eye, Images, LayoutDashboard, LoaderCircle, LogOut, Mail, Menu, MessageSquare, Moon,
+  MoreHorizontal, Plus, RefreshCw, Search, Settings, Sun, Trash2, TrendingUp, Upload, X,
 } from "lucide-react";
 import { useTheme } from "@/components/ThemeProvider";
 import { useToast } from "@/hooks/use-toast";
@@ -14,6 +14,7 @@ import {
 } from "@/lib/contentStore";
 import logo from "@/assets/logo-transparent.png";
 import heroSignature from "@/assets/hero-signature.webp";
+import { useAuth } from "@/lib/auth";
 
 type Section = "Overview" | "Projects" | "Gallery" | "Enquiries" | "Settings";
 
@@ -30,9 +31,11 @@ type EditorState = { kind: "project"; item?: ManagedProject } | { kind: "gallery
 const initials = (name: string) => name.split(/\s+/).slice(0, 2).map((part) => part[0]).join("").toUpperCase();
 
 const Status = ({ value }: { value: string }) => {
-  const tone = value === "Published" || value === "Replied"
+  const tone = value === "Published" || value === "Replied" || value === "Sent"
     ? "bg-emerald-500/10 text-emerald-700 dark:text-emerald-400"
-    : value === "Draft" || value === "Review"
+    : value === "Failed"
+      ? "bg-red-500/10 text-red-700 dark:text-red-400"
+      : value === "Draft" || value === "Review" || value === "Pending" || value === "Partial"
       ? "bg-amber-500/10 text-amber-700 dark:text-amber-400"
       : "bg-blue-500/10 text-blue-700 dark:text-blue-400";
   return <span className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 font-mono text-[7px] uppercase tracking-[.12em] ${tone}`}><span className="h-1 w-1 rounded-full bg-current" />{value}</span>;
@@ -66,8 +69,10 @@ const WorkspaceNavigation = ({ section, navigate }: { section: Section; navigate
   </nav>;
 };
 
-const SidebarContent = ({ section, navigate, close }: { section: Section; navigate: (section: Section) => void; close?: () => void }) => (
-  <>
+const SidebarContent = ({ section, navigate, close }: { section: Section; navigate: (section: Section) => void; close?: () => void }) => {
+  const { profile, signOut } = useAuth();
+  const displayName = profile?.fullName || profile?.email || "Administrator";
+  return <>
     <div className="flex h-20 items-center justify-between border-b border-white/10 px-5">
       <div className="flex items-center gap-3"><img src={logo} alt="KANSADCO" className="h-10 w-auto brightness-0 invert" /><span className="h-7 w-px bg-white/15" /><span className="font-mono text-[7px] uppercase tracking-[.18em] text-white/40">Admin</span></div>
       {close && <button onClick={close} className="grid h-9 w-9 place-items-center rounded-full border border-white/15 transition-colors hover:bg-white hover:text-slate-dark" aria-label="Close admin navigation"><X className="h-4 w-4" /></button>}
@@ -78,16 +83,17 @@ const SidebarContent = ({ section, navigate, close }: { section: Section; naviga
     </div>
     <div className="mt-auto p-4">
       <div className="rounded-[1.4rem] border border-white/10 bg-white/[.045] p-4">
-        <div className="flex items-center gap-3"><div className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-white/10 font-display text-lg">YH</div><div className="min-w-0"><p className="truncate text-xs font-medium">Yunusa Hassan</p><p className="mt-1 font-mono text-[7px] uppercase tracking-[.15em] text-white/35">Administrator</p></div></div>
-        <a href="/" className="group mt-4 flex items-center justify-between border-t border-white/10 pt-4 font-mono text-[8px] uppercase tracking-[.15em] text-white/40 transition-colors hover:text-white">View live site <ArrowUpRight className="h-3.5 w-3.5 transition-transform duration-300 group-hover:translate-x-0.5 group-hover:-translate-y-0.5" /></a>
+        <div className="flex items-center gap-3"><div className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-white/10 font-display text-lg">{initials(displayName)}</div><div className="min-w-0"><p className="truncate text-xs font-medium">{displayName}</p><p className="mt-1 font-mono text-[7px] uppercase tracking-[.15em] text-white/35">{profile?.role ?? "Administrator"}</p></div></div>
+        <div className="mt-4 grid grid-cols-[1fr_auto] gap-2 border-t border-white/10 pt-4"><a href="/" className="group flex items-center justify-between font-mono text-[8px] uppercase tracking-[.15em] text-white/40 transition-colors hover:text-white">View site <ArrowUpRight className="h-3.5 w-3.5 transition-transform duration-300 group-hover:translate-x-0.5 group-hover:-translate-y-0.5" /></a><button onClick={() => void signOut()} className="grid h-8 w-8 place-items-center rounded-full text-white/35 transition-colors hover:bg-white/10 hover:text-white" aria-label="Sign out"><LogOut className="h-3.5 w-3.5" /></button></div>
       </div>
     </div>
   </>
-);
+};
 
 const Admin = () => {
+  const { profile } = useAuth();
   const { theme, setTheme } = useTheme();
-  const { projects, gallery, enquiries, activities, markActivitiesRead } = useContent();
+  const { projects, gallery, enquiries, activities, markActivitiesRead, backendStatus, backendError, loading } = useContent();
   const reduceMotion = useReducedMotion();
   const [section, setSection] = useState<Section>("Overview");
   const [query, setQuery] = useState("");
@@ -99,6 +105,7 @@ const Admin = () => {
   const matchingProjects = useMemo(() => projects.filter((project) => `${project.name} ${project.type} ${project.location}`.toLowerCase().includes(query.toLowerCase())), [projects, query]);
   const unreadActivities = activities.filter((item) => !item.read).length;
   const newEnquiries = enquiries.filter((item) => item.status === "New").length;
+  const dateLabel = new Intl.DateTimeFormat("en-GB", { weekday: "long", day: "2-digit", month: "short", year: "numeric" }).format(new Date());
   const navigate = (next: Section) => { setSection(next); setSidebarOpen(false); setQuery(""); window.scrollTo({ top: 0, behavior: reduceMotion ? "auto" : "smooth" }); };
   const create = (kind: "project" | "gallery") => { setComposerOpen(false); window.setTimeout(() => setEditor({ kind }), 120); };
 
@@ -140,7 +147,8 @@ const Admin = () => {
               <div className="hidden items-center gap-3 rounded-full bg-muted/70 px-4 md:flex"><Search className="h-3.5 w-3.5 text-muted-foreground" /><input value={query} onChange={(event) => { setQuery(event.target.value); if (event.target.value && section !== "Projects") setSection("Projects"); }} placeholder="Search projects" className="h-9 w-40 bg-transparent text-xs outline-none placeholder:text-muted-foreground lg:w-52" /></div>
             </div>
             <div className="flex items-center gap-1.5 sm:gap-2">
-              <p className="mr-2 hidden font-mono text-[8px] uppercase tracking-[.14em] text-muted-foreground xl:block">Tuesday · 12 Aug 2026</p>
+              <p className="mr-2 hidden font-mono text-[8px] uppercase tracking-[.14em] text-muted-foreground xl:block">{dateLabel}</p>
+              <span title={backendError ?? "Supabase database connected"} className={`hidden h-9 items-center gap-2 rounded-full border px-3 font-mono text-[7px] uppercase tracking-[.12em] sm:flex ${backendStatus === "connected" ? "border-emerald-500/20 text-emerald-700 dark:text-emerald-400" : "border-destructive/20 text-destructive"}`}>{loading ? <LoaderCircle className="h-3 w-3 animate-spin" /> : backendStatus === "connected" ? <Cloud className="h-3 w-3" /> : <CloudOff className="h-3 w-3" />}<span className="hidden xl:inline">{loading ? "Syncing" : backendStatus === "connected" ? "Live" : "Setup needed"}</span></span>
               <button onClick={() => setTheme(theme === "dark" ? "light" : "dark")} className="grid h-9 w-9 place-items-center rounded-full transition-all duration-300 hover:rotate-12 hover:bg-muted" aria-label="Toggle color theme">{theme === "dark" ? <Sun className="h-3.5 w-3.5" /> : <Moon className="h-3.5 w-3.5" />}</button>
               <button onClick={() => setNotificationsOpen((open) => !open)} className="relative grid h-9 w-9 place-items-center rounded-full border border-border transition-colors hover:border-foreground" aria-label="Notifications" aria-expanded={notificationsOpen}><Bell className="h-3.5 w-3.5" />{unreadActivities > 0 && <span className="absolute right-1.5 top-1.5 grid h-3.5 min-w-3.5 place-items-center rounded-full bg-accent px-0.5 font-mono text-[6px] text-accent-foreground">{Math.min(unreadActivities, 9)}</span>}</button>
               <button onClick={() => setComposerOpen(true)} className="group flex h-9 items-center gap-2 rounded-full bg-foreground px-3.5 font-mono text-[8px] font-medium uppercase tracking-[.13em] text-background transition-all duration-300 hover:-translate-y-0.5 hover:shadow-lg sm:px-4"><Plus className="h-3.5 w-3.5 transition-transform duration-300 group-hover:rotate-90" /><span className="hidden sm:inline">New entry</span></button>
@@ -148,7 +156,7 @@ const Admin = () => {
 
             <AnimatePresence>
               {notificationsOpen && <motion.div initial={reduceMotion ? { opacity: 1 } : { opacity: 0, y: -8, scale: .97 }} animate={{ opacity: 1, y: 0, scale: 1 }} exit={{ opacity: 0, y: -6, scale: .98 }} transition={{ duration: .25 }} className={`absolute right-0 top-[calc(100%+.6rem)] w-[min(340px,calc(100vw-1.5rem))] ${panelClass} overflow-hidden bg-background p-2 shadow-[0_24px_70px_rgba(8,16,12,.18)]`}>
-                <div className="flex items-center justify-between px-3 py-2"><div><p className="font-mono text-[7px] uppercase tracking-[.18em] text-muted-foreground">Notifications</p><p className="mt-1 text-xs">Workspace activity</p></div><button onClick={markActivitiesRead} className="font-mono text-[7px] uppercase tracking-[.12em] text-muted-foreground hover:text-foreground">Mark read</button></div>
+                <div className="flex items-center justify-between px-3 py-2"><div><p className="font-mono text-[7px] uppercase tracking-[.18em] text-muted-foreground">Notifications</p><p className="mt-1 text-xs">Workspace activity</p></div><button onClick={() => void markActivitiesRead()} className="font-mono text-[7px] uppercase tracking-[.12em] text-muted-foreground hover:text-foreground">Mark read</button></div>
                 {activities.slice(0, 6).map((item) => <button key={item.id} onClick={() => { setNotificationsOpen(false); navigate(item.type === "enquiry" ? "Enquiries" : item.type === "gallery" ? "Gallery" : item.type === "settings" ? "Settings" : "Projects"); }} className="flex w-full items-center gap-3 rounded-xl px-3 py-3 text-left transition-colors hover:bg-muted"><span className={`h-1.5 w-1.5 shrink-0 rounded-full ${item.read ? "bg-border" : "bg-accent"}`} /><span className="min-w-0 flex-1 truncate text-[11px]">{item.message}</span><span className="font-mono text-[7px] text-muted-foreground">{formatRelativeDate(item.createdAt)}</span></button>)}
                 {activities.length === 0 && <p className="px-3 py-5 text-center text-xs text-muted-foreground">No activity yet.</p>}
               </motion.div>}
@@ -159,7 +167,7 @@ const Admin = () => {
         <main className="px-3 pb-28 pt-6 sm:px-5 sm:pt-8 lg:px-6 lg:pb-12 xl:px-8">
           <AnimatePresence mode="wait">
             <motion.div key={section} initial={reduceMotion ? { opacity: 1 } : { opacity: 0, y: 14 }} animate={{ opacity: 1, y: 0 }} exit={reduceMotion ? { opacity: 0 } : { opacity: 0, y: -8 }} transition={{ duration: .35, ease: [.2, .75, .2, 1] }} className="mx-auto max-w-[1500px]">
-              {section === "Overview" && <Overview onNavigate={navigate} onEditProject={(item) => setEditor({ kind: "project", item })} onOpenEnquiry={(item) => setEditor({ kind: "enquiry", item })} />}
+              {section === "Overview" && <Overview name={profile?.fullName || profile?.email || "Administrator"} onNavigate={navigate} onEditProject={(item) => setEditor({ kind: "project", item })} onOpenEnquiry={(item) => setEditor({ kind: "enquiry", item })} />}
               {section === "Projects" && <ProjectsPanel projects={matchingProjects} query={query} setQuery={setQuery} onCreate={() => create("project")} onEdit={(item) => setEditor({ kind: "project", item })} />}
               {section === "Gallery" && <GalleryPanel gallery={gallery} onUpload={() => create("gallery")} onEdit={(item) => setEditor({ kind: "gallery", item })} />}
               {section === "Enquiries" && <EnquiriesPanel enquiries={enquiries} onOpen={(item) => setEditor({ kind: "enquiry", item })} />}
@@ -186,7 +194,7 @@ const Admin = () => {
   );
 };
 
-const Overview = ({ onNavigate, onEditProject, onOpenEnquiry }: { onNavigate: (section: Section) => void; onEditProject: (project: ManagedProject) => void; onOpenEnquiry: (enquiry: Enquiry) => void }) => {
+const Overview = ({ name, onNavigate, onEditProject, onOpenEnquiry }: { name: string; onNavigate: (section: Section) => void; onEditProject: (project: ManagedProject) => void; onOpenEnquiry: (enquiry: Enquiry) => void }) => {
   const { projects, gallery, enquiries } = useContent();
   const reduceMotion = useReducedMotion();
   const activeProjects = projects.filter((item) => item.status === "In progress");
@@ -200,7 +208,7 @@ const Overview = ({ onNavigate, onEditProject, onOpenEnquiry }: { onNavigate: (s
   ];
   const bars = [42, 58, 47, 72, 65, 84, 78, 91, 76, 88, 82, 96];
   return <>
-    <SectionHeading eyebrow="Command centre · 12 August 2026" title="Good morning, Yunusa." description="A clear view of what is moving, what needs attention and what is ready to publish." />
+    <SectionHeading eyebrow={`Command centre · ${new Intl.DateTimeFormat("en-GB", { day: "numeric", month: "long", year: "numeric" }).format(new Date())}`} title={`Welcome, ${name.split(/\s|@/)[0]}.`} description="A clear view of what is moving, what needs attention and what is ready to publish." />
     <div className="-mx-3 flex snap-x snap-mandatory gap-3 overflow-x-auto px-3 pb-2 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden sm:mx-0 sm:grid sm:grid-cols-2 sm:overflow-visible sm:px-0 xl:grid-cols-4">
       {stats.map((stat, index) => <motion.article key={stat.label} initial={reduceMotion ? false : { opacity: 0, y: 18 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: index * .06 }} whileHover={reduceMotion ? undefined : { y: -4 }} className={`${panelClass} min-w-[72vw] snap-center p-5 sm:min-w-0`}>
         <div className="flex items-start justify-between"><p className="font-mono text-[7px] uppercase tracking-[.16em] text-muted-foreground">{stat.label}</p><span className="grid h-8 w-8 place-items-center rounded-full bg-muted"><stat.icon className="h-3.5 w-3.5 text-muted-foreground" /></span></div>
@@ -262,7 +270,18 @@ const SettingsPanel = () => {
   const { toast } = useToast();
   const [form, setForm] = useState<SiteSettings>(settings);
   const change = (key: keyof SiteSettings, value: string) => setForm((current) => ({ ...current, [key]: value }));
-  const save = () => { updateSettings(form); toast({ title: "Settings saved", description: "Public contact details were updated immediately." }); };
+  const [saving, setSaving] = useState(false);
+  const save = async () => {
+    setSaving(true);
+    try {
+      await updateSettings(form);
+      toast({ title: "Settings saved", description: "Public contact details were updated in Supabase." });
+    } catch (error) {
+      toast({ title: "Settings could not be saved", description: error instanceof Error ? error.message : "Please try again.", variant: "destructive" });
+    } finally {
+      setSaving(false);
+    }
+  };
   const exportData = () => {
     const blob = new Blob([JSON.stringify({ projects, gallery, enquiries, settings: form, activities }, null, 2)], { type: "application/json" });
     const url = URL.createObjectURL(blob); const link = document.createElement("a"); link.href = url; link.download = `kansadco-content-${new Date().toISOString().slice(0, 10)}.json`; link.click(); URL.revokeObjectURL(url);
@@ -271,7 +290,7 @@ const SettingsPanel = () => {
     { title: "Company profile", icon: Building2, fields: [["Display name", "displayName"], ["Primary email", "primaryEmail"], ["Telephone", "telephone"], ["Abuja address", "abujaAddress"], ["Kano address", "kanoAddress"]] },
     { title: "Publishing", icon: Check, fields: [["Default author", "defaultAuthor"], ["Review workflow", "reviewWorkflow"], ["Image quality", "imageQuality"]] },
   ];
-  return <><SectionHeading eyebrow="Workspace · Configuration" title="Settings" description="Control brand details, public contact information and publishing defaults." action={<button onClick={exportData} className="flex h-10 w-fit items-center gap-2 rounded-full border border-border px-4 font-mono text-[7px] uppercase tracking-[.14em] transition-colors hover:border-foreground"><Download className="h-3.5 w-3.5" />Export content</button>} /><div className="grid gap-4 xl:grid-cols-2">{groups.map((group, groupIndex) => <motion.section key={group.title} initial={{ opacity: 0, y: 14 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: groupIndex * .08 }} className={`${panelClass} p-5 sm:p-6`}><div className="flex items-center justify-between"><div className="flex items-center gap-3"><span className="grid h-9 w-9 place-items-center rounded-full bg-muted"><group.icon className="h-4 w-4 text-muted-foreground" /></span><h2 className="text-2xl">{group.title}</h2></div><span className="font-mono text-[7px] uppercase tracking-[.14em] text-muted-foreground">0{groupIndex + 1}</span></div><div className="mt-6 space-y-2">{group.fields.map(([label, key]) => <label key={key} className="block rounded-2xl bg-muted/55 px-4 py-3 transition-colors focus-within:bg-muted"><span className="font-mono text-[7px] uppercase tracking-[.14em] text-muted-foreground">{label}</span><input value={form[key]} onChange={(event) => change(key, event.target.value)} className="mt-1.5 block w-full bg-transparent text-xs outline-none sm:text-sm" /></label>)}</div><button onClick={save} className="mt-5 h-10 rounded-full bg-foreground px-5 font-mono text-[7px] uppercase tracking-[.15em] text-background transition-all hover:-translate-y-0.5 hover:shadow-lg">Save changes</button></motion.section>)}</div></>;
+  return <><SectionHeading eyebrow="Workspace · Configuration" title="Settings" description="Control brand details, public contact information and publishing defaults." action={<button onClick={exportData} className="flex h-10 w-fit items-center gap-2 rounded-full border border-border px-4 font-mono text-[7px] uppercase tracking-[.14em] transition-colors hover:border-foreground"><Download className="h-3.5 w-3.5" />Export content</button>} /><div className="grid gap-4 xl:grid-cols-2">{groups.map((group, groupIndex) => <motion.section key={group.title} initial={{ opacity: 0, y: 14 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: groupIndex * .08 }} className={`${panelClass} p-5 sm:p-6`}><div className="flex items-center justify-between"><div className="flex items-center gap-3"><span className="grid h-9 w-9 place-items-center rounded-full bg-muted"><group.icon className="h-4 w-4 text-muted-foreground" /></span><h2 className="text-2xl">{group.title}</h2></div><span className="font-mono text-[7px] uppercase tracking-[.14em] text-muted-foreground">0{groupIndex + 1}</span></div><div className="mt-6 space-y-2">{group.fields.map(([label, key]) => <label key={key} className="block rounded-2xl bg-muted/55 px-4 py-3 transition-colors focus-within:bg-muted"><span className="font-mono text-[7px] uppercase tracking-[.14em] text-muted-foreground">{label}</span><input value={form[key]} onChange={(event) => change(key, event.target.value)} className="mt-1.5 block w-full bg-transparent text-xs outline-none sm:text-sm" /></label>)}</div><button onClick={() => void save()} disabled={saving} className="mt-5 flex h-10 items-center gap-2 rounded-full bg-foreground px-5 font-mono text-[7px] uppercase tracking-[.15em] text-background transition-all hover:-translate-y-0.5 hover:shadow-lg disabled:opacity-60">{saving && <LoaderCircle className="h-3.5 w-3.5 animate-spin" />}{saving ? "Saving" : "Save changes"}</button></motion.section>)}</div></>;
 };
 
 const EmptyState = ({ text }: { text: string }) => <div className="p-10 text-center"><Search className="mx-auto h-5 w-5 text-muted-foreground" /><p className="mt-3 text-xs text-muted-foreground">{text}</p></div>;
@@ -308,13 +327,28 @@ const ProjectEditor = ({ project, close }: { project?: ManagedProject; close: ()
     progress: project?.progress ?? 0, status: project?.status ?? "Draft" as ProjectStatus,
     year: project?.year ?? new Date().getFullYear().toString(), description: project?.description ?? "", image: project?.image ?? heroSignature,
   });
+  const [saving, setSaving] = useState(false);
   const change = (key: keyof typeof form, value: string | number) => setForm((current) => ({ ...current, [key]: value }));
-  const submit = (event: React.FormEvent) => {
+  const submit = async (event: React.FormEvent) => {
     event.preventDefault();
-    if (project) updateProject(project.id, form); else addProject(form);
-    toast({ title: project ? "Project updated" : "Project created", description: `${form.name} is ${form.status.toLowerCase()}.` }); close();
+    setSaving(true);
+    try {
+      if (project) await updateProject(project.id, form); else await addProject(form);
+      toast({ title: project ? "Project updated" : "Project created", description: `${form.name} is ${form.status.toLowerCase()}.` });
+      close();
+    } catch (error) {
+      toast({ title: "Project could not be saved", description: error instanceof Error ? error.message : "Please try again.", variant: "destructive" });
+    } finally {
+      setSaving(false);
+    }
   };
-  const remove = () => { if (!project || !window.confirm(`Delete ${project.name}? This cannot be undone.`)) return; deleteProject(project.id); toast({ title: "Project deleted" }); close(); };
+  const remove = async () => {
+    if (!project || !window.confirm(`Delete ${project.name}? This cannot be undone.`)) return;
+    setSaving(true);
+    try { await deleteProject(project.id); toast({ title: "Project deleted" }); close(); }
+    catch (error) { toast({ title: "Project could not be deleted", description: error instanceof Error ? error.message : "Please try again.", variant: "destructive" }); }
+    finally { setSaving(false); }
+  };
   return <EditorShell label={project ? "Portfolio · Edit" : "Portfolio · New"} title={project ? "Edit project." : "Create a project."} close={close}>
     <form onSubmit={submit} className="grid gap-4 sm:grid-cols-2">
       <label className={editorLabel}>Project name<input value={form.name} onChange={(e) => change("name", e.target.value)} required className={editorField} /></label>
@@ -326,23 +360,45 @@ const ProjectEditor = ({ project, close }: { project?: ManagedProject; close: ()
       <label className={`${editorLabel} sm:col-span-2`}>Image URL<input value={form.image} onChange={(e) => change("image", e.target.value)} required className={editorField} /></label>
       <label className={`${editorLabel} sm:col-span-2`}>Description<textarea value={form.description} onChange={(e) => change("description", e.target.value)} required rows={4} className={`${editorField} h-auto py-3`} /></label>
       {form.image && <div className="sm:col-span-2"><img src={form.image} alt="Project preview" className="h-40 w-full rounded-2xl object-cover" /></div>}
-      <div className="mt-2 flex items-center justify-between gap-3 sm:col-span-2">{project ? <button type="button" onClick={remove} className="flex h-10 items-center gap-2 rounded-full border border-destructive/30 px-4 font-mono text-[7px] uppercase tracking-[.14em] text-destructive"><Trash2 className="h-3.5 w-3.5" />Delete</button> : <span />}<button type="submit" className="h-11 rounded-full bg-foreground px-6 font-mono text-[8px] uppercase tracking-[.15em] text-background">{project ? "Save changes" : "Create project"}</button></div>
+      <div className="mt-2 flex items-center justify-between gap-3 sm:col-span-2">{project ? <button type="button" onClick={() => void remove()} disabled={saving} className="flex h-10 items-center gap-2 rounded-full border border-destructive/30 px-4 font-mono text-[7px] uppercase tracking-[.14em] text-destructive disabled:opacity-50"><Trash2 className="h-3.5 w-3.5" />Delete</button> : <span />}<button type="submit" disabled={saving} className="flex h-11 items-center gap-2 rounded-full bg-foreground px-6 font-mono text-[8px] uppercase tracking-[.15em] text-background disabled:opacity-60">{saving && <LoaderCircle className="h-3.5 w-3.5 animate-spin" />}{saving ? "Saving" : project ? "Save changes" : "Create project"}</button></div>
     </form>
   </EditorShell>;
 };
 
 const GalleryEditor = ({ asset, close }: { asset?: GalleryAsset; close: () => void }) => {
-  const { addGalleryAsset, updateGalleryAsset, deleteGalleryAsset } = useContent();
+  const { addGalleryAsset, updateGalleryAsset, deleteGalleryAsset, uploadMedia } = useContent();
   const { toast } = useToast();
   const [form, setForm] = useState({ name: asset?.name ?? "", type: asset?.type ?? "Residential", location: asset?.location ?? "Abuja", year: asset?.year ?? new Date().getFullYear().toString(), status: asset?.status ?? "Draft" as AssetStatus, src: asset?.src ?? heroSignature });
+  const [saving, setSaving] = useState(false);
+  const [uploading, setUploading] = useState(false);
   const change = (key: keyof typeof form, value: string) => setForm((current) => ({ ...current, [key]: value }));
-  const chooseFile = (event: React.ChangeEvent<HTMLInputElement>) => {
+  const chooseFile = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0]; if (!file) return;
-    if (file.size > 1_500_000) { toast({ title: "Image too large", description: "Use an image below 1.5 MB for browser storage.", variant: "destructive" }); return; }
-    const reader = new FileReader(); reader.onload = () => change("src", String(reader.result)); reader.readAsDataURL(file);
+    setUploading(true);
+    try {
+      const publicUrl = await uploadMedia(file);
+      change("src", publicUrl);
+      toast({ title: "Image uploaded", description: "The file is now stored in the Supabase media library." });
+    } catch (error) {
+      toast({ title: "Upload failed", description: error instanceof Error ? error.message : "Please try again.", variant: "destructive" });
+    } finally {
+      setUploading(false);
+      event.target.value = "";
+    }
   };
-  const submit = (event: React.FormEvent) => { event.preventDefault(); if (asset) updateGalleryAsset(asset.id, form); else addGalleryAsset(form); toast({ title: asset ? "Asset updated" : "Asset added", description: `${form.name} is ${form.status.toLowerCase()}.` }); close(); };
-  const remove = () => { if (!asset || !window.confirm(`Delete ${asset.name}? This cannot be undone.`)) return; deleteGalleryAsset(asset.id); toast({ title: "Gallery asset deleted" }); close(); };
+  const submit = async (event: React.FormEvent) => {
+    event.preventDefault(); setSaving(true);
+    try { if (asset) await updateGalleryAsset(asset.id, form); else await addGalleryAsset(form); toast({ title: asset ? "Asset updated" : "Asset added", description: `${form.name} is ${form.status.toLowerCase()}.` }); close(); }
+    catch (error) { toast({ title: "Asset could not be saved", description: error instanceof Error ? error.message : "Please try again.", variant: "destructive" }); }
+    finally { setSaving(false); }
+  };
+  const remove = async () => {
+    if (!asset || !window.confirm(`Delete ${asset.name}? This cannot be undone.`)) return;
+    setSaving(true);
+    try { await deleteGalleryAsset(asset.id); toast({ title: "Gallery asset deleted" }); close(); }
+    catch (error) { toast({ title: "Asset could not be deleted", description: error instanceof Error ? error.message : "Please try again.", variant: "destructive" }); }
+    finally { setSaving(false); }
+  };
   return <EditorShell label={asset ? "Gallery · Edit" : "Gallery · Upload"} title={asset ? "Edit asset." : "Add to the archive."} close={close}>
     <form onSubmit={submit} className="grid gap-4 sm:grid-cols-2">
       <label className={editorLabel}>Title<input value={form.name} onChange={(e) => change("name", e.target.value)} required className={editorField} /></label>
@@ -350,23 +406,42 @@ const GalleryEditor = ({ asset, close }: { asset?: GalleryAsset; close: () => vo
       <label className={editorLabel}>Location<input value={form.location} onChange={(e) => change("location", e.target.value)} required className={editorField} /></label>
       <label className={editorLabel}>Year<input value={form.year} onChange={(e) => change("year", e.target.value)} required className={editorField} /></label>
       <label className={editorLabel}>Status<select value={form.status} onChange={(e) => change("status", e.target.value as AssetStatus)} className={editorField}><option>Draft</option><option>Published</option></select></label>
-      <label className={editorLabel}>Upload image<input type="file" accept="image/*" onChange={chooseFile} className="mt-2 block w-full text-[10px] file:mr-3 file:rounded-full file:border-0 file:bg-foreground file:px-3 file:py-2 file:text-[8px] file:uppercase file:text-background" /></label>
-      <label className={`${editorLabel} sm:col-span-2`}>Image URL or saved file<input value={form.src} onChange={(e) => change("src", e.target.value)} required className={editorField} /></label>
+      <label className={editorLabel}>Upload image<span className="relative mt-2 block"><input type="file" accept="image/jpeg,image/png,image/webp,image/avif,image/gif" onChange={(event) => void chooseFile(event)} disabled={uploading} className="block w-full text-[10px] file:mr-3 file:rounded-full file:border-0 file:bg-foreground file:px-3 file:py-2 file:text-[8px] file:uppercase file:text-background disabled:opacity-50" />{uploading && <span className="mt-2 flex items-center gap-2 text-[9px] normal-case tracking-normal"><LoaderCircle className="h-3 w-3 animate-spin" />Uploading securely…</span>}</span></label>
+      <label className={`${editorLabel} sm:col-span-2`}>Supabase media URL<input value={form.src} onChange={(e) => change("src", e.target.value)} required className={editorField} /></label>
       {form.src && <div className="sm:col-span-2"><img src={form.src} alt="Asset preview" className="h-56 w-full rounded-2xl object-cover" /></div>}
-      <div className="mt-2 flex items-center justify-between gap-3 sm:col-span-2">{asset ? <button type="button" onClick={remove} className="flex h-10 items-center gap-2 rounded-full border border-destructive/30 px-4 font-mono text-[7px] uppercase tracking-[.14em] text-destructive"><Trash2 className="h-3.5 w-3.5" />Delete</button> : <span />}<button type="submit" className="h-11 rounded-full bg-foreground px-6 font-mono text-[8px] uppercase tracking-[.15em] text-background">{asset ? "Save changes" : "Add asset"}</button></div>
+      <div className="mt-2 flex items-center justify-between gap-3 sm:col-span-2">{asset ? <button type="button" onClick={() => void remove()} disabled={saving || uploading} className="flex h-10 items-center gap-2 rounded-full border border-destructive/30 px-4 font-mono text-[7px] uppercase tracking-[.14em] text-destructive disabled:opacity-50"><Trash2 className="h-3.5 w-3.5" />Delete</button> : <span />}<button type="submit" disabled={saving || uploading} className="flex h-11 items-center gap-2 rounded-full bg-foreground px-6 font-mono text-[8px] uppercase tracking-[.15em] text-background disabled:opacity-60">{saving && <LoaderCircle className="h-3.5 w-3.5 animate-spin" />}{saving ? "Saving" : asset ? "Save changes" : "Add asset"}</button></div>
     </form>
   </EditorShell>;
 };
 
 const EnquiryEditor = ({ enquiry, close }: { enquiry: Enquiry; close: () => void }) => {
-  const { updateEnquiry, deleteEnquiry } = useContent();
+  const { updateEnquiry, deleteEnquiry, retryEnquiryNotification } = useContent();
   const { toast } = useToast();
-  const setStatus = (status: Enquiry["status"]) => { updateEnquiry(enquiry.id, { status }); toast({ title: `Enquiry marked ${status.toLowerCase()}` }); close(); };
-  const remove = () => { if (!window.confirm(`Delete the enquiry from ${enquiry.name}?`)) return; deleteEnquiry(enquiry.id); toast({ title: "Enquiry deleted" }); close(); };
+  const [saving, setSaving] = useState(false);
+  const setStatus = async (status: Enquiry["status"]) => {
+    setSaving(true);
+    try { await updateEnquiry(enquiry.id, { status }); toast({ title: `Enquiry marked ${status.toLowerCase()}` }); close(); }
+    catch (error) { toast({ title: "Status could not be updated", description: error instanceof Error ? error.message : "Please try again.", variant: "destructive" }); }
+    finally { setSaving(false); }
+  };
+  const remove = async () => {
+    if (!window.confirm(`Delete the enquiry from ${enquiry.name}?`)) return;
+    setSaving(true);
+    try { await deleteEnquiry(enquiry.id); toast({ title: "Enquiry deleted" }); close(); }
+    catch (error) { toast({ title: "Enquiry could not be deleted", description: error instanceof Error ? error.message : "Please try again.", variant: "destructive" }); }
+    finally { setSaving(false); }
+  };
+  const retryNotification = async () => {
+    setSaving(true);
+    try { await retryEnquiryNotification(enquiry.id); toast({ title: "Email delivery retried", description: "Brevo accepted the transactional message." }); close(); }
+    catch (error) { toast({ title: "Email was not delivered", description: error instanceof Error ? error.message : "Please try again.", variant: "destructive" }); }
+    finally { setSaving(false); }
+  };
   return <EditorShell label={`${enquiry.source} · ${formatRelativeDate(enquiry.createdAt)}`} title={enquiry.subject} close={close}>
-    <div className="grid gap-3 sm:grid-cols-2"><div className="rounded-2xl bg-muted p-4"><p className={editorLabel}>From</p><p className="mt-2 text-sm">{enquiry.name}</p><p className="mt-1 text-xs text-muted-foreground">{enquiry.email}</p><p className="mt-1 text-xs text-muted-foreground">{enquiry.phone || "No telephone"}</p></div><div className="rounded-2xl bg-muted p-4"><p className={editorLabel}>Status</p><div className="mt-2"><Status value={enquiry.status} /></div><p className="mt-3 font-mono text-[7px] uppercase tracking-[.12em] text-muted-foreground">{new Date(enquiry.createdAt).toLocaleString()}</p></div></div>
+    <div className="grid gap-3 sm:grid-cols-2"><div className="rounded-2xl bg-muted p-4"><p className={editorLabel}>From</p><p className="mt-2 text-sm">{enquiry.name}</p><p className="mt-1 text-xs text-muted-foreground">{enquiry.email}</p><p className="mt-1 text-xs text-muted-foreground">{enquiry.phone || "No telephone"}</p></div><div className="rounded-2xl bg-muted p-4"><p className={editorLabel}>Status</p><div className="mt-2 flex flex-wrap gap-2"><Status value={enquiry.status} /><Status value={enquiry.notificationStatus} /></div><p className="mt-3 font-mono text-[7px] uppercase tracking-[.12em] text-muted-foreground">{new Date(enquiry.createdAt).toLocaleString()}</p>{enquiry.notifiedAt && <p className="mt-1 font-mono text-[7px] uppercase tracking-[.12em] text-muted-foreground">Mail · {new Date(enquiry.notifiedAt).toLocaleString()}</p>}</div></div>
     <div className="mt-3 rounded-2xl border border-border p-4"><p className={editorLabel}>Message</p><p className="mt-3 whitespace-pre-wrap text-sm leading-7 text-muted-foreground">{enquiry.message}</p></div>
-    <div className="mt-5 flex flex-wrap items-center gap-2"><a href={`mailto:${enquiry.email}?subject=Re: ${encodeURIComponent(enquiry.subject)}`} onClick={() => updateEnquiry(enquiry.id, { status: "Replied" })} className="flex h-10 items-center gap-2 rounded-full bg-foreground px-4 font-mono text-[7px] uppercase tracking-[.14em] text-background"><Mail className="h-3.5 w-3.5" />Reply</a>{(["New", "Review", "Replied", "Archived"] as const).filter((status) => status !== enquiry.status).map((status) => <button key={status} onClick={() => setStatus(status)} className="h-10 rounded-full border border-border px-4 font-mono text-[7px] uppercase tracking-[.13em] transition-colors hover:border-foreground">Mark {status}</button>)}<button onClick={remove} className="ml-auto grid h-10 w-10 place-items-center rounded-full border border-destructive/30 text-destructive" aria-label="Delete enquiry"><Trash2 className="h-3.5 w-3.5" /></button></div>
+    {enquiry.notificationError && <div className="mt-3 rounded-2xl border border-destructive/20 bg-destructive/5 p-4"><p className={editorLabel}>Mail delivery note</p><p className="mt-2 text-xs leading-5 text-destructive">{enquiry.notificationError}</p></div>}
+    <div className="mt-5 flex flex-wrap items-center gap-2"><a href={`mailto:${enquiry.email}?subject=Re: ${encodeURIComponent(enquiry.subject)}`} onClick={() => void updateEnquiry(enquiry.id, { status: "Replied" })} className="flex h-10 items-center gap-2 rounded-full bg-foreground px-4 font-mono text-[7px] uppercase tracking-[.14em] text-background"><Mail className="h-3.5 w-3.5" />Reply</a>{enquiry.notificationStatus !== "Sent" && <button onClick={() => void retryNotification()} disabled={saving} className="flex h-10 items-center gap-2 rounded-full border border-border px-4 font-mono text-[7px] uppercase tracking-[.13em] transition-colors hover:border-foreground disabled:opacity-50"><RefreshCw className={`h-3.5 w-3.5 ${saving ? "animate-spin" : ""}`} />Retry email</button>}{(["New", "Review", "Replied", "Archived"] as const).filter((status) => status !== enquiry.status).map((status) => <button key={status} onClick={() => void setStatus(status)} disabled={saving} className="h-10 rounded-full border border-border px-4 font-mono text-[7px] uppercase tracking-[.13em] transition-colors hover:border-foreground disabled:opacity-50">Mark {status}</button>)}<button onClick={() => void remove()} disabled={saving} className="ml-auto grid h-10 w-10 place-items-center rounded-full border border-destructive/30 text-destructive disabled:opacity-50" aria-label="Delete enquiry">{saving ? <LoaderCircle className="h-3.5 w-3.5 animate-spin" /> : <Trash2 className="h-3.5 w-3.5" />}</button></div>
   </EditorShell>;
 };
 

@@ -1,0 +1,7 @@
+project_id = "kansadco-project"
+
+[functions.submit-enquiry]
+verify_jwt = false
+
+[functions.retry-enquiry-email]
+verify_jwt = true
