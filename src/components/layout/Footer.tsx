@@ -92,9 +92,18 @@ const Footer = () => {
             </FooterReveal>
           </div>
 
-          <div className="flex flex-col gap-3 border-t border-white/15 py-6 font-mono text-[8px] uppercase tracking-[0.15em] text-white/35 sm:flex-row sm:items-center sm:justify-between">
+          <div className="flex flex-col gap-3 border-t border-white/15 py-6 font-mono text-[8px] uppercase tracking-[0.15em] text-white/35 sm:flex-row sm:flex-wrap sm:items-center sm:justify-between">
             <p>© {year} KANSADCO. All rights reserved.</p>
             <p>Abuja · Kano · Nigeria</p>
+            <a
+              href="https://innovatech-ng.com"
+              target="_blank"
+              rel="noreferrer"
+              className="group inline-flex w-fit items-center gap-1.5 normal-case tracking-[0.08em] transition-colors duration-300 hover:text-white"
+            >
+              Crafted and designed by <span className="border-b border-white/25 pb-0.5 text-white/65 transition-colors duration-300 group-hover:border-white group-hover:text-white">InnovaTech</span>
+              <ArrowUpRight className="h-2.5 w-2.5 transition-transform duration-300 group-hover:-translate-y-0.5 group-hover:translate-x-0.5" />
+            </a>
           </div>
         </div>
       </div>
