@@ -3,8 +3,8 @@ import { createPortal } from "react-dom";
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 import {
   ArrowUpRight, Bell, Building2, Check, ChevronRight, CircleDot,
-  Cloud, CloudOff, Download, Eye, Images, LayoutDashboard, LoaderCircle, LogOut, Mail, Menu, MessageSquare, Moon,
-  MoreHorizontal, Plus, RefreshCw, Search, Settings, Sun, Trash2, TrendingUp, Upload, X,
+  Cloud, CloudOff, Download, Eye, EyeOff, Images, KeyRound, LayoutDashboard, LoaderCircle, LogOut, Mail, Menu, MessageSquare, Moon,
+  MoreHorizontal, Plus, RefreshCw, Search, Settings, ShieldCheck, Sun, Trash2, TrendingUp, Upload, X,
 } from "lucide-react";
 import { useTheme } from "@/components/ThemeProvider";
 import { useToast } from "@/hooks/use-toast";
@@ -265,6 +265,94 @@ const EnquiriesPanel = ({ enquiries, onOpen }: { enquiries: Enquiry[]; onOpen: (
   </div>
 </>;
 
+const passwordRules = [
+  { label: "12 or more characters", test: (value: string) => value.length >= 12 },
+  { label: "Upper and lowercase letters", test: (value: string) => /[a-z]/.test(value) && /[A-Z]/.test(value) },
+  { label: "At least one number", test: (value: string) => /\d/.test(value) },
+  { label: "At least one symbol", test: (value: string) => /[^A-Za-z0-9]/.test(value) },
+];
+
+const PasswordSettings = () => {
+  const { profile, changeOwnPassword } = useAuth();
+  const { toast } = useToast();
+  const [currentPassword, setCurrentPassword] = useState("");
+  const [newPassword, setNewPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [showPasswords, setShowPasswords] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [success, setSuccess] = useState<string | null>(null);
+  const passedRules = passwordRules.filter((rule) => rule.test(newPassword)).length;
+
+  const submit = async (event: React.FormEvent) => {
+    event.preventDefault();
+    setError(null);
+    setSuccess(null);
+    if (!passwordRules.every((rule) => rule.test(newPassword))) {
+      setError("Your new password must satisfy all four security requirements.");
+      return;
+    }
+    if (newPassword !== confirmPassword) {
+      setError("The new password and confirmation do not match.");
+      return;
+    }
+    if (currentPassword === newPassword) {
+      setError("Choose a password different from your current password.");
+      return;
+    }
+
+    setSaving(true);
+    try {
+      await changeOwnPassword(currentPassword, newPassword);
+      setCurrentPassword("");
+      setNewPassword("");
+      setConfirmPassword("");
+      setShowPasswords(false);
+      setSuccess("Your password has been changed successfully.");
+      toast({ title: "Password changed", description: "Your administrator account now uses the new password." });
+    } catch (unknownError) {
+      setError(unknownError instanceof Error ? unknownError.message : "Your password could not be changed.");
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const fieldClass = "mt-2 flex h-12 items-center rounded-xl border border-border bg-background px-3 transition-colors focus-within:border-foreground";
+  return <motion.section initial={{ opacity: 0, y: 14 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: .16 }} className={`${panelClass} overflow-hidden xl:col-span-2`}>
+    <div className="grid lg:grid-cols-[.85fr_1.15fr]">
+      <div className="flex flex-col justify-between bg-slate-dark p-6 text-white sm:p-8">
+        <div>
+          <div className="flex items-center justify-between"><span className="grid h-10 w-10 place-items-center rounded-full border border-white/15 bg-white/[.06]"><KeyRound className="h-4 w-4 text-white/70" /></span><span className="font-mono text-[7px] uppercase tracking-[.16em] text-white/35">03 · Account security</span></div>
+          <p className="mt-10 font-mono text-[8px] uppercase tracking-[.18em] text-white/40">Authenticated account</p>
+          <h2 className="mt-3 font-display text-4xl leading-none sm:text-5xl">Change your password.</h2>
+          <p className="mt-5 max-w-md text-xs leading-6 text-white/50">Verify your current password before replacing it. Your new password takes effect immediately for the next sign-in.</p>
+        </div>
+        <div className="mt-10 rounded-[1.25rem] border border-white/10 bg-white/[.045] p-4">
+          <p className="font-mono text-[7px] uppercase tracking-[.14em] text-white/35">Signed in as</p>
+          <p className="mt-2 truncate text-xs text-white/75">{profile?.email}</p>
+        </div>
+      </div>
+
+      <form onSubmit={submit} className="p-5 sm:p-8">
+        <div className="flex items-start justify-between gap-5"><div><p className="font-mono text-[7px] uppercase tracking-[.16em] text-muted-foreground">Secure credentials</p><h3 className="mt-2 text-2xl">Set a new password</h3></div><button type="button" onClick={() => setShowPasswords((visible) => !visible)} className="grid h-10 w-10 shrink-0 place-items-center rounded-full border border-border transition-colors hover:bg-foreground hover:text-background" aria-label={showPasswords ? "Hide passwords" : "Show passwords"}>{showPasswords ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}</button></div>
+        <div className="mt-6 grid gap-4 sm:grid-cols-2">
+          <label className="block sm:col-span-2"><span className={editorLabel}>Current password</span><span className={fieldClass}><KeyRound className="h-3.5 w-3.5 text-muted-foreground" /><input type={showPasswords ? "text" : "password"} value={currentPassword} onChange={(event) => setCurrentPassword(event.target.value)} autoComplete="current-password" required className="h-full min-w-0 flex-1 bg-transparent px-3 text-xs outline-none" placeholder="Verify your current password" /></span></label>
+          <label className="block"><span className={editorLabel}>New password</span><span className={fieldClass}><ShieldCheck className="h-3.5 w-3.5 text-muted-foreground" /><input type={showPasswords ? "text" : "password"} value={newPassword} onChange={(event) => setNewPassword(event.target.value)} autoComplete="new-password" minLength={12} required className="h-full min-w-0 flex-1 bg-transparent px-3 text-xs outline-none" placeholder="Create a strong password" /></span></label>
+          <label className="block"><span className={editorLabel}>Confirm new password</span><span className={fieldClass}><ShieldCheck className="h-3.5 w-3.5 text-muted-foreground" /><input type={showPasswords ? "text" : "password"} value={confirmPassword} onChange={(event) => setConfirmPassword(event.target.value)} autoComplete="new-password" minLength={12} required className="h-full min-w-0 flex-1 bg-transparent px-3 text-xs outline-none" placeholder="Repeat the new password" /></span></label>
+        </div>
+
+        <div className="mt-5 rounded-2xl bg-muted/60 p-4">
+          <div className="grid grid-cols-4 gap-1.5">{passwordRules.map((rule, index) => <span key={rule.label} className={`h-1 rounded-full transition-colors duration-300 ${index < passedRules ? "bg-foreground" : "bg-border"}`} />)}</div>
+          <div className="mt-4 grid gap-2 sm:grid-cols-2">{passwordRules.map((rule) => { const passed = rule.test(newPassword); return <p key={rule.label} className={`flex items-center gap-2 text-[10px] transition-colors ${passed ? "text-foreground" : "text-muted-foreground"}`}><span className={`grid h-4 w-4 place-items-center rounded-full border ${passed ? "border-foreground bg-foreground text-background" : "border-border"}`}>{passed && <Check className="h-2.5 w-2.5" />}</span>{rule.label}</p>; })}</div>
+        </div>
+
+        <div aria-live="polite">{error && <p role="alert" className="mt-4 rounded-xl border border-destructive/20 bg-destructive/5 px-4 py-3 text-xs leading-5 text-destructive">{error}</p>}{success && <p className="mt-4 rounded-xl border border-emerald-500/20 bg-emerald-500/5 px-4 py-3 text-xs leading-5 text-emerald-700 dark:text-emerald-400">{success}</p>}</div>
+        <button type="submit" disabled={saving} className="mt-5 flex h-11 items-center gap-2 rounded-full bg-foreground px-5 font-mono text-[7px] uppercase tracking-[.15em] text-background transition-all hover:-translate-y-0.5 hover:shadow-lg disabled:cursor-wait disabled:opacity-60">{saving ? <LoaderCircle className="h-3.5 w-3.5 animate-spin" /> : <KeyRound className="h-3.5 w-3.5" />}{saving ? "Verifying account" : "Change password"}</button>
+      </form>
+    </div>
+  </motion.section>;
+};
+
 const SettingsPanel = () => {
   const { settings, updateSettings, projects, gallery, enquiries, activities } = useContent();
   const { toast } = useToast();
@@ -290,7 +378,7 @@ const SettingsPanel = () => {
     { title: "Company profile", icon: Building2, fields: [["Display name", "displayName"], ["Primary email", "primaryEmail"], ["Telephone", "telephone"], ["Abuja address", "abujaAddress"], ["Kano address", "kanoAddress"]] },
     { title: "Publishing", icon: Check, fields: [["Default author", "defaultAuthor"], ["Review workflow", "reviewWorkflow"], ["Image quality", "imageQuality"]] },
   ];
-  return <><SectionHeading eyebrow="Workspace · Configuration" title="Settings" description="Control brand details, public contact information and publishing defaults." action={<button onClick={exportData} className="flex h-10 w-fit items-center gap-2 rounded-full border border-border px-4 font-mono text-[7px] uppercase tracking-[.14em] transition-colors hover:border-foreground"><Download className="h-3.5 w-3.5" />Export content</button>} /><div className="grid gap-4 xl:grid-cols-2">{groups.map((group, groupIndex) => <motion.section key={group.title} initial={{ opacity: 0, y: 14 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: groupIndex * .08 }} className={`${panelClass} p-5 sm:p-6`}><div className="flex items-center justify-between"><div className="flex items-center gap-3"><span className="grid h-9 w-9 place-items-center rounded-full bg-muted"><group.icon className="h-4 w-4 text-muted-foreground" /></span><h2 className="text-2xl">{group.title}</h2></div><span className="font-mono text-[7px] uppercase tracking-[.14em] text-muted-foreground">0{groupIndex + 1}</span></div><div className="mt-6 space-y-2">{group.fields.map(([label, key]) => <label key={key} className="block rounded-2xl bg-muted/55 px-4 py-3 transition-colors focus-within:bg-muted"><span className="font-mono text-[7px] uppercase tracking-[.14em] text-muted-foreground">{label}</span><input value={form[key]} onChange={(event) => change(key, event.target.value)} className="mt-1.5 block w-full bg-transparent text-xs outline-none sm:text-sm" /></label>)}</div><button onClick={() => void save()} disabled={saving} className="mt-5 flex h-10 items-center gap-2 rounded-full bg-foreground px-5 font-mono text-[7px] uppercase tracking-[.15em] text-background transition-all hover:-translate-y-0.5 hover:shadow-lg disabled:opacity-60">{saving && <LoaderCircle className="h-3.5 w-3.5 animate-spin" />}{saving ? "Saving" : "Save changes"}</button></motion.section>)}</div></>;
+  return <><SectionHeading eyebrow="Workspace · Configuration" title="Settings" description="Control brand details, public contact information and account security." action={<button onClick={exportData} className="flex h-10 w-fit items-center gap-2 rounded-full border border-border px-4 font-mono text-[7px] uppercase tracking-[.14em] transition-colors hover:border-foreground"><Download className="h-3.5 w-3.5" />Export content</button>} /><div className="grid gap-4 xl:grid-cols-2">{groups.map((group, groupIndex) => <motion.section key={group.title} initial={{ opacity: 0, y: 14 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: groupIndex * .08 }} className={`${panelClass} p-5 sm:p-6`}><div className="flex items-center justify-between"><div className="flex items-center gap-3"><span className="grid h-9 w-9 place-items-center rounded-full bg-muted"><group.icon className="h-4 w-4 text-muted-foreground" /></span><h2 className="text-2xl">{group.title}</h2></div><span className="font-mono text-[7px] uppercase tracking-[.14em] text-muted-foreground">0{groupIndex + 1}</span></div><div className="mt-6 space-y-2">{group.fields.map(([label, key]) => <label key={key} className="block rounded-2xl bg-muted/55 px-4 py-3 transition-colors focus-within:bg-muted"><span className="font-mono text-[7px] uppercase tracking-[.14em] text-muted-foreground">{label}</span><input value={form[key]} onChange={(event) => change(key, event.target.value)} className="mt-1.5 block w-full bg-transparent text-xs outline-none sm:text-sm" /></label>)}</div><button onClick={() => void save()} disabled={saving} className="mt-5 flex h-10 items-center gap-2 rounded-full bg-foreground px-5 font-mono text-[7px] uppercase tracking-[.15em] text-background transition-all hover:-translate-y-0.5 hover:shadow-lg disabled:opacity-60">{saving && <LoaderCircle className="h-3.5 w-3.5 animate-spin" />}{saving ? "Saving" : "Save changes"}</button></motion.section>)}<PasswordSettings /></div></>;
 };
 
 const EmptyState = ({ text }: { text: string }) => <div className="p-10 text-center"><Search className="mx-auto h-5 w-5 text-muted-foreground" /><p className="mt-3 text-xs text-muted-foreground">{text}</p></div>;

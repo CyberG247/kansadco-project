@@ -1,4 +1,4 @@
-import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from "react";
+import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import type { Session, User } from "@supabase/supabase-js";
 import { supabase } from "@/lib/supabase";
 
@@ -23,6 +23,7 @@ interface AuthContextValue {
   signOut: () => Promise<void>;
   sendPasswordReset: (email: string) => Promise<void>;
   updatePassword: (password: string) => Promise<void>;
+  changeOwnPassword: (currentPassword: string, newPassword: string) => Promise<void>;
   refreshProfile: () => Promise<void>;
 }
 
@@ -36,6 +37,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [loading, setLoading] = useState(true);
   const [recoveryMode, setRecoveryMode] = useState(false);
   const [authError, setAuthError] = useState<string | null>(null);
+  const sessionUserId = useRef<string | null>(null);
 
   const loadProfile = useCallback(async (user: User | null) => {
     if (!user) {
@@ -70,6 +72,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
     supabase.auth.getSession().then(({ data, error }) => {
       if (!active) return;
+      sessionUserId.current = data.session?.user.id ?? null;
       setSession(data.session);
       setAuthError(error?.message ?? null);
       return loadProfile(data.session?.user ?? null);
@@ -78,9 +81,15 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     });
 
     const { data: listener } = supabase.auth.onAuthStateChange((event, nextSession) => {
+      const previousUserId = sessionUserId.current;
+      sessionUserId.current = nextSession?.user.id ?? null;
       setSession(nextSession);
       setAuthError(null);
       setRecoveryMode(event === "PASSWORD_RECOVERY");
+      if (event === "TOKEN_REFRESHED" || event === "USER_UPDATED" || (event === "SIGNED_IN" && previousUserId === nextSession?.user.id)) {
+        setLoading(false);
+        return;
+      }
       setLoading(true);
       queueMicrotask(() => void loadProfile(nextSession?.user ?? null).finally(() => setLoading(false)));
     });
@@ -122,6 +131,17 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       const { error } = await supabase.auth.updateUser({ password });
       if (error) throw new Error(error.message);
       setRecoveryMode(false);
+    },
+    changeOwnPassword: async (currentPassword, newPassword) => {
+      const email = session?.user.email;
+      if (!email) throw new Error("Your authenticated account has no email address.");
+      if (currentPassword === newPassword) throw new Error("Choose a password different from your current password.");
+
+      const { error: verificationError } = await supabase.auth.signInWithPassword({ email, password: currentPassword });
+      if (verificationError) throw new Error("The current password is incorrect.");
+
+      const { error } = await supabase.auth.updateUser({ password: newPassword });
+      if (error) throw new Error(error.message);
     },
     refreshProfile: async () => {
       try {
