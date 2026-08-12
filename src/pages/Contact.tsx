@@ -1,5 +1,4 @@
 import { useState } from "react";
-import Layout from "@/components/layout/Layout";
 import PageHero from "@/components/layout/PageHero";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -31,7 +30,7 @@ const Contact = () => {
     } finally { setSubmitting(false); }
   };
   return (
-    <Layout>
+    <>
       <PageHero eyebrow="Contact" title={<>A good project starts<br />with a <em className="text-accent">conversation.</em></>} description="Tell us what you are considering—an investment, a development, a construction brief or a place to call home." index="K / 05" />
 
       <section className="section-padding bg-background">
@@ -76,7 +75,7 @@ const Contact = () => {
           </div>
         </DialogContent>
       </Dialog>
-    </Layout>
+    </>
   );
 };
 

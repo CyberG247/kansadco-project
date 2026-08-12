@@ -1,21 +1,29 @@
-import { ReactNode, useEffect } from "react";
+import { useLayoutEffect } from "react";
 import Header from "./Header";
 import Footer from "./Footer";
 import WhatsAppButton from "@/components/ui/whatsappbutton";
 import MobileDock from "./MobileDock";
-import { useLocation } from "react-router-dom";
+import { useLocation, useOutlet } from "react-router-dom";
+import PageTransition from "@/components/home/pagetransition";
 
-interface LayoutProps {
-  children: ReactNode;
-}
-
-const Layout = ({ children }: LayoutProps) => {
+const Layout = () => {
   const location = useLocation();
-  useEffect(() => { window.scrollTo(0, 0); }, [location.pathname]);
+  const outlet = useOutlet();
+
+  useLayoutEffect(() => {
+    const root = document.documentElement;
+    const previousBehavior = root.style.scrollBehavior;
+    root.style.scrollBehavior = "auto";
+    window.scrollTo({ top: 0, left: 0, behavior: "auto" });
+    root.style.scrollBehavior = previousBehavior;
+  }, [location.pathname]);
+
   return (
-    <div className="flex flex-col min-h-screen">
+    <div className="flex min-h-screen flex-col bg-background">
       <Header />
-      <main className={`flex-1 animate-fade-in ${location.pathname === "/" ? "" : "pt-0 md:pt-[88px]"}`}>{children}</main>
+      <main className={`flex-1 ${location.pathname === "/" ? "" : "pt-0 md:pt-[88px]"}`}>
+        <PageTransition key={location.pathname}>{outlet}</PageTransition>
+      </main>
       <Footer />
       <WhatsAppButton />
       <MobileDock />

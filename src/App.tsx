@@ -9,17 +9,18 @@ import { ContentProvider } from "@/lib/contentStore";
 import { AuthProvider } from "@/lib/auth";
 import SeoManager from "@/components/SeoManager";
 import AdminAccess from "@/components/admin/AdminAccess";
+import Layout from "@/components/layout/Layout";
 import Index from "./pages/Index";
+import About from "./pages/About";
+import Services from "./pages/Services";
+import Projects from "./pages/Projects";
+import Team from "./pages/Team";
+import Gallery from "./pages/Gallery";
+import Contact from "./pages/Contact";
+import BookTour from "./booktour";
+import NotFound from "./pages/NotFound";
 
-const About = lazy(() => import("./pages/About"));
-const Services = lazy(() => import("./pages/Services"));
-const Projects = lazy(() => import("./pages/Projects"));
-const Team = lazy(() => import("./pages/Team"));
-const Gallery = lazy(() => import("./pages/Gallery"));
 const Admin = lazy(() => import("./pages/Admin"));
-const Contact = lazy(() => import("./pages/Contact"));
-const BookTour = lazy(() => import("./booktour"));
-const NotFound = lazy(() => import("./pages/NotFound"));
 
 const queryClient = new QueryClient();
 
@@ -31,10 +32,10 @@ const App = () => {
           <Toaster />
           <Sonner />
           <div>
-            <BrowserRouter>
+            <BrowserRouter future={{ v7_startTransition: true }}>
               <SeoManager />
-              <Suspense fallback={<div className="min-h-screen bg-background" />}>
-                <Routes>
+              <Routes>
+                <Route element={<Layout />}>
                   <Route path="/" element={<Index />} />
                   <Route path="/about" element={<About />} />
                   <Route path="/services" element={<Services />} />
@@ -43,10 +44,10 @@ const App = () => {
                   <Route path="/gallery" element={<Gallery />} />
                   <Route path="/contact" element={<Contact />} />
                   <Route path="/book-tour" element={<BookTour />} />
-                  <Route path="/admin" element={<AdminAccess><Admin /></AdminAccess>} />
                   <Route path="*" element={<NotFound />} />
-                </Routes>
-              </Suspense>
+                </Route>
+                <Route path="/admin" element={<Suspense fallback={<div className="min-h-screen bg-background" />}><AdminAccess><Admin /></AdminAccess></Suspense>} />
+              </Routes>
             </BrowserRouter>
           </div>
         </TooltipProvider></ContentProvider></AuthProvider>

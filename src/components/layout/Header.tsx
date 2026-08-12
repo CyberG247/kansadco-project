@@ -94,7 +94,7 @@ const Header = () => {
           </div>
           <nav className="grid grid-cols-2 gap-2">
             {links.map(([label, href], index) => (
-              <Link key={href} to={href} tabIndex={open ? 0 : -1} style={{ transitionDelay: open ? `${80 + index * 35}ms` : "0ms" }} className={`group flex min-h-[72px] flex-col justify-between rounded-2xl border p-3.5 transition-all duration-500 ${location.pathname === href ? "border-foreground bg-foreground text-background" : "border-border bg-card hover:border-foreground"} ${open ? "translate-y-0 opacity-100" : "translate-y-2 opacity-0"}`}>
+              <Link key={href} to={href} onClick={() => setOpen(false)} tabIndex={open ? 0 : -1} style={{ transitionDelay: open ? `${80 + index * 35}ms` : "0ms" }} className={`group flex min-h-[72px] flex-col justify-between rounded-2xl border p-3.5 transition-all duration-500 ${location.pathname === href ? "border-foreground bg-foreground text-background" : "border-border bg-card hover:border-foreground"} ${open ? "translate-y-0 opacity-100" : "translate-y-2 opacity-0"}`}>
                 <span className={`font-mono text-[8px] ${location.pathname === href ? "text-background/55" : "text-muted-foreground"}`}>0{index + 1}</span>
                 <span className="flex items-end justify-between gap-2 font-display text-[1.55rem] leading-none">{label}<ArrowUpRight className="h-3.5 w-3.5 shrink-0 transition-transform duration-300 group-hover:translate-x-0.5 group-hover:-translate-y-0.5" /></span>
               </Link>

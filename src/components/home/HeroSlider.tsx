@@ -31,7 +31,7 @@ const HeroSlider = () => {
   }, []);
 
   return (
-    <section className="relative min-h-[760px] h-[100svh] overflow-hidden bg-slate-dark text-white md:mx-4 md:mt-4 md:h-[calc(100svh-2rem)] md:rounded-[2.5rem]">
+    <section data-no-route-reveal className="relative h-[100svh] min-h-[760px] overflow-hidden bg-slate-dark text-white md:mx-4 md:mt-4 md:h-[calc(100svh-2rem)] md:rounded-[2.5rem]">
       <AnimatePresence mode="sync">
         <motion.img
           key={active}

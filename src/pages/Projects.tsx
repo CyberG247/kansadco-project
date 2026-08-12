@@ -1,5 +1,4 @@
 import { useState } from "react";
-import Layout from "@/components/layout/Layout";
 import PageHero from "@/components/layout/PageHero";
 import { ArrowUpRight } from "lucide-react";
 import project4 from "@/assets/project-4.jpg";
@@ -12,7 +11,7 @@ const Projects = () => {
   const categories = ["All", ...Array.from(new Set(published.map((project) => project.type)))];
   const visible = active === "All" ? published : published.filter((project) => project.type === active);
   return (
-    <Layout>
+    <>
       <PageHero eyebrow="Selected portfolio" title={<>Work with weight.<br /><em className="text-accent">Places with purpose.</em></>} description="A selection of residential, commercial and civic work shaped by local intelligence and delivered for long-term value." image={project4} imageAlt="River Kaduna Bridge" index="K / 03" />
 
       <section className="bg-background">
@@ -38,7 +37,7 @@ const Projects = () => {
           ))}
         </div>
       </section>
-    </Layout>
+    </>
   );
 };
 

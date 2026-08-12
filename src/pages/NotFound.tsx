@@ -2,7 +2,6 @@ import { Link, useLocation } from "react-router-dom";
 import { useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Home } from "lucide-react";
-import Layout from "@/components/layout/Layout";
 
 const NotFound = () => {
   const location = useLocation();
@@ -12,7 +11,7 @@ const NotFound = () => {
   }, [location.pathname]);
 
   return (
-    <Layout>
+    <>
       <div className="min-h-[60vh] flex items-center justify-center">
         <div className="text-center px-4">
           <h1 className="font-display text-8xl font-bold text-accent mb-4">404</h1>
@@ -31,7 +30,7 @@ const NotFound = () => {
           </Button>
         </div>
       </div>
-    </Layout>
+    </>
   );
 };
 

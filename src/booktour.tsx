@@ -1,5 +1,4 @@
 import { useState } from "react";
-import Layout from "@/components/layout/Layout";
 import PageHero from "@/components/layout/PageHero";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -44,7 +43,7 @@ const BookTour = () => {
     }
   };
   return (
-    <Layout>
+    <>
       <PageHero eyebrow="Private viewings" title={<>See the difference<br /><em className="text-accent">for yourself.</em></>} description="Arrange a focused tour of a KANSADCO property with a team member who can answer the questions that matter to you." image={heroEstate} imageAlt="KANSADCO residence" index="K / VISIT" />
 
       <section className="section-padding bg-background">
@@ -66,7 +65,7 @@ const BookTour = () => {
       </section>
 
       <Dialog open={Boolean(confirmation)} onOpenChange={(open) => { if (!open) setConfirmation(null); }}><DialogContent className="overflow-hidden rounded-[2rem] border-border bg-background p-0 sm:max-w-md"><div className="bg-foreground px-8 pb-9 pt-7 text-background"><div className="flex items-center justify-between"><img src={logo} alt="KANSADCO" className="h-14 w-auto brightness-0 invert" /><span className="grid h-10 w-10 place-items-center rounded-full border border-background/20"><Check className="h-4 w-4" /></span></div><DialogHeader className="mt-9 text-left"><p className="font-mono text-[8px] uppercase tracking-[.2em] text-background/45">Private viewing · Forwarded</p><DialogTitle className="mt-3 font-display text-[2.6rem] font-normal leading-none text-background">Your request is now with our team.</DialogTitle></DialogHeader></div><div className="px-8 pb-8 pt-6"><p className="text-sm leading-7 text-muted-foreground">Your preferred viewing details have been forwarded to our property team. A specialist will review the request and contact you to confirm the visit.</p><div className="mt-6 grid grid-cols-3 gap-2">{["Received", "Forwarded", "Confirmation"].map((item, index) => <div key={item} className={`border-t-2 pt-3 ${index < 2 ? "border-foreground" : "border-border"}`}><span className="font-mono text-[7px] text-muted-foreground">0{index + 1}</span><p className="mt-1 text-[8px] uppercase tracking-[.09em]">{item}</p></div>)}</div><p className="mt-6 rounded-2xl bg-muted px-4 py-3 text-xs leading-5 text-muted-foreground">{confirmation?.emailSent ? <>A confirmation receipt has also been sent to <span className="font-medium text-foreground">{confirmation.email}</span>.</> : "Your request is safely recorded. Our property team will contact you directly."}</p><button onClick={() => setConfirmation(null)} className="mt-6 h-12 w-full rounded-full bg-foreground font-mono text-[8px] uppercase tracking-[.17em] text-background transition-transform hover:-translate-y-0.5">Done</button></div></DialogContent></Dialog>
-    </Layout>
+    </>
   );
 };
 

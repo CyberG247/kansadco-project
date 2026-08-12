@@ -1,6 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { createPortal } from "react-dom";
-import Layout from "@/components/layout/Layout";
 import PageHero from "@/components/layout/PageHero";
 import { ArrowLeft, ArrowRight, Maximize2, X } from "lucide-react";
 import heroSignature from "@/assets/hero-signature.webp";
@@ -37,7 +36,7 @@ const Gallery = () => {
   useEffect(() => setActive(null), [category]);
 
   return (
-    <Layout>
+    <>
       <PageHero eyebrow="Visual archive" title={<>Places, materials<br />and <em className="text-accent">moments.</em></>} description="A closer view of the architecture, infrastructure and details that define how KANSADCO builds." image={heroSignature} imageAlt="KANSADCO signature residence" index="K / 06" />
 
       <section className="bg-background">
@@ -57,7 +56,7 @@ const Gallery = () => {
 
           <div className="grid gap-x-7 gap-y-20 md:grid-cols-12">
             {visible.map((image, index) => (
-              <button key={image.id} onClick={() => setActive(index)} className={`group block text-left ${layouts[index % layouts.length][0]}`}>
+              <button data-reveal-item key={image.id} onClick={() => setActive(index)} className={`group block text-left ${layouts[index % layouts.length][0]}`}>
                 <div className={`image-reveal relative overflow-hidden bg-muted ${layouts[index % layouts.length][1]}`}>
                   <img src={image.src} alt={image.name} loading="lazy" className="h-full w-full object-cover" />
                   <span className="absolute right-4 top-4 grid h-11 w-11 translate-y-2 place-items-center rounded-full bg-background text-foreground opacity-0 transition-all duration-500 group-hover:translate-y-0 group-hover:scale-105 group-hover:opacity-100"><Maximize2 className="h-4 w-4" /></span>
@@ -86,7 +85,7 @@ const Gallery = () => {
           <div className="flex items-center justify-between border-t border-white/15 px-5 py-4 font-mono text-[9px] uppercase tracking-[.16em] text-white/45 sm:px-8"><span>{visible[active].location}</span><span>{visible[active].type} · {visible[active].year}</span></div>
         </div>
       ), document.body)}
-    </Layout>
+    </>
   );
 };
 

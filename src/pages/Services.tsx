@@ -1,6 +1,6 @@
-import Layout from "@/components/layout/Layout";
 import PageHero from "@/components/layout/PageHero";
 import { ArrowUpRight } from "lucide-react";
+import { Link } from "react-router-dom";
 import heroConstruction from "@/assets/hero-construction.webp";
 import paint from "@/assets/paint-service.jpg";
 import project1 from "@/assets/project-1.jpg";
@@ -15,7 +15,7 @@ const services = [
 ];
 
 const Services = () => (
-  <Layout>
+  <>
     <PageHero eyebrow="Capabilities" title={<>One partner.<br /><em className="text-accent">Every stage.</em></>} description="We connect the disciplines that make places commercially sound, technically resolved and rewarding to experience." image={heroConstruction} imageAlt="Contemporary KANSADCO development" index="K / 02" />
 
     <section className="section-padding bg-background">
@@ -36,11 +36,11 @@ const Services = () => (
 
     <section className="grid bg-slate-dark text-white md:mx-4 md:my-4 md:overflow-hidden md:rounded-[2.5rem] lg:grid-cols-2">
       <div className="relative min-h-[480px]"><img src={paint} alt="KANSADCO paint systems" className="absolute inset-0 h-full w-full object-cover" /></div>
-      <div className="flex flex-col justify-between p-8 md:p-16 lg:p-20"><div><p className="eyebrow mb-8 text-accent">Materials division</p><h2 className="section-title">Colour backed by <em className="text-accent">performance.</em></h2><p className="mt-8 max-w-lg text-sm leading-7 text-white/60">Our coatings capability brings the same standard of thinking to the surfaces that complete and protect built work.</p></div><a href="/contact" className="group mt-12 flex items-center justify-between border-b border-white/40 pb-4 text-[10px] font-semibold uppercase tracking-[.17em]">Discuss supply or distribution <ArrowUpRight className="h-4 w-4 transition-transform group-hover:translate-x-1 group-hover:-translate-y-1" /></a></div>
+      <div className="flex flex-col justify-between p-8 md:p-16 lg:p-20"><div><p className="eyebrow mb-8 text-accent">Materials division</p><h2 className="section-title">Colour backed by <em className="text-accent">performance.</em></h2><p className="mt-8 max-w-lg text-sm leading-7 text-white/60">Our coatings capability brings the same standard of thinking to the surfaces that complete and protect built work.</p></div><Link to="/contact" className="group mt-12 flex items-center justify-between border-b border-white/40 pb-4 text-[10px] font-semibold uppercase tracking-[.17em]">Discuss supply or distribution <ArrowUpRight className="h-4 w-4 transition-transform group-hover:translate-x-1 group-hover:-translate-y-1" /></Link></div>
     </section>
 
     <section className="relative min-h-[620px] overflow-hidden text-white md:mx-4 md:my-4 md:rounded-[2.5rem]"><img src={project1} alt="Rahmaniyya Estate" className="absolute inset-0 h-full w-full object-cover" /><div className="absolute inset-0 bg-slate-dark/65" /><div className="container-custom relative flex min-h-[620px] flex-col justify-end py-20"><p className="eyebrow mb-7 text-accent">A shared standard</p><h2 className="section-title max-w-5xl">However we enter a project, we leave it <em className="text-accent">stronger.</em></h2></div></section>
-  </Layout>
+  </>
 );
 
 export default Services;

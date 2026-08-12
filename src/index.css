@@ -129,6 +129,34 @@
 .admin-topbar-shell { animation: adminShellIn .55s cubic-bezier(.2,.8,.2,1) .06s both; }
 .admin-dock-shell { animation: mobileDockIn .65s cubic-bezier(.2,.8,.2,1) .12s both; }
 
+/* Shared public-page motion. Applied before paint by PageTransition so every route
+   has the same restrained reveal language without a blank loading frame. */
+.route-reveal {
+  opacity: 0;
+  transform: translate3d(0, 26px, 0);
+  transition: opacity .78s cubic-bezier(.22,1,.36,1), transform .78s cubic-bezier(.22,1,.36,1);
+  transition-delay: var(--reveal-delay, 0ms);
+  will-change: opacity, transform;
+}
+.route-reveal.is-visible {
+  opacity: 1;
+  transform: translate3d(0, 0, 0);
+  will-change: auto;
+}
+.route-reveal-item {
+  opacity: 0;
+  transform: translate3d(0, 18px, 0);
+  transition: opacity .66s cubic-bezier(.22,1,.36,1), transform .66s cubic-bezier(.22,1,.36,1);
+}
+.route-reveal.is-visible .route-reveal-item {
+  opacity: 1;
+  transform: translate3d(0, 0, 0);
+  transition-delay: var(--item-delay, 0ms);
+}
+.route-reveal:not(.is-visible) .image-reveal img { transform: scale(1.045); }
+.route-reveal.is-visible .image-reveal img { transform: scale(1); }
+.route-reveal.is-visible .image-reveal:hover img { transform: scale(1.025); }
+
 @media (min-width: 768px) {
   .public-header-shell { animation: adminShellIn .65s cubic-bezier(.2,.8,.2,1) both; }
 }
@@ -139,4 +167,5 @@
 
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { scroll-behavior: auto !important; animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; }
+  .route-reveal, .route-reveal-item { opacity: 1 !important; transform: none !important; }
 }
