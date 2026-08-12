@@ -41,7 +41,7 @@ const PageTransition = ({ children }: PageTransitionProps) => {
       initial={reduceMotion ? false : { opacity: .88, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: reduceMotion ? 0 : .34, ease: [.22, 1, .36, 1] }}
-      className="w-full transform-gpu"
+      className="w-full min-w-0 max-w-full overflow-x-clip transform-gpu"
     >
       {children}
     </motion.div>

@@ -124,7 +124,7 @@ const Admin = () => {
   }, []);
 
   return (
-    <div className="min-h-screen bg-background text-foreground lg:bg-[radial-gradient(circle_at_90%_5%,hsl(var(--muted))_0,transparent_30%)]">
+    <div className="min-h-screen w-full min-w-0 max-w-full overflow-x-clip bg-background text-foreground lg:bg-[radial-gradient(circle_at_90%_5%,hsl(var(--muted))_0,transparent_30%)]">
       <aside className="admin-sidebar-shell fixed bottom-4 left-4 top-4 z-40 hidden w-[252px] flex-col overflow-hidden rounded-[2rem] bg-slate-dark text-white shadow-[0_28px_90px_rgba(8,16,12,.22)] lg:flex">
         <SidebarContent section={section} navigate={navigate} />
       </aside>

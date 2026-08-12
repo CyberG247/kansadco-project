@@ -19,7 +19,7 @@ const Layout = () => {
   }, [location.pathname]);
 
   return (
-    <div className="flex min-h-screen flex-col bg-background">
+    <div className="flex min-h-screen w-full min-w-0 max-w-full flex-col overflow-x-clip bg-background">
       <Header />
       <main className={`flex-1 ${location.pathname === "/" ? "" : "pt-0 md:pt-[88px]"}`}>
         <PageTransition key={location.pathname}>{outlet}</PageTransition>
