@@ -4,8 +4,6 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { ArrowUpRight, Check } from "lucide-react";
 import heroEstate from "@/assets/hero-estate.jpg";
-import logo from "@/assets/logo-transparent.png";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { useContent } from "@/lib/contentStore";
 import { useToast } from "@/hooks/use-toast";
 
@@ -20,6 +18,7 @@ const BookTour = () => {
   const change = (event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => setForm({ ...form, [event.target.name]: event.target.value });
   const submit = async (event: React.FormEvent) => {
     event.preventDefault();
+    setConfirmation(null);
     setSubmitting(true);
     try {
       const enquiry = await addEnquiry({
@@ -59,12 +58,16 @@ const BookTour = () => {
               <div className="grid gap-6 md:grid-cols-2"><label className="text-[10px] uppercase tracking-[.16em]">Preferred date<Input type="date" name="date" value={form.date} onChange={change} required className="premium-field mt-2" /></label><label className="text-[10px] uppercase tracking-[.16em]">Preferred time<Input type="time" name="time" value={form.time} onChange={change} required className="premium-field mt-2" /></label></div>
               <label className="block text-[10px] uppercase tracking-[.16em]">Anything we should know?<Textarea name="message" value={form.message} onChange={change} placeholder="Tell us what you are looking for" className="premium-field mt-2" /></label>
               <button type="submit" disabled={submitting} className="group mt-4 flex h-14 w-full items-center justify-between rounded-full bg-foreground px-6 text-[10px] font-semibold uppercase tracking-[.18em] text-background transition-all duration-300 hover:-translate-y-0.5 hover:bg-accent hover:text-accent-foreground hover:shadow-lg disabled:cursor-wait disabled:opacity-60 md:w-72">{submitting ? "Sending…" : "Request a viewing"} <ArrowUpRight className="h-4 w-4 transition-transform group-hover:translate-x-1 group-hover:-translate-y-1" /></button>
+              {confirmation && (
+                <p role="status" aria-live="polite" className="animate-fade-up flex items-center gap-2 font-mono text-[9px] uppercase tracking-[.13em] text-muted-foreground">
+                  <Check className="h-3.5 w-3.5 text-accent" />
+                  {confirmation.emailSent ? <>Sent · Confirmation emailed to <span className="normal-case tracking-normal text-foreground">{confirmation.email}</span></> : "Received · Our property team will contact you directly"}
+                </p>
+              )}
             </form>
           </div>
         </div>
       </section>
-
-      <Dialog open={Boolean(confirmation)} onOpenChange={(open) => { if (!open) setConfirmation(null); }}><DialogContent className="overflow-hidden rounded-[2rem] border-border bg-background p-0 sm:max-w-md"><div className="bg-foreground px-8 pb-9 pt-7 text-background"><div className="flex items-center justify-between"><img src={logo} alt="KANSADCO" className="h-14 w-auto brightness-0 invert" /><span className="grid h-10 w-10 place-items-center rounded-full border border-background/20"><Check className="h-4 w-4" /></span></div><DialogHeader className="mt-9 text-left"><p className="font-mono text-[8px] uppercase tracking-[.2em] text-background/45">Private viewing · Forwarded</p><DialogTitle className="mt-3 font-display text-[2.6rem] font-normal leading-none text-background">Your request is now with our team.</DialogTitle></DialogHeader></div><div className="px-8 pb-8 pt-6"><p className="text-sm leading-7 text-muted-foreground">Your preferred viewing details have been forwarded to our property team. A specialist will review the request and contact you to confirm the visit.</p><div className="mt-6 grid grid-cols-3 gap-2">{["Received", "Forwarded", "Confirmation"].map((item, index) => <div key={item} className={`border-t-2 pt-3 ${index < 2 ? "border-foreground" : "border-border"}`}><span className="font-mono text-[7px] text-muted-foreground">0{index + 1}</span><p className="mt-1 text-[8px] uppercase tracking-[.09em]">{item}</p></div>)}</div><p className="mt-6 rounded-2xl bg-muted px-4 py-3 text-xs leading-5 text-muted-foreground">{confirmation?.emailSent ? <>A confirmation receipt has also been sent to <span className="font-medium text-foreground">{confirmation.email}</span>.</> : "Your request is safely recorded. Our property team will contact you directly."}</p><button onClick={() => setConfirmation(null)} className="mt-6 h-12 w-full rounded-full bg-foreground font-mono text-[8px] uppercase tracking-[.17em] text-background transition-transform hover:-translate-y-0.5">Done</button></div></DialogContent></Dialog>
     </>
   );
 };

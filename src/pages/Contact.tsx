@@ -5,8 +5,6 @@ import { Textarea } from "@/components/ui/textarea";
 import { ArrowUpRight, Check } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useContent } from "@/lib/contentStore";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import logo from "@/assets/logo-transparent.png";
 
 const Contact = () => {
   const { toast } = useToast();
@@ -18,7 +16,9 @@ const Contact = () => {
   const [confirmation, setConfirmation] = useState<{ email: string; emailSent: boolean } | null>(null);
   const change = (event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => setForm({ ...form, [event.target.name]: event.target.value });
   const submit = async (event: React.FormEvent) => {
-    event.preventDefault(); setSubmitting(true);
+    event.preventDefault();
+    setConfirmation(null);
+    setSubmitting(true);
     try {
       const enquiry = await addEnquiry({ ...form, source: "Contact", website, formStartedAt });
       setConfirmation({ email: form.email, emailSent: enquiry.notificationStatus === "Sent" });
@@ -54,27 +54,18 @@ const Contact = () => {
               <div className="grid gap-6 md:grid-cols-2"><label className="text-[10px] uppercase tracking-[.16em]">Telephone<Input name="phone" value={form.phone} onChange={change} placeholder="+234" className="premium-field mt-2" /></label><label className="text-[10px] uppercase tracking-[.16em]">Nature of enquiry<Input name="subject" value={form.subject} onChange={change} placeholder="Development, investment, construction…" required className="premium-field mt-2" /></label></div>
               <label className="block text-[10px] uppercase tracking-[.16em]">Project notes<Textarea name="message" value={form.message} onChange={change} placeholder="Context, location, ambition and timing" required className="premium-field mt-2" /></label>
               <button type="submit" disabled={submitting} className="group mt-4 flex h-14 w-full items-center justify-between rounded-full bg-foreground px-6 text-[10px] font-semibold uppercase tracking-[.18em] text-background transition-all duration-300 hover:-translate-y-0.5 hover:bg-accent hover:text-accent-foreground hover:shadow-lg disabled:cursor-wait disabled:opacity-60 md:w-64">{submitting ? "Sending…" : "Send enquiry"} <ArrowUpRight className="h-4 w-4 transition-transform group-hover:translate-x-1 group-hover:-translate-y-1" /></button>
+              {confirmation && (
+                <p role="status" aria-live="polite" className="animate-fade-up flex items-center gap-2 font-mono text-[9px] uppercase tracking-[.13em] text-muted-foreground">
+                  <Check className="h-3.5 w-3.5 text-accent" />
+                  {confirmation.emailSent ? <>Sent · Confirmation emailed to <span className="normal-case tracking-normal text-foreground">{confirmation.email}</span></> : "Received · Our team will contact you directly"}
+                </p>
+              )}
             </form>
           </div>
         </div>
       </section>
 
       <section className="h-[420px] overflow-hidden bg-muted grayscale-[85%] transition-all duration-700 hover:grayscale-0 md:mx-4 md:my-4 md:rounded-[2.5rem]"><iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3940.0647851!2d7.4330377!3d9.0633097!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x104e0b5c5bafb807%3A0x1a2b3c4d5e6f7890!2sUtako%2C%20Abuja!5e0!3m2!1sen!2sng!4v1640000000000!5m2!1sen!2sng" width="100%" height="100%" style={{ border: 0 }} loading="lazy" referrerPolicy="no-referrer-when-downgrade" title="KANSADCO Abuja office" /></section>
-
-      <Dialog open={Boolean(confirmation)} onOpenChange={(open) => { if (!open) setConfirmation(null); }}>
-        <DialogContent className="overflow-hidden rounded-[2rem] border-border bg-background p-0 sm:max-w-lg">
-          <div className="bg-foreground px-7 pb-8 pt-7 text-background sm:px-10 sm:pb-10">
-            <div className="flex items-center justify-between"><img src={logo} alt="KANSADCO" className="h-14 w-auto brightness-0 invert" /><span className="grid h-10 w-10 place-items-center rounded-full border border-background/20"><Check className="h-4 w-4" /></span></div>
-            <DialogHeader className="mt-10 text-left"><p className="font-mono text-[8px] uppercase tracking-[.2em] text-background/45">Enquiry received · Forwarded</p><DialogTitle className="mt-3 font-display text-[2.6rem] font-normal leading-[.98] text-background sm:text-5xl">Your request is now with our team.</DialogTitle></DialogHeader>
-          </div>
-          <div className="px-7 pb-7 pt-6 sm:px-10 sm:pb-9">
-            <p className="text-sm leading-7 text-muted-foreground">Your enquiry has been securely forwarded to KANSADCO client relations. A member of the team will review your request and get back to you using the details provided.</p>
-            <div className="mt-6 grid grid-cols-3 gap-2">{["Received", "Forwarded", "Personal reply"].map((item, index) => <div key={item} className={`border-t-2 px-1 pt-3 ${index < 2 ? "border-foreground" : "border-border"}`}><span className="font-mono text-[7px] text-muted-foreground">0{index + 1}</span><p className="mt-1 text-[9px] uppercase tracking-[.1em]">{item}</p></div>)}</div>
-            <p className="mt-6 rounded-2xl bg-muted px-4 py-3 text-xs leading-5 text-muted-foreground">{confirmation?.emailSent ? <>A confirmation receipt has also been sent to <span className="font-medium text-foreground">{confirmation.email}</span>.</> : "Your request is safely recorded. Our team will contact you directly."}</p>
-            <button onClick={() => setConfirmation(null)} className="mt-6 h-12 w-full rounded-full bg-foreground font-mono text-[8px] uppercase tracking-[.17em] text-background transition-transform hover:-translate-y-0.5">Done</button>
-          </div>
-        </DialogContent>
-      </Dialog>
     </>
   );
 };
