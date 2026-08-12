@@ -118,7 +118,10 @@
   .image-reveal { @apply overflow-hidden rounded-[1.25rem] md:rounded-[1.75rem]; }
   .image-reveal img { @apply transition-transform ease-out; transition-duration: 1200ms; }
   .image-reveal:hover img { transform: scale(1.025); }
-  .premium-field { @apply h-14 w-full rounded-none border-0 border-b border-border bg-transparent px-0 text-sm shadow-none outline-none transition-colors placeholder:text-muted-foreground/60 focus-visible:border-accent focus-visible:ring-0 focus-visible:ring-offset-0; }
+  .premium-field { @apply h-14 w-full appearance-none bg-transparent px-0 text-sm outline-none transition-colors placeholder:text-muted-foreground/60; border: 0 !important; border-bottom: 1px solid hsl(var(--border)) !important; border-radius: 0 !important; box-shadow: none !important; outline: none !important; }
+  .premium-field:focus, .premium-field:focus-visible, .contact-phone-field:focus-within { border-bottom-color: hsl(var(--accent)) !important; box-shadow: none !important; outline: none !important; }
+  .premium-field:invalid, .premium-field:-moz-ui-invalid, .contact-phone-field input:invalid, .contact-phone-field input:-moz-ui-invalid { box-shadow: none !important; }
+  .premium-field[aria-invalid="true"], .contact-phone-field[data-invalid="true"] { border-bottom-color: hsl(var(--accent)) !important; box-shadow: none !important; }
   textarea.premium-field { @apply min-h-32 resize-y py-4; }
 }
 

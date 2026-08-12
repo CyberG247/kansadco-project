@@ -7,6 +7,8 @@ import heroEstate from "@/assets/hero-estate.jpg";
 import { useContent } from "@/lib/contentStore";
 import { useToast } from "@/hooks/use-toast";
 
+const phoneDigits = (value: string) => value.replace(/\D/g, "").slice(0, 10);
+
 const BookTour = () => {
   const { addEnquiry } = useContent();
   const { toast } = useToast();
@@ -16,6 +18,7 @@ const BookTour = () => {
   const [website, setWebsite] = useState("");
   const [formStartedAt, setFormStartedAt] = useState(() => Date.now());
   const change = (event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => setForm({ ...form, [event.target.name]: event.target.value });
+  const changePhone = (event: React.ChangeEvent<HTMLInputElement>) => setForm((current) => ({ ...current, phone: phoneDigits(event.target.value) }));
   const submit = async (event: React.FormEvent) => {
     event.preventDefault();
     setConfirmation(null);
@@ -24,7 +27,7 @@ const BookTour = () => {
       const enquiry = await addEnquiry({
         name: form.name,
         email: form.email,
-        phone: form.phone,
+        phone: `+234${form.phone}`,
         subject: `Private viewing · ${form.interest} · ${form.date} ${form.time}`,
         message: form.message || "Private viewing requested from the website.",
         source: "Private tour",
@@ -54,7 +57,7 @@ const BookTour = () => {
             <form onSubmit={submit} className="space-y-6">
               <label className="absolute -left-[10000px] h-px w-px overflow-hidden opacity-0" aria-hidden="true">Website<input name="website" value={website} onChange={(event) => setWebsite(event.target.value)} tabIndex={-1} autoComplete="off" /></label>
               <div className="grid gap-6 md:grid-cols-2"><label className="text-[10px] uppercase tracking-[.16em]">Full name<Input name="name" value={form.name} onChange={change} placeholder="Your name" required className="premium-field mt-2" /></label><label className="text-[10px] uppercase tracking-[.16em]">Email<Input type="email" name="email" value={form.email} onChange={change} placeholder="name@company.com" required className="premium-field mt-2" /></label></div>
-              <div className="grid gap-6 md:grid-cols-2"><label className="text-[10px] uppercase tracking-[.16em]">Telephone<Input name="phone" value={form.phone} onChange={change} placeholder="+234" required className="premium-field mt-2" /></label><label className="text-[10px] uppercase tracking-[.16em]">Area of interest<select name="interest" value={form.interest} onChange={change} className="premium-field mt-2"><option value="residential">Residential property</option><option value="commercial">Commercial property</option><option value="investment">Investment opportunity</option><option value="land">Land acquisition</option></select></label></div>
+              <div className="grid gap-6 md:grid-cols-2"><label className="text-[10px] uppercase tracking-[.16em]">Telephone<span className="contact-phone-field premium-field mt-2 flex items-center"><span className="shrink-0 border-r border-border pr-3 font-mono text-xs tracking-normal text-foreground">+234</span><input type="tel" inputMode="numeric" name="phone" value={form.phone} onChange={changePhone} placeholder="8012345678" autoComplete="tel-national" maxLength={10} pattern="[0-9]{10}" required className="h-full min-w-0 flex-1 bg-transparent px-3 text-sm tracking-normal text-foreground outline-none placeholder:text-muted-foreground/60" /><span className="shrink-0 font-mono text-[7px] tracking-normal text-muted-foreground">{form.phone.length}/10</span></span></label><label className="text-[10px] uppercase tracking-[.16em]">Area of interest<select name="interest" value={form.interest} onChange={change} className="premium-field mt-2"><option value="residential">Residential property</option><option value="commercial">Commercial property</option><option value="investment">Investment opportunity</option><option value="land">Land acquisition</option></select></label></div>
               <div className="grid gap-6 md:grid-cols-2"><label className="text-[10px] uppercase tracking-[.16em]">Preferred date<Input type="date" name="date" value={form.date} onChange={change} required className="premium-field mt-2" /></label><label className="text-[10px] uppercase tracking-[.16em]">Preferred time<Input type="time" name="time" value={form.time} onChange={change} required className="premium-field mt-2" /></label></div>
               <label className="block text-[10px] uppercase tracking-[.16em]">Anything we should know?<Textarea name="message" value={form.message} onChange={change} placeholder="Tell us what you are looking for" className="premium-field mt-2" /></label>
               <button type="submit" disabled={submitting} className="group mt-4 flex h-14 w-full items-center justify-between rounded-full bg-foreground px-6 text-[10px] font-semibold uppercase tracking-[.18em] text-background transition-all duration-300 hover:-translate-y-0.5 hover:bg-accent hover:text-accent-foreground hover:shadow-lg disabled:cursor-wait disabled:opacity-60 md:w-72">{submitting ? "Sending…" : "Request a viewing"} <ArrowUpRight className="h-4 w-4 transition-transform group-hover:translate-x-1 group-hover:-translate-y-1" /></button>

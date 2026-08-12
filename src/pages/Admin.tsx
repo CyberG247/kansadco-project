@@ -520,6 +520,7 @@ const EnquiryEditor = ({ enquiry, close }: { enquiry: Enquiry; close: () => void
       await replyToEnquiry(enquiry.id, replySubject, replyMessage);
       setReplyMessage("");
       toast({ title: "Reply sent", description: `The response was emailed to ${enquiry.email} and saved to this conversation.` });
+      close();
     } catch (error) {
       toast({ title: "Reply not sent", description: error instanceof Error ? error.message : "Please try again.", variant: "destructive" });
     } finally { setSaving(false); }

@@ -22,7 +22,8 @@ const getSecretKey = () => {
 };
 
 const clean = (value: unknown) => typeof value === "string" ? value.trim() : "";
-const validEmail = (value: string) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
+const validEmail = (value: string) => /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(value);
+const validNigerianPhone = (value: string) => /^\+234\d{10}$/.test(value);
 
 const fingerprintRequest = async (request: Request) => {
   const forwarded = request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ?? "unknown";
@@ -64,7 +65,7 @@ Deno.serve(async (request) => {
 
   if (name.length < 2 || name.length > 160) return json({ error: "Enter your full name." }, 422);
   if (email.length > 320 || !validEmail(email)) return json({ error: "Enter a valid email address." }, 422);
-  if (phone.length > 40) return json({ error: "The telephone number is too long." }, 422);
+  if (!validNigerianPhone(phone)) return json({ error: "Enter +234 followed by the 10-digit telephone number." }, 422);
   if (subject.length < 2 || subject.length > 240) return json({ error: "Enter a short enquiry subject." }, 422);
   if (message.length < 2 || message.length > 5_000) return json({ error: "Enter a message between 2 and 5,000 characters." }, 422);
   if (formStartedAt > 0 && Date.now() - formStartedAt < 900) return json({ error: "Please review the form before sending it." }, 422);

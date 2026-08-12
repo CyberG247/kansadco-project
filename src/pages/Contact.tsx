@@ -6,23 +6,72 @@ import { ArrowUpRight, Check } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useContent } from "@/lib/contentStore";
 
+const emptyForm = { name: "", email: "", phone: "", subject: "", message: "" };
+type ContactField = keyof typeof emptyForm;
+type ContactErrors = Partial<Record<ContactField, string>>;
+
+const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
+const phoneDigits = (value: string) => value.replace(/\D/g, "").slice(0, 10);
+
+const FieldError = ({ id, message }: { id: string; message?: string }) => message
+  ? <p id={id} role="alert" className="mt-2 font-mono text-[8px] normal-case tracking-normal text-accent">{message}</p>
+  : null;
+
 const Contact = () => {
   const { toast } = useToast();
   const { addEnquiry, settings } = useContent();
-  const [form, setForm] = useState({ name: "", email: "", phone: "", subject: "", message: "" });
+  const [form, setForm] = useState(emptyForm);
+  const [errors, setErrors] = useState<ContactErrors>({});
   const [website, setWebsite] = useState("");
   const [formStartedAt, setFormStartedAt] = useState(() => Date.now());
   const [submitting, setSubmitting] = useState(false);
   const [confirmation, setConfirmation] = useState<{ email: string; emailSent: boolean } | null>(null);
-  const change = (event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => setForm({ ...form, [event.target.name]: event.target.value });
+  const change = (event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    const field = event.target.name as ContactField;
+    setForm((current) => ({ ...current, [field]: event.target.value }));
+    setErrors((current) => current[field] ? { ...current, [field]: undefined } : current);
+  };
+  const changePhone = (event: React.ChangeEvent<HTMLInputElement>) => {
+    setForm((current) => ({ ...current, phone: phoneDigits(event.target.value) }));
+    setErrors((current) => current.phone ? { ...current, phone: undefined } : current);
+  };
+  const validate = () => {
+    const nextErrors: ContactErrors = {};
+    const normalizedEmail = form.email.trim().toLowerCase();
+    if (form.name.trim().length < 2) nextErrors.name = "Please enter your full name.";
+    if (!emailPattern.test(normalizedEmail) || normalizedEmail.length > 320) nextErrors.email = "Enter a valid email address, for example name@company.com.";
+    if (!/^\d{10}$/.test(form.phone)) nextErrors.phone = "Add the 10 digits after +234.";
+    if (form.subject.trim().length < 2) nextErrors.subject = "Please tell us the nature of your enquiry.";
+    if (form.message.trim().length < 2) nextErrors.message = "Please add a short note about your project.";
+    setErrors(nextErrors);
+    const firstInvalidField = Object.keys(nextErrors)[0];
+    if (firstInvalidField) {
+      window.requestAnimationFrame(() => document.querySelector<HTMLElement>(`[name="${firstInvalidField}"]`)?.focus());
+      return null;
+    }
+    return normalizedEmail;
+  };
   const submit = async (event: React.FormEvent) => {
     event.preventDefault();
+    const normalizedEmail = validate();
+    if (!normalizedEmail) return;
     setConfirmation(null);
     setSubmitting(true);
     try {
-      const enquiry = await addEnquiry({ ...form, source: "Contact", website, formStartedAt });
-      setConfirmation({ email: form.email, emailSent: enquiry.notificationStatus === "Sent" });
-      setForm({ name: "", email: "", phone: "", subject: "", message: "" });
+      const enquiry = await addEnquiry({
+        ...form,
+        name: form.name.trim(),
+        email: normalizedEmail,
+        phone: `+234${form.phone}`,
+        subject: form.subject.trim(),
+        message: form.message.trim(),
+        source: "Contact",
+        website,
+        formStartedAt,
+      });
+      setConfirmation({ email: normalizedEmail, emailSent: enquiry.notificationStatus === "Sent" });
+      setForm(emptyForm);
+      setErrors({});
       setWebsite("");
       setFormStartedAt(Date.now());
     } catch (error) {
@@ -48,11 +97,24 @@ const Contact = () => {
 
           <div className="lg:col-span-7 lg:col-start-6">
             <p className="mb-10 font-display text-4xl md:text-5xl">Tell us where you want to go.</p>
-            <form onSubmit={submit} className="space-y-6">
+            <form onSubmit={submit} noValidate className="space-y-6">
               <label className="absolute -left-[10000px] h-px w-px overflow-hidden opacity-0" aria-hidden="true">Website<input name="website" value={website} onChange={(event) => setWebsite(event.target.value)} tabIndex={-1} autoComplete="off" /></label>
-              <div className="grid gap-6 md:grid-cols-2"><label className="text-[10px] uppercase tracking-[.16em]">Your name<Input name="name" value={form.name} onChange={change} placeholder="Full name" required className="premium-field mt-2" /></label><label className="text-[10px] uppercase tracking-[.16em]">Email address<Input type="email" name="email" value={form.email} onChange={change} placeholder="name@company.com" required className="premium-field mt-2" /></label></div>
-              <div className="grid gap-6 md:grid-cols-2"><label className="text-[10px] uppercase tracking-[.16em]">Telephone<Input name="phone" value={form.phone} onChange={change} placeholder="+234" className="premium-field mt-2" /></label><label className="text-[10px] uppercase tracking-[.16em]">Nature of enquiry<Input name="subject" value={form.subject} onChange={change} placeholder="Development, investment, construction…" required className="premium-field mt-2" /></label></div>
-              <label className="block text-[10px] uppercase tracking-[.16em]">Project notes<Textarea name="message" value={form.message} onChange={change} placeholder="Context, location, ambition and timing" required className="premium-field mt-2" /></label>
+              <div className="grid gap-6 md:grid-cols-2">
+                <label className="text-[10px] uppercase tracking-[.16em]">Your name<Input name="name" value={form.name} onChange={change} placeholder="Full name" autoComplete="name" required aria-invalid={Boolean(errors.name)} aria-describedby={errors.name ? "contact-name-error" : undefined} className="premium-field mt-2" /><FieldError id="contact-name-error" message={errors.name} /></label>
+                <label className="text-[10px] uppercase tracking-[.16em]">Email address<Input type="email" inputMode="email" name="email" value={form.email} onChange={change} placeholder="name@company.com" autoComplete="email" maxLength={320} required aria-invalid={Boolean(errors.email)} aria-describedby={errors.email ? "contact-email-error" : undefined} className="premium-field mt-2" /><FieldError id="contact-email-error" message={errors.email} /></label>
+              </div>
+              <div className="grid gap-6 md:grid-cols-2">
+                <label className="text-[10px] uppercase tracking-[.16em]">Telephone
+                  <span className="contact-phone-field premium-field mt-2 flex items-center" data-invalid={errors.phone ? "true" : undefined}>
+                    <span className="shrink-0 border-r border-border pr-3 font-mono text-xs tracking-normal text-foreground">+234</span>
+                    <input type="tel" inputMode="numeric" name="phone" value={form.phone} onChange={changePhone} placeholder="8012345678" autoComplete="tel-national" maxLength={10} pattern="[0-9]{10}" required aria-invalid={Boolean(errors.phone)} aria-describedby={errors.phone ? "contact-phone-error" : "contact-phone-help"} className="h-full min-w-0 flex-1 bg-transparent px-3 text-sm tracking-normal text-foreground outline-none placeholder:text-muted-foreground/60" />
+                    <span id="contact-phone-help" className="shrink-0 font-mono text-[7px] tracking-normal text-muted-foreground">{form.phone.length}/10</span>
+                  </span>
+                  <FieldError id="contact-phone-error" message={errors.phone} />
+                </label>
+                <label className="text-[10px] uppercase tracking-[.16em]">Nature of enquiry<Input name="subject" value={form.subject} onChange={change} placeholder="Development, investment, construction…" required aria-invalid={Boolean(errors.subject)} aria-describedby={errors.subject ? "contact-subject-error" : undefined} className="premium-field mt-2" /><FieldError id="contact-subject-error" message={errors.subject} /></label>
+              </div>
+              <label className="block text-[10px] uppercase tracking-[.16em]">Project notes<Textarea name="message" value={form.message} onChange={change} placeholder="Context, location, ambition and timing" required aria-invalid={Boolean(errors.message)} aria-describedby={errors.message ? "contact-message-error" : undefined} className="premium-field mt-2" /><FieldError id="contact-message-error" message={errors.message} /></label>
               <button type="submit" disabled={submitting} className="group mt-4 flex h-14 w-full items-center justify-between rounded-full bg-foreground px-6 text-[10px] font-semibold uppercase tracking-[.18em] text-background transition-all duration-300 hover:-translate-y-0.5 hover:bg-accent hover:text-accent-foreground hover:shadow-lg disabled:cursor-wait disabled:opacity-60 md:w-64">{submitting ? "Sending…" : "Send enquiry"} <ArrowUpRight className="h-4 w-4 transition-transform group-hover:translate-x-1 group-hover:-translate-y-1" /></button>
               {confirmation && (
                 <p role="status" aria-live="polite" className="animate-fade-up flex items-center gap-2 font-mono text-[9px] uppercase tracking-[.13em] text-muted-foreground">
