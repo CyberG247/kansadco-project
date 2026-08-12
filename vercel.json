@@ -6,6 +6,10 @@
   "outputDirectory": "dist",
   "rewrites": [
     {
+      "source": "/api/submit-enquiry",
+      "destination": "https://gnunzyuhqmbqjhalntmq.supabase.co/functions/v1/submit-enquiry"
+    },
+    {
       "source": "/(.*)",
       "destination": "/index.html"
     }

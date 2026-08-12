@@ -219,6 +219,26 @@ const friendlyFunctionError = async (error: unknown) => {
   return functionError.message ?? "The enquiry service could not be reached.";
 };
 
+const submitPublicEnquiry = async (body: Record<string, unknown>) => {
+  const directUrl = `${import.meta.env.NEXT_PUBLIC_SUPABASE_URL}/functions/v1/submit-enquiry`;
+  const response = await fetch(import.meta.env.PROD ? "/api/submit-enquiry" : directUrl, {
+    method: "POST",
+    headers: {
+      apikey: import.meta.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY,
+      Authorization: `Bearer ${import.meta.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(body),
+  });
+
+  const payload = await response.json().catch(() => null) as { error?: string; enquiry?: Parameters<typeof mapEnquiry>[0] } | null;
+  if (!response.ok) {
+    throw new Error(payload?.error ?? "The enquiry service could not complete your request. Please try again.");
+  }
+  if (!payload?.enquiry) throw new Error("The enquiry service did not confirm your submission.");
+  return payload.enquiry;
+};
+
 const storeSeedMedia = async (url: string, slug: string) => {
   const storageMarker = `/storage/v1/object/public/${MEDIA_BUCKET}/`;
   if (url.includes(storageMarker)) return url;
@@ -390,21 +410,16 @@ export const ContentProvider = ({ children }: { children: ReactNode }) => {
       return supabase.storage.from(MEDIA_BUCKET).getPublicUrl(path).data.publicUrl;
     },
     addEnquiry: async (input) => {
-      const { data, error } = await supabase.functions.invoke("submit-enquiry", {
-        body: {
-          name: input.name,
-          email: input.email,
-          phone: input.phone,
-          subject: input.subject,
-          message: input.message,
-          source: input.source === "Private tour" ? "Private tour" : "Contact",
-          website: input.website ?? "",
-          formStartedAt: input.formStartedAt,
-        },
+      const row = await submitPublicEnquiry({
+        name: input.name,
+        email: input.email,
+        phone: input.phone,
+        subject: input.subject,
+        message: input.message,
+        source: input.source === "Private tour" ? "Private tour" : "Contact",
+        website: input.website ?? "",
+        formStartedAt: input.formStartedAt,
       });
-      if (error) throw new Error(await friendlyFunctionError(error));
-      const row = (data as { enquiry?: Parameters<typeof mapEnquiry>[0] } | null)?.enquiry;
-      if (!row) throw new Error("The enquiry service did not confirm your submission.");
       if (isAuthorized) await refreshContent();
       return mapEnquiry(row);
     },
