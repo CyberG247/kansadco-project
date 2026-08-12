@@ -55,6 +55,18 @@ export interface Enquiry {
   notifiedAt: string | null;
 }
 
+export interface EnquiryReply {
+  id: string;
+  enquiryId: string;
+  adminId: string | null;
+  subject: string;
+  message: string;
+  deliveryStatus: "Pending" | "Sent" | "Failed";
+  deliveryError: string | null;
+  sentAt: string | null;
+  createdAt: string;
+}
+
 export interface SiteSettings {
   displayName: string;
   primaryEmail: string;
@@ -78,6 +90,7 @@ interface ContentState {
   projects: ManagedProject[];
   gallery: GalleryAsset[];
   enquiries: Enquiry[];
+  enquiryReplies: EnquiryReply[];
   settings: SiteSettings;
   activities: Activity[];
 }
@@ -103,6 +116,7 @@ interface ContentContextValue extends ContentState {
   deleteGalleryAsset: (id: string) => Promise<void>;
   uploadMedia: (file: File) => Promise<string>;
   addEnquiry: (enquiry: EnquiryInput) => Promise<Enquiry>;
+  replyToEnquiry: (id: string, subject: string, message: string) => Promise<void>;
   retryEnquiryNotification: (id: string) => Promise<void>;
   updateEnquiry: (id: string, updates: Partial<Pick<Enquiry, "status" | "subject" | "message">>) => Promise<void>;
   deleteEnquiry: (id: string) => Promise<void>;
@@ -130,6 +144,7 @@ const defaultState: ContentState = {
     { id: "asset-material", src: paint, name: "Material Library", type: "Materials", location: "KANSADCO Studio", year: "2026", status: "Published", createdAt: "2026-07-08T08:00:00.000Z" },
   ],
   enquiries: [],
+  enquiryReplies: [],
   settings: {
     displayName: "KANSADCO Engineering Nig. Ltd.",
     primaryEmail: "kansadco@gmail.com",
@@ -175,6 +190,11 @@ const mapEnquiry = (row: { id: string; name: string; email: string; phone: strin
   id: row.id, name: row.name, email: row.email, phone: row.phone, subject: row.subject,
   message: row.message, status: row.status, source: row.source, createdAt: row.created_at,
   notificationStatus: row.notification_status, notificationError: row.notification_error, notifiedAt: row.notified_at,
+});
+
+const mapEnquiryReply = (row: { id: string; enquiry_id: string; admin_id: string | null; subject: string; message: string; delivery_status: EnquiryReply["deliveryStatus"]; delivery_error: string | null; sent_at: string | null; created_at: string }): EnquiryReply => ({
+  id: row.id, enquiryId: row.enquiry_id, adminId: row.admin_id, subject: row.subject, message: row.message,
+  deliveryStatus: row.delivery_status, deliveryError: row.delivery_error, sentAt: row.sent_at, createdAt: row.created_at,
 });
 
 const mapSettings = (row: { display_name: string; primary_email: string; telephone: string; abuja_address: string; kano_address: string; default_author: string; review_workflow: string; image_quality: string }): SiteSettings => ({
@@ -277,15 +297,18 @@ export const ContentProvider = ({ children }: { children: ReactNode }) => {
     const enquiryRequest = isAuthorized
       ? supabase.from("enquiries").select("*").order("created_at", { ascending: false })
       : Promise.resolve({ data: [], error: null });
+    const replyRequest = isAuthorized
+      ? supabase.from("enquiry_replies").select("*").order("created_at", { ascending: false })
+      : Promise.resolve({ data: [], error: null });
     const activityRequest = isAuthorized
       ? supabase.from("activities").select("*").order("created_at", { ascending: false }).limit(100)
       : Promise.resolve({ data: [], error: null });
 
     try {
-      let [projectsResult, galleryResult, settingsResult, enquiriesResult, activitiesResult] = await Promise.all([
-        projectRequest, galleryRequest, settingsRequest, enquiryRequest, activityRequest,
+      let [projectsResult, galleryResult, settingsResult, enquiriesResult, repliesResult, activitiesResult] = await Promise.all([
+        projectRequest, galleryRequest, settingsRequest, enquiryRequest, replyRequest, activityRequest,
       ]);
-      const firstError = [projectsResult.error, galleryResult.error, settingsResult.error, enquiriesResult.error, activitiesResult.error].find(Boolean);
+      const firstError = [projectsResult.error, galleryResult.error, settingsResult.error, enquiriesResult.error, repliesResult.error, activitiesResult.error].find(Boolean);
       if (firstError) throw firstError;
 
       if (isAuthorized && settingsResult.data && !settingsResult.data.content_initialized) {
@@ -304,14 +327,15 @@ export const ContentProvider = ({ children }: { children: ReactNode }) => {
         if (initializedError) throw initializedError;
         window.localStorage.removeItem("kansadco-content-v1");
 
-        [projectsResult, galleryResult, settingsResult, enquiriesResult, activitiesResult] = await Promise.all([
+        [projectsResult, galleryResult, settingsResult, enquiriesResult, repliesResult, activitiesResult] = await Promise.all([
           supabase.from("projects").select("*").order("updated_at", { ascending: false }),
           supabase.from("gallery_assets").select("*").order("created_at", { ascending: false }),
           supabase.from("site_settings").select("*").eq("id", 1).maybeSingle(),
           supabase.from("enquiries").select("*").order("created_at", { ascending: false }),
+          supabase.from("enquiry_replies").select("*").order("created_at", { ascending: false }),
           supabase.from("activities").select("*").order("created_at", { ascending: false }).limit(100),
         ]);
-        const retryError = [projectsResult.error, galleryResult.error, settingsResult.error, enquiriesResult.error, activitiesResult.error].find(Boolean);
+        const retryError = [projectsResult.error, galleryResult.error, settingsResult.error, enquiriesResult.error, repliesResult.error, activitiesResult.error].find(Boolean);
         if (retryError) throw retryError;
       }
 
@@ -320,6 +344,7 @@ export const ContentProvider = ({ children }: { children: ReactNode }) => {
         projects: useBundledContent ? cloneDefaults().projects : (projectsResult.data ?? []).map(mapProject),
         gallery: useBundledContent ? cloneDefaults().gallery : (galleryResult.data ?? []).map(mapGallery),
         enquiries: (enquiriesResult.data ?? []).map(mapEnquiry),
+        enquiryReplies: (repliesResult.data ?? []).map(mapEnquiryReply),
         settings: settingsResult.data ? mapSettings(settingsResult.data) : cloneDefaults().settings,
         activities: (activitiesResult.data ?? []).map((row) => ({ id: row.id, message: row.message, type: row.type, read: row.read, createdAt: row.created_at })),
       });
@@ -339,6 +364,28 @@ export const ContentProvider = ({ children }: { children: ReactNode }) => {
   useEffect(() => {
     void refreshContent();
   }, [refreshContent, session?.user.id]);
+
+  useEffect(() => {
+    if (!isAuthorized || !session?.user.id) return;
+    let refreshTimer: number | undefined;
+    const queueRefresh = () => {
+      window.clearTimeout(refreshTimer);
+      refreshTimer = window.setTimeout(() => void refreshContent(), 250);
+    };
+    const channel = supabase
+      .channel(`admin-enquiry-inbox-${session.user.id}`)
+      .on("postgres_changes", { event: "*", schema: "public", table: "enquiries" }, queueRefresh)
+      .subscribe();
+    const refreshOnVisible = () => { if (document.visibilityState === "visible") queueRefresh(); };
+    window.addEventListener("focus", queueRefresh);
+    document.addEventListener("visibilitychange", refreshOnVisible);
+    return () => {
+      window.clearTimeout(refreshTimer);
+      window.removeEventListener("focus", queueRefresh);
+      document.removeEventListener("visibilitychange", refreshOnVisible);
+      void supabase.removeChannel(channel);
+    };
+  }, [isAuthorized, refreshContent, session?.user.id]);
 
   const requireData = <T,>(data: T | null, error: { message: string } | null): T => {
     if (error) throw new Error(error.message);
@@ -422,6 +469,11 @@ export const ContentProvider = ({ children }: { children: ReactNode }) => {
       });
       if (isAuthorized) await refreshContent();
       return mapEnquiry(row);
+    },
+    replyToEnquiry: async (id, subject, message) => {
+      const { error } = await supabase.functions.invoke("reply-enquiry", { body: { enquiryId: id, subject, message } });
+      if (error) throw new Error(await friendlyFunctionError(error));
+      await refreshContent();
     },
     retryEnquiryNotification: async (id) => {
       const { error } = await supabase.functions.invoke("retry-enquiry-email", { body: { enquiryId: id } });

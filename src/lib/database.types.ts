@@ -27,6 +27,12 @@ export type Database = {
         Update: Partial<Database["public"]["Tables"]["enquiries"]["Insert"]>;
         Relationships: [];
       };
+      enquiry_replies: {
+        Row: { id: string; enquiry_id: string; admin_id: string | null; subject: string; message: string; delivery_status: "Pending" | "Sent" | "Failed"; brevo_message_id: string | null; delivery_error: string | null; sent_at: string | null; created_at: string };
+        Insert: { id?: string; enquiry_id: string; admin_id?: string | null; subject: string; message: string; delivery_status?: "Pending" | "Sent" | "Failed"; brevo_message_id?: string | null; delivery_error?: string | null; sent_at?: string | null; created_at?: string };
+        Update: Partial<Database["public"]["Tables"]["enquiry_replies"]["Insert"]>;
+        Relationships: [];
+      };
       site_settings: {
         Row: { id: number; display_name: string; primary_email: string; telephone: string; abuja_address: string; kano_address: string; default_author: string; review_workflow: string; image_quality: string; content_initialized: boolean; updated_at: string };
         Insert: { id?: number; display_name: string; primary_email: string; telephone: string; abuja_address: string; kano_address: string; default_author: string; review_workflow: string; image_quality: string; content_initialized?: boolean; updated_at?: string };

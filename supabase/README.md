@@ -14,7 +14,7 @@ supabase db push
 Alternatively, run every SQL file in `supabase/migrations` in filename order through **SQL Editor → New query**. The migrations create:
 
 - administrator profiles and role checks;
-- projects, gallery assets, enquiries, site settings and activity tables;
+- projects, gallery assets, enquiries, enquiry reply history, site settings and activity tables;
 - public-read/admin-write RLS policies;
 - automatic activity logging and timestamps;
 - a public `site-media` bucket with administrator-only writes.
@@ -72,9 +72,10 @@ supabase secrets set \
 
 supabase functions deploy submit-enquiry --no-verify-jwt --use-api
 supabase functions deploy retry-enquiry-email --use-api
+supabase functions deploy reply-enquiry --use-api
 ```
 
-`BREVO_NOTIFICATION_EMAIL` is the internal inbox that receives new enquiries. If omitted, the function uses the Primary email in Admin → Settings. The public form receives a generic success response even when Brevo is temporarily unavailable because the enquiry is already safely stored. Administrators can see the delivery state and retry a failed message from the enquiry drawer.
+`BREVO_NOTIFICATION_EMAIL` is the internal inbox that receives new enquiries. If omitted, the function uses the Primary email in Admin → Settings. The public form receives a generic success response even when Brevo is temporarily unavailable because the enquiry is already safely stored. Administrators receive live inbox updates, can retry a failed receipt, and can send tracked Brevo replies directly from the enquiry drawer.
 
 ### Supabase Auth messages
 

@@ -5,3 +5,6 @@ verify_jwt = false
 
 [functions.retry-enquiry-email]
 verify_jwt = true
+
+[functions.reply-enquiry]
+verify_jwt = true

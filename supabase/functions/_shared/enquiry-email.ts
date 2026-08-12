@@ -182,3 +182,41 @@ export const sendEnquiryEmails = async (
     };
   }
 };
+
+export const sendEnquiryReply = async (
+  enquiry: EnquiryEmailRecord,
+  reply: { id: string; subject: string; message: string },
+  replyToEmail: string,
+) => {
+  const safeName = escapeHtml(enquiry.name);
+  const safeSubject = escapeHtml(reply.subject);
+  const safeMessage = paragraphize(reply.message);
+  const websiteUrl = Deno.env.get("PUBLIC_SITE_URL") ?? "https://kansadco.com";
+  const body = `
+    <p style="margin:0 0 18px;font-family:Georgia,Times New Roman,serif;font-size:24px;line-height:1.35;color:#13251c">Hello ${safeName},</p>
+    <p style="margin:0 0 24px;font-size:15px;line-height:1.85;color:#405047">A member of the KANSADCO client relations team has responded to your enquiry.</p>
+    <div style="padding:24px;border-radius:20px;background:#f0f3ef;border:1px solid #e0e6e1">
+      <div style="font-size:9px;letter-spacing:2px;text-transform:uppercase;color:#6f7e75">Personal response</div>
+      <div style="margin-top:14px;font-size:15px;line-height:1.85;color:#26342d">${safeMessage}</div>
+    </div>
+    <div style="margin-top:24px;padding-top:18px;border-top:1px solid #e2e7e3;font-size:11px;line-height:1.7;color:#718078">
+      Enquiry reference: ${escapeHtml(enquiry.id)}<br />
+      Original subject: ${escapeHtml(enquiry.subject)}
+    </div>
+    <div style="margin-top:28px;text-align:center"><a href="${escapeHtml(websiteUrl)}" style="display:inline-block;padding:14px 24px;border-radius:999px;background:#10251a;color:#ffffff;text-decoration:none;font-size:10px;font-weight:700;letter-spacing:1.8px;text-transform:uppercase">Visit Kansadco</a></div>`;
+
+  return sendBrevoMessage({
+    to: [{ email: enquiry.email, name: enquiry.name }],
+    replyTo: { email: replyToEmail, name: "Kansadco Client Relations" },
+    subject: reply.subject,
+    htmlContent: frame(
+      `KANSADCO has responded to your enquiry: ${safeSubject}`,
+      "Client relations · Personal response",
+      safeSubject,
+      body,
+      `KANSADCO Engineering Nig. Ltd. · Abuja & Kano, Nigeria<br />Reply directly to continue this conversation with our team.`,
+    ),
+    textContent: `Hello ${enquiry.name},\n\nA member of the KANSADCO client relations team has responded to your enquiry.\n\n${reply.message}\n\nEnquiry reference: ${enquiry.id}\nOriginal subject: ${enquiry.subject}\n\nReply directly to continue this conversation.\n\nKANSADCO Engineering Nig. Ltd.\n${websiteUrl}`,
+    tags: ["admin-enquiry-reply"],
+  }, `enquiry-reply-${reply.id}`);
+};
