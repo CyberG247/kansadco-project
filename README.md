@@ -28,6 +28,10 @@ npm run preview
 
 The production output is generated in `dist/`. The application uses client-side routing, so the hosting platform must rewrite unknown document requests to `index.html`.
 
+### Vercel
+
+Import the GitHub repository into Vercel and select the Vite framework preset. The committed `vercel.json` defines the build output, SPA deep-link fallback, immutable asset caching and baseline security headers.
+
 ## Public routes
 
 - `/`
