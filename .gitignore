@@ -26,3 +26,6 @@ supabase/.temp/
 *.njsproj
 *.sln
 *.sw?
+
+# Local Vercel project metadata
+.vercel/
