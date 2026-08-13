@@ -381,7 +381,19 @@ export const ContentProvider = ({ children }: { children: ReactNode }) => {
         projectRequest, galleryRequest, teamRequest, settingsRequest, enquiryRequest, replyRequest, activityRequest,
       ]);
       if (!isCurrentRefresh()) return;
-      const firstError = [projectsResult.error, galleryResult.error, teamResult.error, settingsResult.error, enquiriesResult.error, repliesResult.error, activitiesResult.error].find(Boolean);
+
+      // The admin inbox is operational data and must remain available even when
+      // an unrelated content table is temporarily unavailable or out of date.
+      if (isAuthorized && !enquiriesResult.error) {
+        setState((current) => ({
+          ...current,
+          enquiries: (enquiriesResult.data ?? []).map(mapEnquiry),
+          enquiryReplies: repliesResult.error ? current.enquiryReplies : (repliesResult.data ?? []).map(mapEnquiryReply),
+          activities: activitiesResult.error ? current.activities : (activitiesResult.data ?? []).map((row) => ({ id: row.id, message: row.message, type: row.type, read: row.read, createdAt: row.created_at })),
+        }));
+      }
+
+      const firstError = [projectsResult.error, galleryResult.error, settingsResult.error, enquiriesResult.error].find(Boolean);
       if (firstError) throw firstError;
 
       if (isAuthorized && settingsResult.data && !settingsResult.data.content_initialized) {
@@ -425,22 +437,23 @@ export const ContentProvider = ({ children }: { children: ReactNode }) => {
           supabase.from("activities").select("*").order("created_at", { ascending: false }).limit(100),
         ]);
         if (!isCurrentRefresh()) return;
-        const retryError = [projectsResult.error, galleryResult.error, teamResult.error, settingsResult.error, enquiriesResult.error, repliesResult.error, activitiesResult.error].find(Boolean);
+        const retryError = [projectsResult.error, galleryResult.error, settingsResult.error, enquiriesResult.error].find(Boolean);
         if (retryError) throw retryError;
       }
 
       const useBundledContent = settingsResult.data?.content_initialized === false;
-      setState({
+      const optionalError = [teamResult.error, repliesResult.error, activitiesResult.error].find(Boolean);
+      setState((current) => ({
         projects: useBundledContent ? cloneDefaults().projects : (projectsResult.data ?? []).map(mapProject),
         gallery: useBundledContent ? cloneDefaults().gallery : (galleryResult.data ?? []).map(mapGallery),
-        team: (teamResult.data ?? []).map(mapTeamMember),
+        team: teamResult.error ? current.team : (teamResult.data ?? []).map(mapTeamMember),
         enquiries: (enquiriesResult.data ?? []).map(mapEnquiry),
-        enquiryReplies: (repliesResult.data ?? []).map(mapEnquiryReply),
+        enquiryReplies: repliesResult.error ? current.enquiryReplies : (repliesResult.data ?? []).map(mapEnquiryReply),
         settings: settingsResult.data ? mapSettings(settingsResult.data) : cloneDefaults().settings,
-        activities: (activitiesResult.data ?? []).map((row) => ({ id: row.id, message: row.message, type: row.type, read: row.read, createdAt: row.created_at })),
-      });
-      setBackendStatus("connected");
-      setBackendError(null);
+        activities: activitiesResult.error ? current.activities : (activitiesResult.data ?? []).map((row) => ({ id: row.id, message: row.message, type: row.type, read: row.read, createdAt: row.created_at })),
+      }));
+      setBackendStatus(optionalError ? "error" : "connected");
+      setBackendError(optionalError ? friendlyDatabaseError(optionalError) : null);
     } catch (unknownError) {
       if (!isCurrentRefresh()) return;
       const error = unknownError as { code?: string; message: string };
