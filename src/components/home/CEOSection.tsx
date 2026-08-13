@@ -2,9 +2,16 @@ import { Link } from "react-router-dom";
 import { ArrowUpRight } from "lucide-react";
 import ceoPortrait from "@/assets/chairman.webp";
 import { ScrollReveal } from "@/components/ui/ScrollReveal";
+import { getTeamLeader, useContent } from "@/lib/contentStore";
 
-const CEOSection = () => (
-  <section className="section-padding bg-background">
+const CEOSection = () => {
+  const { team } = useContent();
+  const leader = getTeamLeader(team);
+  const leaderName = leader?.name ?? "Arch. Yunusa Ibrahim Hassan, MNIA";
+  const leaderRole = leader?.role ?? "Founder & Chief Executive Officer";
+  const leaderImage = leader?.image || ceoPortrait;
+
+  return <section className="section-padding bg-background">
     <div className="container-custom">
       <div className="grid gap-14 lg:grid-cols-12 lg:gap-8">
         <div className="lg:col-span-4 lg:pt-20">
@@ -12,8 +19,8 @@ const CEOSection = () => (
             <p className="eyebrow mb-8 text-accent">Our point of view</p>
             <p className="font-display text-4xl leading-[1.02] md:text-5xl">“Exceptional spaces are created through vision, integrity, precision and a commitment to excellence.”</p>
             <div className="mt-10 border-t border-border pt-5">
-              <p className="text-sm font-medium">Arch. Yunusa Ibrahim Hassan, MNIA</p>
-              <p className="mt-1 font-mono text-[9px] uppercase tracking-[0.16em] text-muted-foreground">Founder & Chief Executive Officer</p>
+              <p className="text-sm font-medium">{leaderName}</p>
+              <p className="mt-1 font-mono text-[9px] uppercase tracking-[0.16em] text-muted-foreground">{leaderRole}</p>
             </div>
           </ScrollReveal>
         </div>
@@ -21,7 +28,7 @@ const CEOSection = () => (
         <div className="lg:col-span-5 lg:px-5">
           <ScrollReveal width="100%">
             <div className="image-reveal relative aspect-[4/5] bg-muted">
-              <img src={ceoPortrait} alt="Arch. Yunusa Ibrahim Hassan, MNIA, KANSADCO Founder and CEO" className="h-full w-full object-cover object-top grayscale-[12%]" />
+              <img src={leaderImage} alt={`${leaderName}, ${leaderRole}`} className="h-full w-full object-cover object-top grayscale-[12%]" />
               <span className="absolute bottom-4 right-4 rounded-full bg-background px-3 py-2 font-mono text-[9px] uppercase tracking-[0.18em]">Leadership · Abuja</span>
             </div>
           </ScrollReveal>
@@ -37,7 +44,7 @@ const CEOSection = () => (
         </div>
       </div>
     </div>
-  </section>
-);
+  </section>;
+};
 
 export default CEOSection;

@@ -66,6 +66,13 @@ export interface TeamMember {
   updatedAt: string;
 }
 
+export const getTeamLeader = (team: TeamMember[]) => {
+  const published = team
+    .filter((member) => member.status === "Published")
+    .sort((a, b) => a.sortOrder - b.sortOrder);
+  return published.find((member) => member.featured) ?? published[0];
+};
+
 export interface Enquiry {
   id: string;
   name: string;

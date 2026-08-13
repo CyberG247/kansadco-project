@@ -7,6 +7,10 @@ import {
   MoreHorizontal, Plus, RefreshCw, Search, Settings, ShieldCheck, Sun, Trash2, TrendingUp, Upload, UsersRound, X,
 } from "lucide-react";
 import { useTheme } from "@/components/ThemeProvider";
+import {
+  AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
+  AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 import { useToast } from "@/hooks/use-toast";
 import {
   formatRelativeDate, useContent, type Enquiry, type GalleryAsset,
@@ -417,6 +421,36 @@ const editorField = "mt-2 h-11 w-full rounded-xl border border-border bg-backgro
 const editorLabel = "font-mono text-[7px] uppercase tracking-[.14em] text-muted-foreground";
 const projectSlug = (value: string) => value.toLowerCase().trim().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
 
+const BrandedDeleteDialog = ({ itemName, itemType, disabled, trigger, onConfirm }: {
+  itemName: string;
+  itemType: string;
+  disabled?: boolean;
+  trigger: ReactNode;
+  onConfirm: () => void | Promise<void>;
+}) => (
+  <AlertDialog>
+    <AlertDialogTrigger asChild disabled={disabled}>{trigger}</AlertDialogTrigger>
+    <AlertDialogContent className="w-[min(28rem,calc(100vw-1.5rem))] max-w-none gap-0 overflow-hidden rounded-[2rem] border-border bg-background p-0 shadow-[0_32px_110px_rgba(8,16,12,.42)] sm:rounded-[2rem]">
+      <AlertDialogHeader className="space-y-0 bg-slate-dark p-6 text-left text-white sm:p-7">
+        <span className="mb-8 grid h-11 w-11 place-items-center rounded-full border border-white/15 bg-white/[.07]"><Trash2 className="h-4 w-4 text-red-300" /></span>
+        <p className="font-mono text-[8px] uppercase tracking-[.19em] text-white/40">Permanent action</p>
+        <AlertDialogTitle className="mt-3 font-display text-[2.35rem] font-normal leading-[.95] tracking-[-.025em]">Remove {itemType}?</AlertDialogTitle>
+      </AlertDialogHeader>
+      <div className="p-6 sm:p-7">
+        <AlertDialogDescription className="text-sm leading-6 text-muted-foreground">
+          <span className="font-medium text-foreground">{itemName}</span> will be permanently removed from the workspace{itemType === "team member" ? " and the public team page" : ""}. This cannot be undone.
+        </AlertDialogDescription>
+        <AlertDialogFooter className="mt-7 grid grid-cols-2 gap-2 space-x-0 sm:grid-cols-2 sm:space-x-0">
+          <AlertDialogCancel disabled={disabled} className="mt-0 h-11 rounded-full border-border bg-transparent font-mono text-[8px] uppercase tracking-[.14em] hover:bg-muted">Keep it</AlertDialogCancel>
+          <AlertDialogAction onClick={() => void onConfirm()} disabled={disabled} className="h-11 rounded-full bg-destructive font-mono text-[8px] uppercase tracking-[.14em] text-destructive-foreground hover:bg-destructive/90">
+            {disabled ? <LoaderCircle className="mr-2 h-3.5 w-3.5 animate-spin" /> : <Trash2 className="mr-2 h-3.5 w-3.5" />}Delete
+          </AlertDialogAction>
+        </AlertDialogFooter>
+      </div>
+    </AlertDialogContent>
+  </AlertDialog>
+);
+
 const EditorShell = ({ label, title, close, children }: { label: string; title: string; close: () => void; children: ReactNode }) => (
   <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 z-[80] flex items-end justify-center bg-slate-dark/55 p-3 backdrop-blur-sm sm:items-center sm:p-5" role="dialog" aria-modal="true" aria-label={title}>
     <button onClick={close} className="absolute inset-0" aria-label="Close editor" />
@@ -474,7 +508,7 @@ const ProjectEditor = ({ project, close }: { project?: ManagedProject; close: ()
     }
   };
   const remove = async () => {
-    if (!project || !window.confirm(`Delete ${project.name}? This cannot be undone.`)) return;
+    if (!project) return;
     setSaving(true);
     try { await deleteProject(project.id); toast({ title: "Project deleted" }); close(); }
     catch (error) { toast({ title: "Project could not be deleted", description: error instanceof Error ? error.message : "Please try again.", variant: "destructive" }); }
@@ -504,7 +538,7 @@ const ProjectEditor = ({ project, close }: { project?: ManagedProject; close: ()
       <label className={editorLabel}>Upload gallery images<span className="relative mt-2 block"><input type="file" multiple accept="image/jpeg,image/png,image/webp,image/avif,image/gif" onChange={(event) => void uploadGallery(event)} disabled={uploading} className="block w-full text-[10px] file:mr-3 file:rounded-full file:border-0 file:bg-foreground file:px-3 file:py-2 file:text-[8px] file:uppercase file:text-background disabled:opacity-50" />{uploading && <span className="mt-2 flex items-center gap-2 text-[9px] normal-case tracking-normal"><LoaderCircle className="h-3 w-3 animate-spin" />Uploading securely…</span>}</span></label>
       <label className={editorLabel}>Or add gallery URLs · one per line<textarea value={form.galleryImages.join("\n")} onChange={(e) => change("galleryImages", e.target.value.split("\n").map((item) => item.trim()).filter(Boolean))} rows={4} placeholder="https://…" className={`${editorField} h-auto py-3 normal-case tracking-normal`} /></label>
       {form.galleryImages.length > 0 && <div className="grid grid-cols-2 gap-2 sm:col-span-2 sm:grid-cols-3">{form.galleryImages.map((image, index) => <div key={`${image}-${index}`} className="group relative aspect-[4/3] overflow-hidden rounded-xl bg-muted"><img src={image} alt={`Gallery preview ${index + 1}`} className="h-full w-full object-cover" /><button type="button" onClick={() => change("galleryImages", form.galleryImages.filter((_, imageIndex) => imageIndex !== index))} aria-label={`Remove gallery image ${index + 1}`} className="absolute right-2 top-2 grid h-7 w-7 place-items-center rounded-full bg-slate-dark/80 text-white opacity-0 transition-opacity group-hover:opacity-100"><X className="h-3 w-3" /></button></div>)}</div>}
-      <div className="mt-2 flex items-center justify-between gap-3 sm:col-span-2">{project ? <button type="button" onClick={() => void remove()} disabled={saving || uploading} className="flex h-10 items-center gap-2 rounded-full border border-destructive/30 px-4 font-mono text-[7px] uppercase tracking-[.14em] text-destructive disabled:opacity-50"><Trash2 className="h-3.5 w-3.5" />Delete</button> : <span />}<button type="submit" disabled={saving || uploading} className="flex h-11 items-center gap-2 rounded-full bg-foreground px-6 font-mono text-[8px] uppercase tracking-[.15em] text-background disabled:opacity-60">{saving && <LoaderCircle className="h-3.5 w-3.5 animate-spin" />}{saving ? "Saving" : project ? "Save changes" : "Create project"}</button></div>
+      <div className="mt-2 flex items-center justify-between gap-3 sm:col-span-2">{project ? <BrandedDeleteDialog itemName={project.name} itemType="project" disabled={saving || uploading} onConfirm={remove} trigger={<button type="button" className="flex h-10 items-center gap-2 rounded-full border border-destructive/30 px-4 font-mono text-[7px] uppercase tracking-[.14em] text-destructive disabled:opacity-50"><Trash2 className="h-3.5 w-3.5" />Delete</button>} /> : <span />}<button type="submit" disabled={saving || uploading} className="flex h-11 items-center gap-2 rounded-full bg-foreground px-6 font-mono text-[8px] uppercase tracking-[.15em] text-background disabled:opacity-60">{saving && <LoaderCircle className="h-3.5 w-3.5 animate-spin" />}{saving ? "Saving" : project ? "Save changes" : "Create project"}</button></div>
     </form>
   </EditorShell>;
 };
@@ -537,7 +571,7 @@ const GalleryEditor = ({ asset, close }: { asset?: GalleryAsset; close: () => vo
     finally { setSaving(false); }
   };
   const remove = async () => {
-    if (!asset || !window.confirm(`Delete ${asset.name}? This cannot be undone.`)) return;
+    if (!asset) return;
     setSaving(true);
     try { await deleteGalleryAsset(asset.id); toast({ title: "Gallery asset deleted" }); close(); }
     catch (error) { toast({ title: "Asset could not be deleted", description: error instanceof Error ? error.message : "Please try again.", variant: "destructive" }); }
@@ -553,7 +587,7 @@ const GalleryEditor = ({ asset, close }: { asset?: GalleryAsset; close: () => vo
       <label className={editorLabel}>Upload image<span className="relative mt-2 block"><input type="file" accept="image/jpeg,image/png,image/webp,image/avif,image/gif" onChange={(event) => void chooseFile(event)} disabled={uploading} className="block w-full text-[10px] file:mr-3 file:rounded-full file:border-0 file:bg-foreground file:px-3 file:py-2 file:text-[8px] file:uppercase file:text-background disabled:opacity-50" />{uploading && <span className="mt-2 flex items-center gap-2 text-[9px] normal-case tracking-normal"><LoaderCircle className="h-3 w-3 animate-spin" />Uploading securely…</span>}</span></label>
       <label className={`${editorLabel} sm:col-span-2`}>Supabase media URL<input value={form.src} onChange={(e) => change("src", e.target.value)} required className={editorField} /></label>
       {form.src && <div className="sm:col-span-2"><img src={form.src} alt="Asset preview" className="h-56 w-full rounded-2xl object-cover" /></div>}
-      <div className="mt-2 flex items-center justify-between gap-3 sm:col-span-2">{asset ? <button type="button" onClick={() => void remove()} disabled={saving || uploading} className="flex h-10 items-center gap-2 rounded-full border border-destructive/30 px-4 font-mono text-[7px] uppercase tracking-[.14em] text-destructive disabled:opacity-50"><Trash2 className="h-3.5 w-3.5" />Delete</button> : <span />}<button type="submit" disabled={saving || uploading} className="flex h-11 items-center gap-2 rounded-full bg-foreground px-6 font-mono text-[8px] uppercase tracking-[.15em] text-background disabled:opacity-60">{saving && <LoaderCircle className="h-3.5 w-3.5 animate-spin" />}{saving ? "Saving" : asset ? "Save changes" : "Add asset"}</button></div>
+      <div className="mt-2 flex items-center justify-between gap-3 sm:col-span-2">{asset ? <BrandedDeleteDialog itemName={asset.name} itemType="gallery asset" disabled={saving || uploading} onConfirm={remove} trigger={<button type="button" className="flex h-10 items-center gap-2 rounded-full border border-destructive/30 px-4 font-mono text-[7px] uppercase tracking-[.14em] text-destructive disabled:opacity-50"><Trash2 className="h-3.5 w-3.5" />Delete</button>} /> : <span />}<button type="submit" disabled={saving || uploading} className="flex h-11 items-center gap-2 rounded-full bg-foreground px-6 font-mono text-[8px] uppercase tracking-[.15em] text-background disabled:opacity-60">{saving && <LoaderCircle className="h-3.5 w-3.5 animate-spin" />}{saving ? "Saving" : asset ? "Save changes" : "Add asset"}</button></div>
     </form>
   </EditorShell>;
 };
@@ -589,7 +623,7 @@ const TeamEditor = ({ member, close }: { member?: TeamMember; close: () => void 
     finally { setSaving(false); }
   };
   const remove = async () => {
-    if (!member || !window.confirm(`Delete ${member.name}? This cannot be undone.`)) return;
+    if (!member) return;
     setSaving(true);
     try { await deleteTeamMember(member.id); toast({ title: "Team member deleted" }); close(); }
     catch (error) { toast({ title: "Team member could not be deleted", description: error instanceof Error ? error.message : "Please try again.", variant: "destructive" }); }
@@ -608,7 +642,7 @@ const TeamEditor = ({ member, close }: { member?: TeamMember; close: () => void 
       <label className={editorLabel}>Upload from device<span className="relative mt-2 block"><input type="file" accept="image/jpeg,image/png,image/webp,image/avif,image/gif" onChange={(event) => void chooseFile(event)} disabled={uploading} className="block w-full text-[10px] file:mr-3 file:rounded-full file:border-0 file:bg-foreground file:px-3 file:py-2 file:text-[8px] file:uppercase file:text-background disabled:opacity-50" />{uploading && <span className="mt-2 flex items-center gap-2 text-[9px] normal-case tracking-normal"><LoaderCircle className="h-3 w-3 animate-spin" />Uploading securely…</span>}</span></label>
       <label className={editorLabel}>Or paste image URL<input value={form.image} onChange={(e) => change("image", e.target.value)} placeholder="https://example.com/portrait.jpg" className={editorField} /></label>
       {form.image && <div className="sm:col-span-2"><img src={form.image} alt="Team member preview" className="h-56 w-full rounded-2xl object-cover object-top" /></div>}
-      <div className="mt-2 flex items-center justify-between gap-3 sm:col-span-2">{member ? <button type="button" onClick={() => void remove()} disabled={saving || uploading} className="flex h-10 items-center gap-2 rounded-full border border-destructive/30 px-4 font-mono text-[7px] uppercase tracking-[.14em] text-destructive disabled:opacity-50"><Trash2 className="h-3.5 w-3.5" />Delete</button> : <span />}<button type="submit" disabled={saving || uploading} className="flex h-11 items-center gap-2 rounded-full bg-foreground px-6 font-mono text-[8px] uppercase tracking-[.15em] text-background disabled:opacity-60">{saving && <LoaderCircle className="h-3.5 w-3.5 animate-spin" />}{saving ? "Saving" : member ? "Save changes" : "Add member"}</button></div>
+      <div className="mt-2 flex items-center justify-between gap-3 sm:col-span-2">{member ? <BrandedDeleteDialog itemName={member.name} itemType="team member" disabled={saving || uploading} onConfirm={remove} trigger={<button type="button" className="flex h-10 items-center gap-2 rounded-full border border-destructive/30 px-4 font-mono text-[7px] uppercase tracking-[.14em] text-destructive disabled:opacity-50"><Trash2 className="h-3.5 w-3.5" />Delete</button>} /> : <span />}<button type="submit" disabled={saving || uploading} className="flex h-11 items-center gap-2 rounded-full bg-foreground px-6 font-mono text-[8px] uppercase tracking-[.15em] text-background disabled:opacity-60">{saving && <LoaderCircle className="h-3.5 w-3.5 animate-spin" />}{saving ? "Saving" : member ? "Save changes" : "Add member"}</button></div>
     </form>
   </EditorShell>;
 };
@@ -640,7 +674,6 @@ const EnquiryEditor = ({ enquiry, close }: { enquiry: Enquiry; close: () => void
     finally { setSaving(false); }
   };
   const remove = async () => {
-    if (!window.confirm(`Delete the enquiry from ${enquiry.name}?`)) return;
     setSaving(true);
     try { await deleteEnquiry(enquiry.id); toast({ title: "Enquiry deleted" }); close(); }
     catch (error) { toast({ title: "Enquiry could not be deleted", description: error instanceof Error ? error.message : "Please try again.", variant: "destructive" }); }
@@ -666,7 +699,7 @@ const EnquiryEditor = ({ enquiry, close }: { enquiry: Enquiry; close: () => void
 
     {replies.length > 0 && <div className="mt-4 rounded-2xl border border-border p-4"><p className={editorLabel}>Reply history · {replies.length}</p><div className="mt-3 space-y-3">{replies.map((reply) => <div key={reply.id} className="rounded-xl bg-muted p-3"><div className="flex items-start justify-between gap-3"><div><p className="text-xs font-medium">{reply.subject}</p><p className="mt-1 font-mono text-[7px] uppercase tracking-[.11em] text-muted-foreground">{reply.sentAt ? new Date(reply.sentAt).toLocaleString() : new Date(reply.createdAt).toLocaleString()}</p></div><Status value={reply.deliveryStatus} /></div><p className="mt-3 whitespace-pre-wrap text-xs leading-6 text-muted-foreground">{reply.message}</p>{reply.deliveryError && <p className="mt-2 text-xs text-destructive">{reply.deliveryError}</p>}</div>)}</div></div>}
 
-    <div className="mt-5 flex flex-wrap items-center gap-2">{currentEnquiry.notificationStatus !== "Sent" && <button onClick={() => void retryNotification()} disabled={saving} className="flex h-10 items-center gap-2 rounded-full border border-border px-4 font-mono text-[7px] uppercase tracking-[.13em] transition-colors hover:border-foreground disabled:opacity-50"><RefreshCw className={`h-3.5 w-3.5 ${saving ? "animate-spin" : ""}`} />Retry receipt</button>}{(["New", "Review", "Replied", "Archived"] as const).filter((status) => status !== currentEnquiry.status).map((status) => <button key={status} onClick={() => void setStatus(status)} disabled={saving} className="h-10 rounded-full border border-border px-4 font-mono text-[7px] uppercase tracking-[.13em] transition-colors hover:border-foreground disabled:opacity-50">Mark {status}</button>)}<a href={`mailto:${currentEnquiry.email}?subject=${encodeURIComponent(replySubject)}`} className="flex h-10 items-center gap-2 rounded-full border border-border px-4 font-mono text-[7px] uppercase tracking-[.13em] transition-colors hover:border-foreground"><Mail className="h-3.5 w-3.5" />Email app</a><button onClick={() => void remove()} disabled={saving} className="ml-auto grid h-10 w-10 place-items-center rounded-full border border-destructive/30 text-destructive disabled:opacity-50" aria-label="Delete enquiry">{saving ? <LoaderCircle className="h-3.5 w-3.5 animate-spin" /> : <Trash2 className="h-3.5 w-3.5" />}</button></div>
+    <div className="mt-5 flex flex-wrap items-center gap-2">{currentEnquiry.notificationStatus !== "Sent" && <button onClick={() => void retryNotification()} disabled={saving} className="flex h-10 items-center gap-2 rounded-full border border-border px-4 font-mono text-[7px] uppercase tracking-[.13em] transition-colors hover:border-foreground disabled:opacity-50"><RefreshCw className={`h-3.5 w-3.5 ${saving ? "animate-spin" : ""}`} />Retry receipt</button>}{(["New", "Review", "Replied", "Archived"] as const).filter((status) => status !== currentEnquiry.status).map((status) => <button key={status} onClick={() => void setStatus(status)} disabled={saving} className="h-10 rounded-full border border-border px-4 font-mono text-[7px] uppercase tracking-[.13em] transition-colors hover:border-foreground disabled:opacity-50">Mark {status}</button>)}<a href={`mailto:${currentEnquiry.email}?subject=${encodeURIComponent(replySubject)}`} className="flex h-10 items-center gap-2 rounded-full border border-border px-4 font-mono text-[7px] uppercase tracking-[.13em] transition-colors hover:border-foreground"><Mail className="h-3.5 w-3.5" />Email app</a><span className="ml-auto"><BrandedDeleteDialog itemName={`${currentEnquiry.name}'s enquiry`} itemType="enquiry" disabled={saving} onConfirm={remove} trigger={<button type="button" className="grid h-10 w-10 place-items-center rounded-full border border-destructive/30 text-destructive disabled:opacity-50" aria-label="Delete enquiry"><Trash2 className="h-3.5 w-3.5" /></button>} /></span></div>
   </EditorShell>;
 };
 

@@ -1,6 +1,6 @@
 import PageHero from "@/components/layout/PageHero";
 import { ArrowUpRight, Mail } from "lucide-react";
-import { useContent } from "@/lib/contentStore";
+import { getTeamLeader, useContent } from "@/lib/contentStore";
 
 const memberLayout = (index: number) => {
   if (index === 0) return { column: "md:col-span-7", image: "aspect-[5/4]", title: "text-3xl md:text-4xl" };
@@ -15,7 +15,7 @@ const memberLayout = (index: number) => {
 const Team = () => {
   const { team, settings } = useContent();
   const published = team.filter((member) => member.status === "Published").sort((a, b) => a.sortOrder - b.sortOrder);
-  const leader = published.find((member) => member.featured) ?? published[0];
+  const leader = getTeamLeader(team);
   const people = published.filter((member) => member.id !== leader?.id);
 
   return (
