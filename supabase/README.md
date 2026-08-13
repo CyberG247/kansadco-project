@@ -15,6 +15,7 @@ Alternatively, run every SQL file in `supabase/migrations` in filename order thr
 
 - administrator profiles and role checks;
 - projects, gallery assets, team members, enquiries, enquiry reply history, site settings and activity tables;
+- editable project case studies with public slugs, detailed narratives, key features and image galleries;
 - public-read/admin-write RLS policies;
 - automatic activity logging and timestamps;
 - a public `site-media` bucket with administrator-only writes.

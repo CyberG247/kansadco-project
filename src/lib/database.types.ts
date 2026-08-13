@@ -10,8 +10,8 @@ export type Database = {
         Relationships: [];
       };
       projects: {
-        Row: { id: string; name: string; type: string; location: string; progress: number; status: "Published" | "In progress" | "Draft"; year: string; description: string; image: string; updated_at: string; created_at: string };
-        Insert: { id?: string; name: string; type: string; location: string; progress?: number; status?: "Published" | "In progress" | "Draft"; year: string; description: string; image: string; updated_at?: string; created_at?: string };
+        Row: { id: string; slug: string; name: string; type: string; location: string; progress: number; status: "Published" | "In progress" | "Draft"; year: string; description: string; image: string; client: string; scope: string; area: string; duration: string; overview: string; challenge: string; solution: string; features: string[]; gallery_images: string[]; updated_at: string; created_at: string };
+        Insert: { id?: string; slug: string; name: string; type: string; location: string; progress?: number; status?: "Published" | "In progress" | "Draft"; year: string; description: string; image: string; client?: string; scope?: string; area?: string; duration?: string; overview?: string; challenge?: string; solution?: string; features?: string[]; gallery_images?: string[]; updated_at?: string; created_at?: string };
         Update: Partial<Database["public"]["Tables"]["projects"]["Insert"]>;
         Relationships: [];
       };

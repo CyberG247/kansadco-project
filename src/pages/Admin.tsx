@@ -415,6 +415,7 @@ const Composer = ({ close, reduceMotion, create }: { close: () => void; reduceMo
 
 const editorField = "mt-2 h-11 w-full rounded-xl border border-border bg-background px-3 text-xs outline-none transition-colors focus:border-foreground";
 const editorLabel = "font-mono text-[7px] uppercase tracking-[.14em] text-muted-foreground";
+const projectSlug = (value: string) => value.toLowerCase().trim().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
 
 const EditorShell = ({ label, title, close, children }: { label: string; title: string; close: () => void; children: ReactNode }) => (
   <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 z-[80] flex items-end justify-center bg-slate-dark/55 p-3 backdrop-blur-sm sm:items-center sm:p-5" role="dialog" aria-modal="true" aria-label={title}>
@@ -427,15 +428,38 @@ const EditorShell = ({ label, title, close, children }: { label: string; title: 
 );
 
 const ProjectEditor = ({ project, close }: { project?: ManagedProject; close: () => void }) => {
-  const { addProject, updateProject, deleteProject } = useContent();
+  const { addProject, updateProject, deleteProject, uploadMedia } = useContent();
   const { toast } = useToast();
   const [form, setForm] = useState({
-    name: project?.name ?? "", type: project?.type ?? "Residential", location: project?.location ?? "",
+    slug: project?.slug ?? "", name: project?.name ?? "", type: project?.type ?? "Residential", location: project?.location ?? "",
     progress: project?.progress ?? 0, status: project?.status ?? "Draft" as ProjectStatus,
     year: project?.year ?? new Date().getFullYear().toString(), description: project?.description ?? "", image: project?.image ?? heroSignature,
+    client: project?.client ?? "", scope: project?.scope ?? "", area: project?.area ?? "", duration: project?.duration ?? "",
+    overview: project?.overview ?? "", challenge: project?.challenge ?? "", solution: project?.solution ?? "",
+    features: project?.features ?? [], galleryImages: project?.galleryImages ?? [],
   });
   const [saving, setSaving] = useState(false);
-  const change = (key: keyof typeof form, value: string | number) => setForm((current) => ({ ...current, [key]: value }));
+  const [uploading, setUploading] = useState(false);
+  const [slugEdited, setSlugEdited] = useState(Boolean(project?.slug));
+  const change = (key: keyof typeof form, value: string | number | string[]) => setForm((current) => ({ ...current, [key]: value }));
+  const changeName = (value: string) => setForm((current) => ({ ...current, name: value, slug: slugEdited ? current.slug : projectSlug(value) }));
+  const uploadCover = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0]; if (!file) return;
+    setUploading(true);
+    try { change("image", await uploadMedia(file)); toast({ title: "Cover uploaded" }); }
+    catch (error) { toast({ title: "Upload failed", description: error instanceof Error ? error.message : "Please try again.", variant: "destructive" }); }
+    finally { setUploading(false); event.target.value = ""; }
+  };
+  const uploadGallery = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const files = Array.from(event.target.files ?? []); if (!files.length) return;
+    setUploading(true);
+    try {
+      const urls = await Promise.all(files.map(uploadMedia));
+      setForm((current) => ({ ...current, galleryImages: [...current.galleryImages, ...urls] }));
+      toast({ title: `${urls.length} gallery ${urls.length === 1 ? "image" : "images"} uploaded` });
+    } catch (error) { toast({ title: "Upload failed", description: error instanceof Error ? error.message : "Please try again.", variant: "destructive" }); }
+    finally { setUploading(false); event.target.value = ""; }
+  };
   const submit = async (event: React.FormEvent) => {
     event.preventDefault();
     setSaving(true);
@@ -458,16 +482,29 @@ const ProjectEditor = ({ project, close }: { project?: ManagedProject; close: ()
   };
   return <EditorShell label={project ? "Portfolio · Edit" : "Portfolio · New"} title={project ? "Edit project." : "Create a project."} close={close}>
     <form onSubmit={submit} className="grid gap-4 sm:grid-cols-2">
-      <label className={editorLabel}>Project name<input value={form.name} onChange={(e) => change("name", e.target.value)} required className={editorField} /></label>
+      <label className={editorLabel}>Project name<input value={form.name} onChange={(e) => changeName(e.target.value)} required className={editorField} /></label>
       <label className={editorLabel}>Category<input value={form.type} onChange={(e) => change("type", e.target.value)} required className={editorField} /></label>
+      <label className={`${editorLabel} sm:col-span-2`}>Public URL slug<input value={form.slug} onChange={(e) => { setSlugEdited(true); change("slug", projectSlug(e.target.value)); }} required pattern="[a-z0-9]+(?:-[a-z0-9]+)*" placeholder="project-name" className={editorField} /><span className="mt-1.5 block normal-case tracking-normal text-[9px]">kansadco.com/projects/{form.slug || "project-name"}</span></label>
       <label className={editorLabel}>Location<input value={form.location} onChange={(e) => change("location", e.target.value)} required className={editorField} /></label>
       <label className={editorLabel}>Year<input value={form.year} onChange={(e) => change("year", e.target.value)} required className={editorField} /></label>
       <label className={editorLabel}>Status<select value={form.status} onChange={(e) => change("status", e.target.value as ProjectStatus)} className={editorField}><option>Draft</option><option>In progress</option><option>Published</option></select></label>
       <label className={editorLabel}>Completion · {form.progress}%<input type="range" min="0" max="100" value={form.progress} onChange={(e) => change("progress", Number(e.target.value))} className="mt-4 h-6 w-full accent-current" /></label>
-      <label className={`${editorLabel} sm:col-span-2`}>Image URL<input value={form.image} onChange={(e) => change("image", e.target.value)} required className={editorField} /></label>
-      <label className={`${editorLabel} sm:col-span-2`}>Description<textarea value={form.description} onChange={(e) => change("description", e.target.value)} required rows={4} className={`${editorField} h-auto py-3`} /></label>
+      <label className={editorLabel}>Client<input value={form.client} onChange={(e) => change("client", e.target.value)} placeholder="Client or client type" className={editorField} /></label>
+      <label className={editorLabel}>Scope<input value={form.scope} onChange={(e) => change("scope", e.target.value)} placeholder="Architecture · Construction" className={editorField} /></label>
+      <label className={editorLabel}>Area / scale<input value={form.area} onChange={(e) => change("area", e.target.value)} placeholder="18 hectares" className={editorField} /></label>
+      <label className={editorLabel}>Project duration<input value={form.duration} onChange={(e) => change("duration", e.target.value)} placeholder="2024 — Ongoing" className={editorField} /></label>
+      <label className={`${editorLabel} sm:col-span-2`}>Card summary<textarea value={form.description} onChange={(e) => change("description", e.target.value)} required rows={3} className={`${editorField} h-auto py-3`} /></label>
+      <label className={`${editorLabel} sm:col-span-2`}>Project overview<textarea value={form.overview} onChange={(e) => change("overview", e.target.value)} required rows={5} className={`${editorField} h-auto py-3 leading-6`} /></label>
+      <label className={`${editorLabel} sm:col-span-2`}>The challenge<textarea value={form.challenge} onChange={(e) => change("challenge", e.target.value)} rows={4} className={`${editorField} h-auto py-3 leading-6`} /></label>
+      <label className={`${editorLabel} sm:col-span-2`}>KANSADCO's response<textarea value={form.solution} onChange={(e) => change("solution", e.target.value)} rows={4} className={`${editorField} h-auto py-3 leading-6`} /></label>
+      <label className={`${editorLabel} sm:col-span-2`}>Key features · one per line<textarea value={form.features.join("\n")} onChange={(e) => change("features", e.target.value.split("\n").map((item) => item.trim()).filter(Boolean))} rows={5} placeholder={"Secure arrival\nLandscaped communal spaces\nFlexible home types"} className={`${editorField} h-auto py-3 leading-6`} /></label>
+      <label className={editorLabel}>Upload cover image<span className="relative mt-2 block"><input type="file" accept="image/jpeg,image/png,image/webp,image/avif,image/gif" onChange={(event) => void uploadCover(event)} disabled={uploading} className="block w-full text-[10px] file:mr-3 file:rounded-full file:border-0 file:bg-foreground file:px-3 file:py-2 file:text-[8px] file:uppercase file:text-background disabled:opacity-50" /></span></label>
+      <label className={editorLabel}>Or paste cover URL<input value={form.image} onChange={(e) => change("image", e.target.value)} required className={editorField} /></label>
       {form.image && <div className="sm:col-span-2"><img src={form.image} alt="Project preview" className="h-40 w-full rounded-2xl object-cover" /></div>}
-      <div className="mt-2 flex items-center justify-between gap-3 sm:col-span-2">{project ? <button type="button" onClick={() => void remove()} disabled={saving} className="flex h-10 items-center gap-2 rounded-full border border-destructive/30 px-4 font-mono text-[7px] uppercase tracking-[.14em] text-destructive disabled:opacity-50"><Trash2 className="h-3.5 w-3.5" />Delete</button> : <span />}<button type="submit" disabled={saving} className="flex h-11 items-center gap-2 rounded-full bg-foreground px-6 font-mono text-[8px] uppercase tracking-[.15em] text-background disabled:opacity-60">{saving && <LoaderCircle className="h-3.5 w-3.5 animate-spin" />}{saving ? "Saving" : project ? "Save changes" : "Create project"}</button></div>
+      <label className={editorLabel}>Upload gallery images<span className="relative mt-2 block"><input type="file" multiple accept="image/jpeg,image/png,image/webp,image/avif,image/gif" onChange={(event) => void uploadGallery(event)} disabled={uploading} className="block w-full text-[10px] file:mr-3 file:rounded-full file:border-0 file:bg-foreground file:px-3 file:py-2 file:text-[8px] file:uppercase file:text-background disabled:opacity-50" />{uploading && <span className="mt-2 flex items-center gap-2 text-[9px] normal-case tracking-normal"><LoaderCircle className="h-3 w-3 animate-spin" />Uploading securely…</span>}</span></label>
+      <label className={editorLabel}>Or add gallery URLs · one per line<textarea value={form.galleryImages.join("\n")} onChange={(e) => change("galleryImages", e.target.value.split("\n").map((item) => item.trim()).filter(Boolean))} rows={4} placeholder="https://…" className={`${editorField} h-auto py-3 normal-case tracking-normal`} /></label>
+      {form.galleryImages.length > 0 && <div className="grid grid-cols-2 gap-2 sm:col-span-2 sm:grid-cols-3">{form.galleryImages.map((image, index) => <div key={`${image}-${index}`} className="group relative aspect-[4/3] overflow-hidden rounded-xl bg-muted"><img src={image} alt={`Gallery preview ${index + 1}`} className="h-full w-full object-cover" /><button type="button" onClick={() => change("galleryImages", form.galleryImages.filter((_, imageIndex) => imageIndex !== index))} aria-label={`Remove gallery image ${index + 1}`} className="absolute right-2 top-2 grid h-7 w-7 place-items-center rounded-full bg-slate-dark/80 text-white opacity-0 transition-opacity group-hover:opacity-100"><X className="h-3 w-3" /></button></div>)}</div>}
+      <div className="mt-2 flex items-center justify-between gap-3 sm:col-span-2">{project ? <button type="button" onClick={() => void remove()} disabled={saving || uploading} className="flex h-10 items-center gap-2 rounded-full border border-destructive/30 px-4 font-mono text-[7px] uppercase tracking-[.14em] text-destructive disabled:opacity-50"><Trash2 className="h-3.5 w-3.5" />Delete</button> : <span />}<button type="submit" disabled={saving || uploading} className="flex h-11 items-center gap-2 rounded-full bg-foreground px-6 font-mono text-[8px] uppercase tracking-[.15em] text-background disabled:opacity-60">{saving && <LoaderCircle className="h-3.5 w-3.5 animate-spin" />}{saving ? "Saving" : project ? "Save changes" : "Create project"}</button></div>
     </form>
   </EditorShell>;
 };

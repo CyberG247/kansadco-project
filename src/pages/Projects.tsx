@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { Link } from "react-router-dom";
 import PageHero from "@/components/layout/PageHero";
 import { ArrowUpRight } from "lucide-react";
 import project4 from "@/assets/project-4.jpg";
@@ -25,14 +26,17 @@ const Projects = () => {
         <div className="container-custom grid gap-x-8 gap-y-20 max-md:flex max-md:snap-x max-md:snap-mandatory max-md:overflow-x-auto max-md:pb-4 [scrollbar-width:none] max-md:[&::-webkit-scrollbar]:hidden md:grid-cols-2">
           {visible.map((project, index) => (
             <article key={project.id} className={`group max-md:min-w-[84vw] max-md:snap-center ${index % 2 ? "md:mt-28" : ""}`}>
-              <div className={`image-reveal relative bg-muted ${index % 3 === 1 ? "aspect-[4/5]" : "aspect-[5/4]"}`}>
-                <img src={project.image} alt={project.name} className="h-full w-full object-cover" />
-                <span className="absolute right-4 top-4 grid h-12 w-12 translate-y-2 place-items-center rounded-full bg-background opacity-0 transition-all group-hover:translate-y-0 group-hover:rotate-45 group-hover:opacity-100"><ArrowUpRight className="h-4 w-4" /></span>
-              </div>
-              <div className="mt-5 grid gap-5 border-b border-border pb-6 sm:grid-cols-[1fr_auto]">
-                <div><p className="mb-2 text-[9px] uppercase tracking-[.18em] text-accent">{project.type} · {project.year}</p><h2 className="text-3xl md:text-4xl">{project.name}</h2><p className="mt-2 text-xs text-muted-foreground">{project.location}</p></div>
-                <p className="max-w-xs text-xs leading-6 text-muted-foreground sm:text-right">{project.description}</p>
-              </div>
+              <Link to={`/projects/${project.slug}`} aria-label={`View ${project.name}`} className="block focus-visible:rounded-2xl focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-accent">
+                <div className={`image-reveal relative overflow-hidden bg-muted ${index % 3 === 1 ? "aspect-[4/5]" : "aspect-[5/4]"}`}>
+                  <img src={project.image} alt={project.name} className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-[1.025]" />
+                  <span className="absolute right-4 top-4 grid h-12 w-12 translate-y-2 place-items-center rounded-full bg-background opacity-0 transition-all group-hover:translate-y-0 group-hover:rotate-45 group-hover:opacity-100"><ArrowUpRight className="h-4 w-4" /></span>
+                  <span className="absolute bottom-4 left-4 rounded-full bg-slate-dark/75 px-3 py-2 font-mono text-[7px] uppercase tracking-[.15em] text-white backdrop-blur">View project</span>
+                </div>
+                <div className="mt-5 grid gap-5 border-b border-border pb-6 transition-colors group-hover:border-foreground sm:grid-cols-[1fr_auto]">
+                  <div><p className="mb-2 text-[9px] uppercase tracking-[.18em] text-accent">{project.type} · {project.year}</p><h2 className="text-3xl md:text-4xl">{project.name}</h2><p className="mt-2 text-xs text-muted-foreground">{project.location}</p></div>
+                  <p className="max-w-xs text-xs leading-6 text-muted-foreground sm:text-right">{project.description}</p>
+                </div>
+              </Link>
             </article>
           ))}
         </div>

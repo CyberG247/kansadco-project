@@ -20,6 +20,7 @@ export type BackendStatus = "loading" | "connected" | "unconfigured" | "error";
 
 export interface ManagedProject {
   id: string;
+  slug: string;
   name: string;
   type: string;
   location: string;
@@ -28,6 +29,15 @@ export interface ManagedProject {
   year: string;
   description: string;
   image: string;
+  client: string;
+  scope: string;
+  area: string;
+  duration: string;
+  overview: string;
+  challenge: string;
+  solution: string;
+  features: string[];
+  galleryImages: string[];
   updatedAt: string;
 }
 
@@ -147,12 +157,12 @@ interface ContentContextValue extends ContentState {
 
 const defaultState: ContentState = {
   projects: [
-    { id: "project-rahmaniyya-2", name: "Rahmaniyya Estate II", type: "Residential", location: "Gwarinpa, Abuja", progress: 78, status: "In progress", year: "Ongoing", description: "The next expression of our residential vision: connected living, essential amenities and generous public landscape.", image: heroEstate, updatedAt: "2026-08-12T08:00:00.000Z" },
-    { id: "project-ministry", name: "Federal Ministry Complex", type: "Civic", location: "Abuja", progress: 61, status: "In progress", year: "Ongoing", description: "A coordinated government campus designed around durable construction, intuitive circulation and institutional dignity.", image: heroConstruction, updatedAt: "2026-08-11T10:30:00.000Z" },
-    { id: "project-tower", name: "KANSADCO Corporate Tower", type: "Commercial", location: "Central Business District, Abuja", progress: 100, status: "Published", year: "2025", description: "Grade-A workspaces and retail arranged as a clear, efficient vertical business address in the capital.", image: project3, updatedAt: "2026-08-04T09:00:00.000Z" },
-    { id: "project-kaduna", name: "River Kaduna Bridge", type: "Infrastructure", location: "Kaduna State", progress: 100, status: "Published", year: "2022", description: "A 500-metre dual carriageway bridge engineered to connect communities and stand up to intensive daily use.", image: project4, updatedAt: "2026-07-29T09:00:00.000Z" },
-    { id: "project-kano-zaria", name: "Kano–Zaria Corridor", type: "Infrastructure", location: "Kano State", progress: 100, status: "Draft", year: "2023", description: "A strategic 45-kilometre transport link rehabilitated for safer movement, stronger drainage and regional commerce.", image: project2, updatedAt: "2026-07-22T09:00:00.000Z" },
-    { id: "project-rahmaniyya-1", name: "Rahmaniyya Estate I", type: "Residential", location: "Utako, Abuja", progress: 100, status: "Published", year: "2024", description: "A considered residential community pairing contemporary homes with landscape, security and an enduring sense of place.", image: project1, updatedAt: "2026-07-18T09:00:00.000Z" },
+    { id: "project-rahmaniyya-2", slug: "rahmaniyya-estate-ii", name: "Rahmaniyya Estate II", type: "Residential", location: "Gwarinpa, Abuja", progress: 78, status: "In progress", year: "Ongoing", description: "The next expression of our residential vision: connected living, essential amenities and generous public landscape.", image: heroEstate, client: "Private residential development", scope: "Masterplanning · Architecture · Construction", area: "18 hectares", duration: "2024 — Ongoing", overview: "Rahmaniyya Estate II is conceived as a calm, connected residential community where contemporary homes sit within a generous landscape framework. The plan balances privacy with neighbourhood life through shaded streets, shared green spaces and a clear hierarchy of movement.", challenge: "The brief called for a high-quality residential environment that could accommodate different household types while preserving a coherent identity, efficient infrastructure and a strong sense of arrival.", solution: "A landscape-led masterplan organizes homes into intimate clusters, separates service movement from primary pedestrian routes and uses a restrained material palette to unify the development as it grows.", features: ["Secure arrival and controlled access", "Landscaped communal spaces", "Flexible contemporary home types", "Pedestrian-focused internal streets", "Integrated utility and service planning"], galleryImages: [heroEstate, project1, heroSignature], updatedAt: "2026-08-12T08:00:00.000Z" },
+    { id: "project-ministry", slug: "federal-ministry-complex", name: "Federal Ministry Complex", type: "Civic", location: "Abuja", progress: 61, status: "In progress", year: "Ongoing", description: "A coordinated government campus designed around durable construction, intuitive circulation and institutional dignity.", image: heroConstruction, client: "Federal institution", scope: "Architecture · Construction · Project management", area: "32,000 m²", duration: "2023 — Ongoing", overview: "The Federal Ministry Complex brings several administrative functions into one legible civic campus. Its architecture is measured and durable, using shaded circulation, generous public thresholds and clearly organized work environments to support everyday institutional life.", challenge: "The project needed to reconcile public accessibility, staff security and complex departmental relationships within a dignified building that remains practical to operate over time.", solution: "The campus is arranged around a central orientation spine with distinct public and secure zones. Repetitive structural bays, protected façades and accessible courtyards simplify construction while improving daylight and navigation.", features: ["Clearly separated public and staff circulation", "Shaded civic courtyards", "Flexible departmental floor plates", "Durable low-maintenance finishes", "Integrated project delivery coordination"], galleryImages: [heroConstruction, project3, heroSignature], updatedAt: "2026-08-11T10:30:00.000Z" },
+    { id: "project-tower", slug: "kansadco-corporate-tower", name: "KANSADCO Corporate Tower", type: "Commercial", location: "Central Business District, Abuja", progress: 100, status: "Published", year: "2025", description: "Grade-A workspaces and retail arranged as a clear, efficient vertical business address in the capital.", image: project3, client: "Private corporate client", scope: "Architecture · Interior coordination · Construction", area: "21,500 m²", duration: "2022 — 2025", overview: "KANSADCO Corporate Tower is imagined as a confident commercial address with efficient floor plates, active ground-level uses and a composed skyline presence. The building pairs contemporary workplace flexibility with a warm, regionally responsive material character.", challenge: "A constrained urban site required an efficient vertical programme without compromising arrival, daylight, service access or the quality of shared business amenities.", solution: "A compact service core releases adaptable perimeter workspace while a layered façade manages glare and heat. Retail, lobby and meeting functions animate the lower levels and strengthen the tower's relationship with the street.", features: ["Flexible Grade-A office floors", "Ground-floor retail and hospitality", "High-performance shaded façade", "Executive meeting and amenity levels", "Efficient vertical circulation core"], galleryImages: [project3, heroConstruction, project4], updatedAt: "2026-08-04T09:00:00.000Z" },
+    { id: "project-kaduna", slug: "river-kaduna-bridge", name: "River Kaduna Bridge", type: "Infrastructure", location: "Kaduna State", progress: 100, status: "Published", year: "2022", description: "A 500-metre dual carriageway bridge engineered to connect communities and stand up to intensive daily use.", image: project4, client: "Public infrastructure client", scope: "Engineering · Construction · Delivery coordination", area: "500-metre crossing", duration: "2019 — 2022", overview: "The River Kaduna Bridge creates a dependable connection across a critical waterway, improving movement between communities and supporting the wider transport network. Its straightforward structural expression reflects a focus on resilience, safety and long service life.", challenge: "Seasonal water levels, demanding ground conditions and the need to maintain regional movement required a carefully phased engineering and construction strategy.", solution: "Robust pier geometry, coordinated drainage and staged works reduced disruption while responding to the river environment. Clear carriageway separation and protected pedestrian edges improve everyday safety.", features: ["Dual carriageway crossing", "Protected pedestrian movement", "Resilient drainage strategy", "Durable structural system", "Phased construction planning"], galleryImages: [project4, project2, heroConstruction], updatedAt: "2026-07-29T09:00:00.000Z" },
+    { id: "project-kano-zaria", slug: "kano-zaria-corridor", name: "Kano–Zaria Corridor", type: "Infrastructure", location: "Kano State", progress: 100, status: "Draft", year: "2023", description: "A strategic 45-kilometre transport link rehabilitated for safer movement, stronger drainage and regional commerce.", image: project2, client: "Public infrastructure client", scope: "Rehabilitation · Drainage · Construction", area: "45-kilometre corridor", duration: "2020 — 2023", overview: "The Kano–Zaria Corridor rehabilitation focused on safer, more reliable movement along an economically important regional route. Improvements address pavement performance, drainage and the points where settlements meet the road.", challenge: "Heavy daily use, seasonal runoff and continuous roadside activity demanded a construction approach that improved long-term performance while keeping people and goods moving.", solution: "Targeted pavement reconstruction was coordinated with strengthened drainage, clearer junctions and a phased traffic plan designed around the corridor's most active sections.", features: ["Rehabilitated carriageway", "Strengthened drainage network", "Safer junction transitions", "Phased traffic management", "Roadside settlement coordination"], galleryImages: [project2, project4, heroConstruction], updatedAt: "2026-07-22T09:00:00.000Z" },
+    { id: "project-rahmaniyya-1", slug: "rahmaniyya-estate-i", name: "Rahmaniyya Estate I", type: "Residential", location: "Utako, Abuja", progress: 100, status: "Published", year: "2024", description: "A considered residential community pairing contemporary homes with landscape, security and an enduring sense of place.", image: project1, client: "Private residential development", scope: "Architecture · Construction · Landscape coordination", area: "64 residences", duration: "2021 — 2024", overview: "Rahmaniyya Estate I is a composed residential enclave shaped around privacy, security and an everyday relationship with landscape. Contemporary elevations and carefully scaled streets give each home an individual presence while maintaining a coherent community character.", challenge: "The site needed to support a varied collection of homes and shared amenities without feeling repetitive, congested or disconnected from its landscaped setting.", solution: "Homes are positioned to create comfortable setbacks, framed views and pockets of communal green. A consistent architectural language is varied through proportion, screening and material detail.", features: ["Contemporary residential architecture", "Secure managed community", "Private and shared landscape", "Considered daylight and ventilation", "Integrated parking and services"], galleryImages: [project1, heroEstate, heroSignature], updatedAt: "2026-07-18T09:00:00.000Z" },
   ],
   gallery: [
     { id: "asset-arrival", src: heroSignature, name: "The Arrival Court", type: "Residential", location: "Abuja", year: "2026", status: "Published", createdAt: "2026-08-08T08:00:00.000Z" },
@@ -198,7 +208,16 @@ const getLegacyState = () => {
     const parsed = JSON.parse(saved) as Partial<ContentState>;
     return {
       ...cloneDefaults(),
-      projects: Array.isArray(parsed.projects) ? parsed.projects : defaultState.projects,
+      projects: Array.isArray(parsed.projects) ? parsed.projects.map((project) => {
+        const matchedDefault = defaultState.projects.find((item) => item.id === project.id || item.name === project.name);
+        return {
+          slug: (project.name || "project").toLowerCase().trim().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, ""),
+          client: "", scope: "", area: "", duration: project.year || "", overview: project.description || "",
+          challenge: "", solution: "", features: [], galleryImages: project.image ? [project.image] : [],
+          ...matchedDefault,
+          ...project,
+        };
+      }) : defaultState.projects,
       gallery: Array.isArray(parsed.gallery) ? parsed.gallery : defaultState.gallery,
       team: defaultState.team,
       settings: { ...defaultState.settings, ...parsed.settings },
@@ -208,9 +227,11 @@ const getLegacyState = () => {
   }
 };
 
-const mapProject = (row: { id: string; name: string; type: string; location: string; progress: number; status: ProjectStatus; year: string; description: string; image: string; updated_at: string }): ManagedProject => ({
-  id: row.id, name: row.name, type: row.type, location: row.location, progress: row.progress,
-  status: row.status, year: row.year, description: row.description, image: row.image, updatedAt: row.updated_at,
+const mapProject = (row: { id: string; slug: string; name: string; type: string; location: string; progress: number; status: ProjectStatus; year: string; description: string; image: string; client: string; scope: string; area: string; duration: string; overview: string; challenge: string; solution: string; features: string[]; gallery_images: string[]; updated_at: string }): ManagedProject => ({
+  id: row.id, slug: row.slug, name: row.name, type: row.type, location: row.location, progress: row.progress,
+  status: row.status, year: row.year, description: row.description, image: row.image,
+  client: row.client, scope: row.scope, area: row.area, duration: row.duration, overview: row.overview,
+  challenge: row.challenge, solution: row.solution, features: row.features ?? [], galleryImages: row.gallery_images ?? [], updatedAt: row.updated_at,
 });
 
 const mapGallery = (row: { id: string; src: string; name: string; type: string; location: string; year: string; status: AssetStatus; created_at: string }): GalleryAsset => ({
@@ -242,8 +263,11 @@ const mapSettings = (row: { display_name: string; primary_email: string; telepho
 });
 
 const projectRow = (project: ProjectInput) => ({
-  name: project.name, type: project.type, location: project.location, progress: project.progress,
+  slug: project.slug, name: project.name, type: project.type, location: project.location, progress: project.progress,
   status: project.status, year: project.year, description: project.description, image: project.image,
+  client: project.client, scope: project.scope, area: project.area, duration: project.duration,
+  overview: project.overview, challenge: project.challenge, solution: project.solution,
+  features: project.features, gallery_images: project.galleryImages,
 });
 
 const galleryRow = (asset: AssetInput) => ({
@@ -371,7 +395,11 @@ export const ContentProvider = ({ children }: { children: ReactNode }) => {
         }));
         const legacy = getLegacyState();
         if (!projectsResult.data?.length) {
-          const seededProjects = await Promise.all(legacy.projects.map(async ({ id, updatedAt: _updatedAt, ...project }) => projectRow({ ...project, image: await storeSeedMedia(project.image, id) })));
+          const seededProjects = await Promise.all(legacy.projects.map(async ({ id, updatedAt: _updatedAt, ...project }) => projectRow({
+            ...project,
+            image: await storeSeedMedia(project.image, id),
+            galleryImages: await Promise.all(project.galleryImages.map((image, index) => storeSeedMedia(image, `${id}-gallery-${index + 1}`))),
+          })));
           if (!isCurrentRefresh()) return;
           const { error } = await supabase.from("projects").insert(seededProjects);
           if (error) throw error;
@@ -478,6 +506,7 @@ export const ContentProvider = ({ children }: { children: ReactNode }) => {
     updateProject: async (id, updates) => {
       const payload = {
         ...(updates.name !== undefined && { name: updates.name }),
+        ...(updates.slug !== undefined && { slug: updates.slug }),
         ...(updates.type !== undefined && { type: updates.type }),
         ...(updates.location !== undefined && { location: updates.location }),
         ...(updates.progress !== undefined && { progress: Math.max(0, Math.min(100, updates.progress)) }),
@@ -485,6 +514,15 @@ export const ContentProvider = ({ children }: { children: ReactNode }) => {
         ...(updates.year !== undefined && { year: updates.year }),
         ...(updates.description !== undefined && { description: updates.description }),
         ...(updates.image !== undefined && { image: updates.image }),
+        ...(updates.client !== undefined && { client: updates.client }),
+        ...(updates.scope !== undefined && { scope: updates.scope }),
+        ...(updates.area !== undefined && { area: updates.area }),
+        ...(updates.duration !== undefined && { duration: updates.duration }),
+        ...(updates.overview !== undefined && { overview: updates.overview }),
+        ...(updates.challenge !== undefined && { challenge: updates.challenge }),
+        ...(updates.solution !== undefined && { solution: updates.solution }),
+        ...(updates.features !== undefined && { features: updates.features }),
+        ...(updates.galleryImages !== undefined && { gallery_images: updates.galleryImages }),
       };
       const { error } = await supabase.from("projects").update(payload).eq("id", id);
       if (error) throw new Error(error.message);

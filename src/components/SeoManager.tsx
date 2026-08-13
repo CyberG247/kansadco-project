@@ -1,5 +1,6 @@
 import { useEffect } from "react";
 import { useLocation } from "react-router-dom";
+import { useContent } from "@/lib/contentStore";
 
 const SITE_URL = "https://kansadco.com";
 const SOCIAL_IMAGE = `${SITE_URL}/social-card.jpg`;
@@ -62,10 +63,16 @@ const setMeta = (attribute: "name" | "property", key: string, content: string) =
 
 const SeoManager = () => {
   const { pathname } = useLocation();
+  const { projects } = useContent();
 
   useEffect(() => {
     const normalizedPath = pathname === "/" ? pathname : pathname.replace(/\/+$/, "");
-    const publicMetadata = routeMetadata[normalizedPath];
+    const projectSlug = normalizedPath.match(/^\/projects\/([^/]+)$/)?.[1];
+    const project = projectSlug ? projects.find((item) => item.status !== "Draft" && (item.slug === projectSlug || item.id === projectSlug)) : undefined;
+    const publicMetadata = routeMetadata[normalizedPath] ?? (project ? {
+      title: `${project.name} | KANSADCO Project`,
+      description: project.description,
+    } : undefined);
     const isAdmin = normalizedPath === "/admin";
     const metadata = publicMetadata ?? {
       title: isAdmin ? "KANSADCO Content Workspace" : "Page Not Found | KANSADCO",
@@ -85,10 +92,10 @@ const SeoManager = () => {
     setMeta("property", "og:title", metadata.title);
     setMeta("property", "og:description", metadata.description);
     setMeta("property", "og:url", canonicalUrl);
-    setMeta("property", "og:image", SOCIAL_IMAGE);
+    setMeta("property", "og:image", project?.image || SOCIAL_IMAGE);
     setMeta("name", "twitter:title", metadata.title);
     setMeta("name", "twitter:description", metadata.description);
-    setMeta("name", "twitter:image", SOCIAL_IMAGE);
+    setMeta("name", "twitter:image", project?.image || SOCIAL_IMAGE);
 
     let canonical = document.head.querySelector<HTMLLinkElement>('link[rel="canonical"]');
     if (!canonical) {
@@ -113,14 +120,14 @@ const SeoManager = () => {
 
     pageSchema.textContent = JSON.stringify({
       "@context": "https://schema.org",
-      "@type": "WebPage",
+      "@type": project ? "CreativeWork" : "WebPage",
       name: metadata.title,
       description: metadata.description,
       url: canonicalUrl,
       isPartOf: { "@id": `${SITE_URL}/#website` },
       inLanguage: "en-NG",
     });
-  }, [pathname]);
+  }, [pathname, projects]);
 
   return null;
 };
