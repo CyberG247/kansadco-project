@@ -78,10 +78,10 @@ create policy "Public reads published team members" on public.team_members
   for select to anon using (status = 'Published');
 drop policy if exists "Signed-in users read team members" on public.team_members;
 create policy "Signed-in users read team members" on public.team_members
-  for select to authenticated using (status = 'Published' or (select public.is_content_admin()));
+  for select to authenticated using (status = 'Published' or (select private.is_content_admin()));
 drop policy if exists "Admins manage team members" on public.team_members;
 create policy "Admins manage team members" on public.team_members
-  for all to authenticated using ((select public.is_content_admin())) with check ((select public.is_content_admin()));
+  for all to authenticated using ((select private.is_content_admin())) with check ((select private.is_content_admin()));
 
 grant select on public.team_members to anon;
 grant select, insert, update, delete on public.team_members to authenticated;
