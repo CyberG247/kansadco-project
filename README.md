@@ -1,6 +1,6 @@
 # KANSADCO Web Platform
 
-The public website and content workspace for KANSADCO Engineering Nigeria Limited.
+The public website and content workspace for Kansadco Services Nigerian Limited.
 
 ## Stack
 

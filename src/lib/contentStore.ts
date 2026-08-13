@@ -7,11 +7,13 @@ import heroSignature from "@/assets/hero-signature.webp";
 import heroEstate from "@/assets/hero-estate.jpg";
 import heroConstruction from "@/assets/hero-construction.webp";
 import paint from "@/assets/paint-service.jpg";
+import chairman from "@/assets/chairman.webp";
 import { useAuth } from "@/lib/auth";
 import { MEDIA_BUCKET, supabase } from "@/lib/supabase";
 
 export type ProjectStatus = "Published" | "In progress" | "Draft";
 export type AssetStatus = "Published" | "Draft";
+export type TeamMemberStatus = "Published" | "Draft";
 export type EnquiryStatus = "New" | "Review" | "Replied" | "Archived";
 export type EnquiryNotificationStatus = "Pending" | "Sent" | "Partial" | "Failed";
 export type BackendStatus = "loading" | "connected" | "unconfigured" | "error";
@@ -38,6 +40,20 @@ export interface GalleryAsset {
   year: string;
   status: AssetStatus;
   createdAt: string;
+}
+
+export interface TeamMember {
+  id: string;
+  name: string;
+  role: string;
+  discipline: string;
+  bio: string;
+  image: string;
+  email: string;
+  featured: boolean;
+  sortOrder: number;
+  status: TeamMemberStatus;
+  updatedAt: string;
 }
 
 export interface Enquiry {
@@ -83,12 +99,13 @@ export interface Activity {
   message: string;
   createdAt: string;
   read: boolean;
-  type: "project" | "gallery" | "enquiry" | "settings";
+  type: "project" | "gallery" | "team" | "enquiry" | "settings";
 }
 
 interface ContentState {
   projects: ManagedProject[];
   gallery: GalleryAsset[];
+  team: TeamMember[];
   enquiries: Enquiry[];
   enquiryReplies: EnquiryReply[];
   settings: SiteSettings;
@@ -97,6 +114,7 @@ interface ContentState {
 
 export type ProjectInput = Omit<ManagedProject, "id" | "updatedAt">;
 export type AssetInput = Omit<GalleryAsset, "id" | "createdAt">;
+export type TeamMemberInput = Omit<TeamMember, "id" | "updatedAt">;
 export type EnquiryInput = Omit<Enquiry, "id" | "createdAt" | "status" | "notificationStatus" | "notificationError" | "notifiedAt"> & {
   status?: EnquiryStatus;
   website?: string;
@@ -114,6 +132,9 @@ interface ContentContextValue extends ContentState {
   addGalleryAsset: (asset: AssetInput) => Promise<GalleryAsset>;
   updateGalleryAsset: (id: string, updates: Partial<AssetInput>) => Promise<void>;
   deleteGalleryAsset: (id: string) => Promise<void>;
+  addTeamMember: (member: TeamMemberInput) => Promise<TeamMember>;
+  updateTeamMember: (id: string, updates: Partial<TeamMemberInput>) => Promise<void>;
+  deleteTeamMember: (id: string) => Promise<void>;
   uploadMedia: (file: File) => Promise<string>;
   addEnquiry: (enquiry: EnquiryInput) => Promise<Enquiry>;
   replyToEnquiry: (id: string, subject: string, message: string) => Promise<void>;
@@ -143,14 +164,24 @@ const defaultState: ContentState = {
     { id: "asset-garden", src: heroConstruction, name: "Garden Residence", type: "Residential", location: "Nigeria", year: "2026", status: "Draft", createdAt: "2026-07-12T08:00:00.000Z" },
     { id: "asset-material", src: paint, name: "Material Library", type: "Materials", location: "KANSADCO Studio", year: "2026", status: "Published", createdAt: "2026-07-08T08:00:00.000Z" },
   ],
+  team: [
+    { id: "team-chairman", name: "Arch. Yunusa Ibrahim Hassan, MNIA", role: "Founder & Chief Executive Officer", discipline: "Architecture · Leadership", bio: "He established KANSADCO in 2018 around a commitment to vision, responsibility, professionalism and excellence—transforming client aspirations into purposeful spaces and lasting relationships.", image: chairman, email: "kansadco@gmail.com", featured: true, sortOrder: 1, status: "Published", updatedAt: "2026-08-13T08:00:00.000Z" },
+    { id: "team-fatima", name: "Arc. Fatima Ibrahim", role: "Chief Architect", discipline: "Architecture · Design", bio: "", image: "", email: "kansadco@gmail.com", featured: false, sortOrder: 2, status: "Published", updatedAt: "2026-08-13T08:00:00.000Z" },
+    { id: "team-chukwuma", name: "Engr. Chukwuma Okafor", role: "Director of Construction", discipline: "Delivery · Civil works", bio: "", image: "", email: "kansadco@gmail.com", featured: false, sortOrder: 3, status: "Published", updatedAt: "2026-08-13T08:00:00.000Z" },
+    { id: "team-aisha", name: "Hajia Aisha Mohammed", role: "Director of Real Estate", discipline: "Investment · Property", bio: "", image: "", email: "kansadco@gmail.com", featured: false, sortOrder: 4, status: "Published", updatedAt: "2026-08-13T08:00:00.000Z" },
+    { id: "team-david", name: "Engr. David Adeleke", role: "Chief Engineer", discipline: "Structures · Infrastructure", bio: "", image: "", email: "kansadco@gmail.com", featured: false, sortOrder: 5, status: "Published", updatedAt: "2026-08-13T08:00:00.000Z" },
+    { id: "team-grace", name: "Mrs. Grace Okonkwo", role: "Finance Director", discipline: "Finance · Governance", bio: "", image: "", email: "kansadco@gmail.com", featured: false, sortOrder: 6, status: "Published", updatedAt: "2026-08-13T08:00:00.000Z" },
+    { id: "team-yusuf", name: "Mallam Yusuf Garba", role: "Head of Operations", discipline: "Operations · Quality", bio: "", image: "", email: "kansadco@gmail.com", featured: false, sortOrder: 7, status: "Published", updatedAt: "2026-08-13T08:00:00.000Z" },
+    { id: "team-amaka", name: "Engr. Amaka Nwosu", role: "Project Manager", discipline: "Projects · Coordination", bio: "", image: "", email: "kansadco@gmail.com", featured: false, sortOrder: 8, status: "Published", updatedAt: "2026-08-13T08:00:00.000Z" },
+  ],
   enquiries: [],
   enquiryReplies: [],
   settings: {
-    displayName: "KANSADCO Engineering Nig. Ltd.",
+    displayName: "Kansadco Services Nigerian Limited",
     primaryEmail: "kansadco@gmail.com",
     telephone: "+234 803 738 0434",
     abujaAddress: "Rahmaniyya Estate 1, Ajose Adeogun Street, Utako, Abuja",
-    kanoAddress: "No. 30 Lamido Road, Nassarawa GRA, Kano",
+    kanoAddress: "No. 28 Lamido Road, Nasarawa GRA, Kano, Nigeria",
     defaultAuthor: "KANSADCO Editorial",
     reviewWorkflow: "Approval required",
     imageQuality: "Web optimized",
@@ -169,6 +200,7 @@ const getLegacyState = () => {
       ...cloneDefaults(),
       projects: Array.isArray(parsed.projects) ? parsed.projects : defaultState.projects,
       gallery: Array.isArray(parsed.gallery) ? parsed.gallery : defaultState.gallery,
+      team: defaultState.team,
       settings: { ...defaultState.settings, ...parsed.settings },
     };
   } catch {
@@ -184,6 +216,12 @@ const mapProject = (row: { id: string; name: string; type: string; location: str
 const mapGallery = (row: { id: string; src: string; name: string; type: string; location: string; year: string; status: AssetStatus; created_at: string }): GalleryAsset => ({
   id: row.id, src: row.src, name: row.name, type: row.type, location: row.location,
   year: row.year, status: row.status, createdAt: row.created_at,
+});
+
+const mapTeamMember = (row: { id: string; name: string; role: string; discipline: string; bio: string; image: string; email: string; featured: boolean; sort_order: number; status: TeamMemberStatus; updated_at: string }): TeamMember => ({
+  id: row.id, name: row.name, role: row.role, discipline: row.discipline, bio: row.bio,
+  image: row.image === "bundled:chairman" ? chairman : row.image, email: row.email,
+  featured: row.featured, sortOrder: row.sort_order, status: row.status, updatedAt: row.updated_at,
 });
 
 const mapEnquiry = (row: { id: string; name: string; email: string; phone: string; subject: string; message: string; status: EnquiryStatus; source: Enquiry["source"]; created_at: string; notification_status: EnquiryNotificationStatus; notification_error: string | null; notified_at: string | null }): Enquiry => ({
@@ -211,6 +249,12 @@ const projectRow = (project: ProjectInput) => ({
 const galleryRow = (asset: AssetInput) => ({
   src: asset.src, name: asset.name, type: asset.type, location: asset.location,
   year: asset.year, status: asset.status,
+});
+
+const teamMemberRow = (member: TeamMemberInput) => ({
+  name: member.name, role: member.role, discipline: member.discipline, bio: member.bio,
+  image: member.image === chairman ? "bundled:chairman" : member.image, email: member.email,
+  featured: member.featured, sort_order: member.sortOrder, status: member.status,
 });
 
 const settingsRow = (settings: SiteSettings) => ({
@@ -296,6 +340,7 @@ export const ContentProvider = ({ children }: { children: ReactNode }) => {
     setLoading(true);
     const projectRequest = supabase.from("projects").select("*").order("updated_at", { ascending: false });
     const galleryRequest = supabase.from("gallery_assets").select("*").order("created_at", { ascending: false });
+    const teamRequest = supabase.from("team_members").select("*").order("sort_order", { ascending: true }).order("updated_at", { ascending: false });
     const settingsRequest = supabase.from("site_settings").select("*").eq("id", 1).maybeSingle();
     const enquiryRequest = isAuthorized
       ? supabase.from("enquiries").select("*").order("created_at", { ascending: false })
@@ -308,11 +353,11 @@ export const ContentProvider = ({ children }: { children: ReactNode }) => {
       : Promise.resolve({ data: [], error: null });
 
     try {
-      let [projectsResult, galleryResult, settingsResult, enquiriesResult, repliesResult, activitiesResult] = await Promise.all([
-        projectRequest, galleryRequest, settingsRequest, enquiryRequest, replyRequest, activityRequest,
+      let [projectsResult, galleryResult, teamResult, settingsResult, enquiriesResult, repliesResult, activitiesResult] = await Promise.all([
+        projectRequest, galleryRequest, teamRequest, settingsRequest, enquiryRequest, replyRequest, activityRequest,
       ]);
       if (!isCurrentRefresh()) return;
-      const firstError = [projectsResult.error, galleryResult.error, settingsResult.error, enquiriesResult.error, repliesResult.error, activitiesResult.error].find(Boolean);
+      const firstError = [projectsResult.error, galleryResult.error, teamResult.error, settingsResult.error, enquiriesResult.error, repliesResult.error, activitiesResult.error].find(Boolean);
       if (firstError) throw firstError;
 
       if (isAuthorized && settingsResult.data && !settingsResult.data.content_initialized) {
@@ -342,16 +387,17 @@ export const ContentProvider = ({ children }: { children: ReactNode }) => {
         if (initializedError) throw initializedError;
         window.localStorage.removeItem("kansadco-content-v1");
 
-        [projectsResult, galleryResult, settingsResult, enquiriesResult, repliesResult, activitiesResult] = await Promise.all([
+        [projectsResult, galleryResult, teamResult, settingsResult, enquiriesResult, repliesResult, activitiesResult] = await Promise.all([
           supabase.from("projects").select("*").order("updated_at", { ascending: false }),
           supabase.from("gallery_assets").select("*").order("created_at", { ascending: false }),
+          supabase.from("team_members").select("*").order("sort_order", { ascending: true }).order("updated_at", { ascending: false }),
           supabase.from("site_settings").select("*").eq("id", 1).maybeSingle(),
           supabase.from("enquiries").select("*").order("created_at", { ascending: false }),
           supabase.from("enquiry_replies").select("*").order("created_at", { ascending: false }),
           supabase.from("activities").select("*").order("created_at", { ascending: false }).limit(100),
         ]);
         if (!isCurrentRefresh()) return;
-        const retryError = [projectsResult.error, galleryResult.error, settingsResult.error, enquiriesResult.error, repliesResult.error, activitiesResult.error].find(Boolean);
+        const retryError = [projectsResult.error, galleryResult.error, teamResult.error, settingsResult.error, enquiriesResult.error, repliesResult.error, activitiesResult.error].find(Boolean);
         if (retryError) throw retryError;
       }
 
@@ -359,6 +405,7 @@ export const ContentProvider = ({ children }: { children: ReactNode }) => {
       setState({
         projects: useBundledContent ? cloneDefaults().projects : (projectsResult.data ?? []).map(mapProject),
         gallery: useBundledContent ? cloneDefaults().gallery : (galleryResult.data ?? []).map(mapGallery),
+        team: (teamResult.data ?? []).map(mapTeamMember),
         enquiries: (enquiriesResult.data ?? []).map(mapEnquiry),
         enquiryReplies: (repliesResult.data ?? []).map(mapEnquiryReply),
         settings: settingsResult.data ? mapSettings(settingsResult.data) : cloneDefaults().settings,
@@ -468,6 +515,24 @@ export const ContentProvider = ({ children }: { children: ReactNode }) => {
         const path = decodeURIComponent(current.src.split(marker)[1]);
         await supabase.storage.from(MEDIA_BUCKET).remove([path]);
       }
+      await refreshContent();
+    },
+    addTeamMember: async (input) => {
+      const result = await supabase.from("team_members").insert(teamMemberRow(input)).select("*").single();
+      const member = mapTeamMember(requireData(result.data, result.error));
+      await refreshContent();
+      return member;
+    },
+    updateTeamMember: async (id, updates) => {
+      const current = state.team.find((member) => member.id === id);
+      if (!current) throw new Error("Team member not found.");
+      const { error } = await supabase.from("team_members").update(teamMemberRow({ ...current, ...updates })).eq("id", id);
+      if (error) throw new Error(error.message);
+      await refreshContent();
+    },
+    deleteTeamMember: async (id) => {
+      const { error } = await supabase.from("team_members").delete().eq("id", id);
+      if (error) throw new Error(error.message);
       await refreshContent();
     },
     uploadMedia: async (file) => {

@@ -8,14 +8,14 @@ import heroEstate from "@/assets/hero-estate.jpg";
 const slides = [
   {
     image: heroSignature,
-    kicker: "Integrated development · Nigeria",
+    kicker: "Architecture · Construction · Real estate",
     title: <>We turn land into <em className="font-normal text-accent">landmarks.</em></>,
     body: "Built environments shaped by intelligence, delivered with discipline, and designed to endure.",
     meta: "Signature residential development",
   },
   {
     image: heroEstate,
-    kicker: "Real estate · Construction · Infrastructure",
+    kicker: "From concept to creation · Nigeria",
     title: <>A legacy you can <em className="font-normal text-accent">live in.</em></>,
     body: "From first sketch to final handover, we create places of lasting commercial and human value.",
     meta: "Contemporary living, Abuja",

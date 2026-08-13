@@ -17,6 +17,7 @@ import Projects from "./pages/Projects";
 import Team from "./pages/Team";
 import Gallery from "./pages/Gallery";
 import Contact from "./pages/Contact";
+import KsdPaint from "./pages/KsdPaint";
 import BookTour from "./booktour";
 import NotFound from "./pages/NotFound";
 
@@ -43,6 +44,7 @@ const App = () => {
                   <Route path="/team" element={<Team />} />
                   <Route path="/gallery" element={<Gallery />} />
                   <Route path="/contact" element={<Contact />} />
+                  <Route path="/ksd-paint" element={<KsdPaint />} />
                   <Route path="/book-tour" element={<BookTour />} />
                   <Route path="*" element={<NotFound />} />
                 </Route>

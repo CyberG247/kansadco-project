@@ -37,7 +37,7 @@ const Gallery = () => {
 
   return (
     <>
-      <PageHero eyebrow="Visual archive" title={<>Places, materials<br />and <em className="text-accent">moments.</em></>} description="A closer view of the architecture, infrastructure and details that define how KANSADCO builds." image={heroSignature} imageAlt="KANSADCO signature residence" index="K / 06" />
+      <PageHero eyebrow="Visual archive" title={<>Places, materials<br />and <em className="text-accent">moments.</em></>} description="A closer view of the architecture, construction, materials and finished details that define how KANSADCO works." image={heroSignature} imageAlt="KANSADCO signature residence" index="K / 06" />
 
       <section className="bg-background">
         <div className="container-custom flex gap-7 overflow-x-auto border-b border-border py-7 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">

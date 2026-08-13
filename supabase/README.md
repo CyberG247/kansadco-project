@@ -14,7 +14,7 @@ supabase db push
 Alternatively, run every SQL file in `supabase/migrations` in filename order through **SQL Editor → New query**. The migrations create:
 
 - administrator profiles and role checks;
-- projects, gallery assets, enquiries, enquiry reply history, site settings and activity tables;
+- projects, gallery assets, team members, enquiries, enquiry reply history, site settings and activity tables;
 - public-read/admin-write RLS policies;
 - automatic activity logging and timestamps;
 - a public `site-media` bucket with administrator-only writes.

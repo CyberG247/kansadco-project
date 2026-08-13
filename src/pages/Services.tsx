@@ -2,21 +2,20 @@ import PageHero from "@/components/layout/PageHero";
 import { ArrowUpRight } from "lucide-react";
 import { Link } from "react-router-dom";
 import heroConstruction from "@/assets/hero-construction.webp";
-import paint from "@/assets/paint-service.jpg";
+import paint from "@/assets/ksd-paint-hero.webp";
 import project1 from "@/assets/project-1.jpg";
 
 const services = [
-  { title: "Real estate", statement: "Places to live. Assets to hold.", description: "Premium residential and commercial opportunities in strategic Nigerian locations, supported by clear documentation, flexible acquisition pathways and informed investment guidance.", items: ["Residential sales", "Commercial property", "Valuation", "Investment advisory"] },
-  { title: "Construction", statement: "Complexity, made buildable.", description: "End-to-end delivery for residential, commercial and civil projects, led by rigorous planning, technical coordination, transparent controls and uncompromising site standards.", items: ["Building construction", "Civil engineering", "Roads and bridges", "Project controls"] },
-  { title: "Property development", statement: "From raw land to lasting value.", description: "An integrated development service connecting land strategy, surveying, design, approvals, infrastructure and market positioning through one accountable team.", items: ["Land acquisition", "Masterplanning", "Infrastructure", "Development management"] },
-  { title: "Property stewardship", statement: "Performance beyond handover.", description: "Operational care that protects the quality, income and experience of an asset over time—from tenant relationships and inspections to planned maintenance and reporting.", items: ["Asset operations", "Tenant management", "Maintenance", "Performance reporting"] },
-  { title: "Paints & coatings", statement: "Finish that works harder.", description: "Durable interior, exterior and industrial coating systems developed for reliable coverage, climatic performance and consistent colour across projects of every scale.", items: ["Interior and exterior", "Industrial coatings", "Colour matching", "Technical support"] },
-  { title: "Distribution", statement: "Quality, within reach.", description: "A growing dealer and logistics network making KANSADCO coating systems accessible across Nigeria with dependable fulfilment and professional support.", items: ["Nationwide logistics", "Dealer partnerships", "Bulk supply", "Quality assurance"] },
+  { title: "Architecture", statement: "Designing spaces with purpose.", description: "Architectural solutions that balance aesthetics, function and the distinct requirements of each brief—from the first idea through coordinated design development.", items: ["Architectural design", "Concept development", "3D visualization", "Space planning", "Residential & commercial"] },
+  { title: "Construction", statement: "Built with precision.", description: "Professional delivery across residential, commercial and renovation projects, combining skilled workmanship, quality materials and disciplined project management.", items: ["Residential construction", "Commercial construction", "Renovation & remodeling", "Structural works", "Interior & exterior finishing"] },
+  { title: "Real estate", statement: "Property with purpose.", description: "Property development and real estate opportunities shaped around modern living, functionality and lasting value for owners, residents and communities.", items: ["Property development", "Residential developments", "Property sales", "Real estate opportunities"] },
+  { title: "Project delivery", statement: "Plan. Execute. Deliver.", description: "Clear project management and consultancy connecting design intent, technical decisions, site coordination, quality control and client communication.", items: ["Project management", "Construction consultancy", "Design coordination", "Quality oversight"] },
+  { title: "KSD Paint", statement: "Timeless beauty. Dependable finish.", description: "Premium interior, exterior and surface-preparation paint systems informed by KANSADCO's direct experience designing, building and transforming spaces.", items: ["Silk", "Weather Shield", "Super Shield", "Screeding Paint"] },
 ];
 
 const Services = () => (
   <>
-    <PageHero eyebrow="Capabilities" title={<>One partner.<br /><em className="text-accent">Every stage.</em></>} description="We connect the disciplines that make places commercially sound, technically resolved and rewarding to experience." image={heroConstruction} imageAlt="Contemporary KANSADCO development" index="K / 02" />
+    <PageHero eyebrow="Capabilities" title={<>From concept<br />to <em className="text-accent">creation.</em></>} description="Professional services across architecture, construction, real estate and project delivery—connected around one clear standard." image={heroConstruction} imageAlt="Contemporary KANSADCO development" index="K / 02" />
 
     <section className="section-padding bg-background">
       <div className="container-custom">
@@ -35,8 +34,8 @@ const Services = () => (
     </section>
 
     <section className="grid bg-slate-dark text-white md:mx-4 md:my-4 md:overflow-hidden md:rounded-[2.5rem] lg:grid-cols-2">
-      <div className="relative min-h-[480px]"><img src={paint} alt="KANSADCO paint systems" className="absolute inset-0 h-full w-full object-cover" /></div>
-      <div className="flex flex-col justify-between p-8 md:p-16 lg:p-20"><div><p className="eyebrow mb-8 text-accent">Materials division</p><h2 className="section-title">Colour backed by <em className="text-accent">performance.</em></h2><p className="mt-8 max-w-lg text-sm leading-7 text-white/60">Our coatings capability brings the same standard of thinking to the surfaces that complete and protect built work.</p></div><Link to="/contact" className="group mt-12 flex items-center justify-between border-b border-white/40 pb-4 text-[10px] font-semibold uppercase tracking-[.17em]">Discuss supply or distribution <ArrowUpRight className="h-4 w-4 transition-transform group-hover:translate-x-1 group-hover:-translate-y-1" /></Link></div>
+      <div className="relative min-h-[480px]"><img src={paint} alt="KSD Paint products and curated colour samples" className="absolute inset-0 h-full w-full object-cover object-center" /></div>
+      <div className="flex flex-col justify-between p-8 md:p-16 lg:p-20"><div><p className="eyebrow mb-8 text-accent">KSD Paint</p><h2 className="section-title">Colour backed by <em className="text-accent">performance.</em></h2><p className="mt-8 max-w-lg text-sm leading-7 text-white/60">Premium colour and quality finishes for spaces that matter, developed with a direct understanding of how interiors and exteriors are designed, built and used.</p></div><Link to="/ksd-paint" className="group mt-12 flex items-center justify-between border-b border-white/40 pb-4 text-[10px] font-semibold uppercase tracking-[.17em]">Explore KSD Paint <ArrowUpRight className="h-4 w-4 transition-transform group-hover:translate-x-1 group-hover:-translate-y-1" /></Link></div>
     </section>
 
     <section className="relative min-h-[620px] overflow-hidden text-white md:mx-4 md:my-4 md:rounded-[2.5rem]"><img src={project1} alt="Rahmaniyya Estate" className="absolute inset-0 h-full w-full object-cover" /><div className="absolute inset-0 bg-slate-dark/65" /><div className="container-custom relative flex min-h-[620px] flex-col justify-end py-20"><p className="eyebrow mb-7 text-accent">A shared standard</p><h2 className="section-title max-w-5xl">However we enter a project, we leave it <em className="text-accent">stronger.</em></h2></div></section>

@@ -53,7 +53,7 @@ const LoadingScreen = ({ onComplete }: LoadingScreenProps) => {
             Welcome to
           </p>
           <h1 className="text-xl md:text-2xl font-display font-semibold text-foreground tracking-wide">
-            KANSADCO ENGINEERING NIG. LTD.
+            KANSADCO SERVICES NIGERIAN LIMITED
           </h1>
         </div>
 

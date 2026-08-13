@@ -36,7 +36,7 @@ const Footer = () => {
               <div>
                 <div className="flex items-center justify-between gap-5">
                   <img src={logo} alt="KANSADCO" className="h-11 w-auto brightness-0 invert md:h-14" />
-                  <p className="font-mono text-[8px] uppercase tracking-[.18em] text-white/35">Nigeria · Since 2007</p>
+                  <p className="font-mono text-[8px] uppercase tracking-[.18em] text-white/35">Nigeria · Since 2018</p>
                 </div>
                 <h2 className="mt-8 max-w-4xl font-display text-[2.65rem] leading-[.94] tracking-[-.035em] text-white/95 sm:text-5xl lg:text-6xl">
                   Enduring value, built into <em className="text-white/45">every detail.</em>
@@ -64,6 +64,7 @@ const Footer = () => {
                   <Link className="block w-fit transition-all duration-300 hover:translate-x-1 hover:text-white" to="/services">Services</Link>
                   <Link className="block w-fit transition-all duration-300 hover:translate-x-1 hover:text-white" to="/projects">Projects</Link>
                   <Link className="block w-fit transition-all duration-300 hover:translate-x-1 hover:text-white" to="/gallery">Gallery</Link>
+                  <Link className="group flex w-fit items-center gap-2 text-accent transition-all duration-300 hover:translate-x-1 hover:text-white" to="/ksd-paint">KSD Paint <ArrowUpRight className="h-3 w-3 transition-transform duration-300 group-hover:-translate-y-0.5 group-hover:translate-x-0.5" /></Link>
                 </div>
               </div>
             </FooterReveal>

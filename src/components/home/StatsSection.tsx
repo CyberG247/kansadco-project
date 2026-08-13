@@ -1,8 +1,8 @@
 import { ScrollReveal } from "@/components/ui/ScrollReveal";
 
 const stats = [
-  ["25+", "Years of practice"], ["500+", "Projects delivered"],
-  ["10K+", "Clients and residents"], ["02", "Strategic offices"],
+  ["2018", "Established in Nigeria"], ["03", "Core disciplines"],
+  ["06", "Operating principles"], ["02", "Strategic offices"],
 ];
 
 const StatsSection = () => (

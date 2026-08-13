@@ -11,20 +11,20 @@ type RouteMetadata = {
 
 const routeMetadata: Record<string, RouteMetadata> = {
   "/": {
-    title: "KANSADCO | Real Estate & Construction in Nigeria",
-    description: "KANSADCO delivers premium real estate, construction, infrastructure and property development across Abuja, Kano and Nigeria.",
+    title: "KANSADCO | Architecture, Construction & Real Estate",
+    description: "KANSADCO delivers integrated architecture, construction and real estate services across Abuja, Kano and Nigeria.",
   },
   "/about": {
     title: "About KANSADCO | Built for Generations",
-    description: "Discover KANSADCO's leadership, heritage and commitment to enduring real estate, construction and infrastructure across Nigeria.",
+    description: "Discover KANSADCO's story, leadership and commitment to purposeful architecture, professional construction and lasting real estate value.",
   },
   "/services": {
-    title: "Real Estate & Construction Services | KANSADCO",
-    description: "Explore KANSADCO's real estate development, construction, infrastructure, project management and premium finishing capabilities.",
+    title: "Architecture, Construction & Real Estate Services | KANSADCO",
+    description: "Explore KANSADCO's architecture, construction, real estate, project management and KSD Paint capabilities.",
   },
   "/projects": {
     title: "Selected Real Estate & Construction Projects | KANSADCO",
-    description: "View selected KANSADCO residential, commercial, civic and infrastructure projects delivered across Nigeria.",
+    description: "View selected KANSADCO residential, commercial and real estate projects delivered across Nigeria.",
   },
   "/team": {
     title: "Leadership & Team | KANSADCO",
@@ -36,11 +36,15 @@ const routeMetadata: Record<string, RouteMetadata> = {
   },
   "/contact": {
     title: "Contact KANSADCO | Abuja & Kano",
-    description: "Contact KANSADCO in Abuja or Kano to discuss real estate, construction, infrastructure and development opportunities.",
+    description: "Contact KANSADCO in Abuja or Kano to discuss architecture, construction, real estate, project delivery and KSD Paint opportunities.",
   },
   "/book-tour": {
     title: "Book a Private Property Tour | KANSADCO",
     description: "Arrange a private KANSADCO property viewing with a member of our real estate team.",
+  },
+  "/ksd-paint": {
+    title: "KSD Paint | Premium Interior & Exterior Paint in Nigeria",
+    description: "Explore KSD Paint interior, exterior and surface-preparation finishes, colour families and dealer opportunities across Nigeria.",
   },
 };
 

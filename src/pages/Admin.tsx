@@ -4,30 +4,32 @@ import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 import {
   ArrowUpRight, Bell, Building2, Check, ChevronRight, CircleDot,
   Cloud, CloudOff, Download, Eye, EyeOff, Images, KeyRound, LayoutDashboard, LoaderCircle, LogOut, Mail, Menu, MessageSquare, Moon,
-  MoreHorizontal, Plus, RefreshCw, Search, Settings, ShieldCheck, Sun, Trash2, TrendingUp, Upload, X,
+  MoreHorizontal, Plus, RefreshCw, Search, Settings, ShieldCheck, Sun, Trash2, TrendingUp, Upload, UsersRound, X,
 } from "lucide-react";
 import { useTheme } from "@/components/ThemeProvider";
 import { useToast } from "@/hooks/use-toast";
 import {
   formatRelativeDate, useContent, type Enquiry, type GalleryAsset,
   type ManagedProject, type ProjectStatus, type AssetStatus, type SiteSettings,
+  type TeamMember, type TeamMemberStatus,
 } from "@/lib/contentStore";
 import logo from "@/assets/logo-transparent.png";
 import heroSignature from "@/assets/hero-signature.webp";
 import { useAuth } from "@/lib/auth";
 
-type Section = "Overview" | "Projects" | "Gallery" | "Enquiries" | "Settings";
+type Section = "Overview" | "Projects" | "Gallery" | "Team" | "Enquiries" | "Settings";
 
 const navItems: { label: Section; icon: typeof LayoutDashboard }[] = [
   { label: "Overview", icon: LayoutDashboard },
   { label: "Projects", icon: Building2 },
   { label: "Gallery", icon: Images },
+  { label: "Team", icon: UsersRound },
   { label: "Enquiries", icon: MessageSquare },
   { label: "Settings", icon: Settings },
 ];
 
 const panelClass = "rounded-[1.5rem] border border-border/80 bg-card shadow-[0_16px_50px_rgba(8,16,12,.045)]";
-type EditorState = { kind: "project"; item?: ManagedProject } | { kind: "gallery"; item?: GalleryAsset } | { kind: "enquiry"; item: Enquiry } | null;
+type EditorState = { kind: "project"; item?: ManagedProject } | { kind: "gallery"; item?: GalleryAsset } | { kind: "team"; item?: TeamMember } | { kind: "enquiry"; item: Enquiry } | null;
 const initials = (name: string) => name.split(/\s+/).slice(0, 2).map((part) => part[0]).join("").toUpperCase();
 
 const Status = ({ value }: { value: string }) => {
@@ -93,7 +95,7 @@ const SidebarContent = ({ section, navigate, close }: { section: Section; naviga
 const Admin = () => {
   const { profile } = useAuth();
   const { theme, setTheme } = useTheme();
-  const { projects, gallery, enquiries, activities, markActivitiesRead, backendStatus, backendError, loading } = useContent();
+  const { projects, gallery, team, enquiries, activities, markActivitiesRead, backendStatus, backendError, loading } = useContent();
   const reduceMotion = useReducedMotion();
   const [section, setSection] = useState<Section>("Overview");
   const [query, setQuery] = useState("");
@@ -103,11 +105,12 @@ const Admin = () => {
   const [editor, setEditor] = useState<EditorState>(null);
 
   const matchingProjects = useMemo(() => projects.filter((project) => `${project.name} ${project.type} ${project.location}`.toLowerCase().includes(query.toLowerCase())), [projects, query]);
+  const matchingTeam = useMemo(() => team.filter((member) => `${member.name} ${member.role} ${member.discipline}`.toLowerCase().includes(query.toLowerCase())), [team, query]);
   const unreadActivities = activities.filter((item) => !item.read).length;
   const newEnquiries = enquiries.filter((item) => item.status === "New").length;
   const dateLabel = new Intl.DateTimeFormat("en-GB", { weekday: "long", day: "2-digit", month: "short", year: "numeric" }).format(new Date());
   const navigate = (next: Section) => { setSection(next); setSidebarOpen(false); setQuery(""); window.scrollTo({ top: 0, behavior: reduceMotion ? "auto" : "smooth" }); };
-  const create = (kind: "project" | "gallery") => { setComposerOpen(false); window.setTimeout(() => setEditor({ kind }), 120); };
+  const create = (kind: "project" | "gallery" | "team") => { setComposerOpen(false); window.setTimeout(() => setEditor({ kind }), 120); };
 
   useEffect(() => {
     document.body.style.overflow = sidebarOpen || composerOpen || editor ? "hidden" : "";
@@ -144,7 +147,7 @@ const Admin = () => {
             <div className="flex min-w-0 items-center gap-2.5">
               <button onClick={() => setSidebarOpen(true)} className="grid h-9 w-9 shrink-0 place-items-center rounded-full border border-border transition-all hover:border-foreground lg:hidden" aria-label="Open admin navigation"><Menu className="h-4 w-4" /></button>
               <div className="min-w-0 lg:hidden"><p className="font-mono text-[7px] uppercase tracking-[.16em] text-muted-foreground">Workspace</p><p className="mt-0.5 truncate font-display text-lg leading-none">{section}</p></div>
-              <div className="hidden items-center gap-3 rounded-full bg-muted/70 px-4 md:flex"><Search className="h-3.5 w-3.5 text-muted-foreground" /><input value={query} onChange={(event) => { setQuery(event.target.value); if (event.target.value && section !== "Projects") setSection("Projects"); }} placeholder="Search projects" className="h-9 w-40 bg-transparent text-xs outline-none placeholder:text-muted-foreground lg:w-52" /></div>
+              <div className="hidden items-center gap-3 rounded-full bg-muted/70 px-4 md:flex"><Search className="h-3.5 w-3.5 text-muted-foreground" /><input value={query} onChange={(event) => { setQuery(event.target.value); if (event.target.value && section !== "Projects" && section !== "Team") setSection("Projects"); }} placeholder={section === "Team" ? "Search team" : "Search projects"} className="h-9 w-40 bg-transparent text-xs outline-none placeholder:text-muted-foreground lg:w-52" /></div>
             </div>
             <div className="flex items-center gap-1.5 sm:gap-2">
               <p className="mr-2 hidden font-mono text-[8px] uppercase tracking-[.14em] text-muted-foreground xl:block">{dateLabel}</p>
@@ -157,7 +160,7 @@ const Admin = () => {
             <AnimatePresence>
               {notificationsOpen && <motion.div initial={reduceMotion ? { opacity: 1 } : { opacity: 0, y: -8, scale: .97 }} animate={{ opacity: 1, y: 0, scale: 1 }} exit={{ opacity: 0, y: -6, scale: .98 }} transition={{ duration: .25 }} className={`absolute right-0 top-[calc(100%+.6rem)] w-[min(340px,calc(100vw-1.5rem))] ${panelClass} overflow-hidden bg-background p-2 shadow-[0_24px_70px_rgba(8,16,12,.18)]`}>
                 <div className="flex items-center justify-between px-3 py-2"><div><p className="font-mono text-[7px] uppercase tracking-[.18em] text-muted-foreground">Notifications</p><p className="mt-1 text-xs">Workspace activity</p></div><button onClick={() => void markActivitiesRead()} className="font-mono text-[7px] uppercase tracking-[.12em] text-muted-foreground hover:text-foreground">Mark read</button></div>
-                {activities.slice(0, 6).map((item) => <button key={item.id} onClick={() => { setNotificationsOpen(false); navigate(item.type === "enquiry" ? "Enquiries" : item.type === "gallery" ? "Gallery" : item.type === "settings" ? "Settings" : "Projects"); }} className="flex w-full items-center gap-3 rounded-xl px-3 py-3 text-left transition-colors hover:bg-muted"><span className={`h-1.5 w-1.5 shrink-0 rounded-full ${item.read ? "bg-border" : "bg-accent"}`} /><span className="min-w-0 flex-1 truncate text-[11px]">{item.message}</span><span className="font-mono text-[7px] text-muted-foreground">{formatRelativeDate(item.createdAt)}</span></button>)}
+                {activities.slice(0, 6).map((item) => <button key={item.id} onClick={() => { setNotificationsOpen(false); navigate(item.type === "enquiry" ? "Enquiries" : item.type === "gallery" ? "Gallery" : item.type === "team" ? "Team" : item.type === "settings" ? "Settings" : "Projects"); }} className="flex w-full items-center gap-3 rounded-xl px-3 py-3 text-left transition-colors hover:bg-muted"><span className={`h-1.5 w-1.5 shrink-0 rounded-full ${item.read ? "bg-border" : "bg-accent"}`} /><span className="min-w-0 flex-1 truncate text-[11px]">{item.message}</span><span className="font-mono text-[7px] text-muted-foreground">{formatRelativeDate(item.createdAt)}</span></button>)}
                 {activities.length === 0 && <p className="px-3 py-5 text-center text-xs text-muted-foreground">No activity yet.</p>}
               </motion.div>}
             </AnimatePresence>
@@ -170,6 +173,7 @@ const Admin = () => {
               {section === "Overview" && <Overview name={profile?.fullName || profile?.email || "Administrator"} onNavigate={navigate} onEditProject={(item) => setEditor({ kind: "project", item })} onOpenEnquiry={(item) => setEditor({ kind: "enquiry", item })} />}
               {section === "Projects" && <ProjectsPanel projects={matchingProjects} query={query} setQuery={setQuery} onCreate={() => create("project")} onEdit={(item) => setEditor({ kind: "project", item })} />}
               {section === "Gallery" && <GalleryPanel gallery={gallery} onUpload={() => create("gallery")} onEdit={(item) => setEditor({ kind: "gallery", item })} />}
+              {section === "Team" && <TeamPanel team={matchingTeam} query={query} setQuery={setQuery} onCreate={() => create("team")} onEdit={(item) => setEditor({ kind: "team", item })} />}
               {section === "Enquiries" && <EnquiriesPanel enquiries={enquiries} onOpen={(item) => setEditor({ kind: "enquiry", item })} />}
               {section === "Settings" && <SettingsPanel />}
             </motion.div>
@@ -177,7 +181,7 @@ const Admin = () => {
         </main>
       </div>
 
-      <nav aria-label="Admin mobile navigation" className="admin-dock-shell fixed inset-x-3 bottom-[max(.75rem,env(safe-area-inset-bottom))] z-30 grid h-[58px] grid-cols-5 rounded-[1.2rem] border border-white/10 bg-slate-dark/95 p-1 text-white shadow-[0_16px_48px_rgba(8,16,12,.28)] backdrop-blur-xl lg:hidden">
+      <nav aria-label="Admin mobile navigation" className="admin-dock-shell fixed inset-x-3 bottom-[max(.75rem,env(safe-area-inset-bottom))] z-30 grid h-[58px] grid-cols-6 rounded-[1.2rem] border border-white/10 bg-slate-dark/95 p-1 text-white shadow-[0_16px_48px_rgba(8,16,12,.28)] backdrop-blur-xl lg:hidden">
         {navItems.map((item) => {
           const active = item.label === section;
           return <button key={item.label} onClick={() => navigate(item.label)} aria-current={active ? "page" : undefined} className={`relative flex flex-col items-center justify-center gap-1 rounded-[.85rem] transition-all duration-300 active:scale-95 ${active ? "bg-white/[.09] text-white" : "text-white/40"}`}>
@@ -189,7 +193,7 @@ const Admin = () => {
         })}
       </nav>
 
-      {createPortal(<AnimatePresence>{composerOpen && <Composer close={() => setComposerOpen(false)} reduceMotion={Boolean(reduceMotion)} create={create} />}{editor?.kind === "project" && <ProjectEditor key={`project-${editor.item?.id ?? "new"}`} project={editor.item} close={() => setEditor(null)} />}{editor?.kind === "gallery" && <GalleryEditor key={`gallery-${editor.item?.id ?? "new"}`} asset={editor.item} close={() => setEditor(null)} />}{editor?.kind === "enquiry" && <EnquiryEditor key={`enquiry-${editor.item.id}`} enquiry={editor.item} close={() => setEditor(null)} />}</AnimatePresence>, document.body)}
+      {createPortal(<AnimatePresence>{composerOpen && <Composer close={() => setComposerOpen(false)} reduceMotion={Boolean(reduceMotion)} create={create} />}{editor?.kind === "project" && <ProjectEditor key={`project-${editor.item?.id ?? "new"}`} project={editor.item} close={() => setEditor(null)} />}{editor?.kind === "gallery" && <GalleryEditor key={`gallery-${editor.item?.id ?? "new"}`} asset={editor.item} close={() => setEditor(null)} />}{editor?.kind === "team" && <TeamEditor key={`team-${editor.item?.id ?? "new"}`} member={editor.item} close={() => setEditor(null)} />}{editor?.kind === "enquiry" && <EnquiryEditor key={`enquiry-${editor.item.id}`} enquiry={editor.item} close={() => setEditor(null)} />}</AnimatePresence>, document.body)}
     </div>
   );
 };
@@ -255,6 +259,18 @@ const GalleryPanel = ({ gallery, onUpload, onEdit }: { gallery: GalleryAsset[]; 
     <button onClick={onUpload} className={`${panelClass} group grid min-h-52 place-items-center border-dashed p-6 text-center transition-all duration-500 hover:-translate-y-1 hover:bg-muted sm:min-h-72`}><span><span className="mx-auto grid h-11 w-11 place-items-center rounded-full border border-border transition-all duration-500 group-hover:rotate-90 group-hover:bg-foreground group-hover:text-background"><Plus className="h-4 w-4" /></span><span className="mt-4 block text-sm">Add images or video</span><span className="mt-2 block font-mono text-[7px] uppercase tracking-[.13em] text-muted-foreground">JPG · PNG · WEBP · MP4</span></span></button>
     {gallery.map((item, index) => <motion.article key={item.id} initial={{ opacity: 0, y: 14 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: index * .035 }} className={`${panelClass} group overflow-hidden`}><div className="relative aspect-[4/3] overflow-hidden"><img src={item.src} alt={item.name} className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-[1.035]" /><div className="absolute inset-x-3 top-3 flex justify-between"><span className="rounded-full bg-slate-dark/80 px-2.5 py-1 font-mono text-[7px] uppercase tracking-[.13em] text-white backdrop-blur">{item.status}</span><button onClick={() => onEdit(item)} aria-label={`Edit ${item.name}`} className="grid h-8 w-8 place-items-center rounded-full bg-background/90 backdrop-blur"><MoreHorizontal className="h-4 w-4" /></button></div></div><div className="flex items-end justify-between p-4"><div><h3 className="text-lg">{item.name}</h3><p className="mt-1 font-mono text-[7px] uppercase tracking-[.13em] text-muted-foreground">{item.type} · {item.year}</p></div><a href={item.src} target="_blank" rel="noreferrer" aria-label={`Preview ${item.name}`} className="grid h-8 w-8 place-items-center rounded-full border border-border transition-colors hover:bg-foreground hover:text-background"><Eye className="h-3.5 w-3.5" /></a></div></motion.article>)}
   </div>
+</>;
+
+const TeamPanel = ({ team, query, setQuery, onCreate, onEdit }: { team: TeamMember[]; query: string; setQuery: (value: string) => void; onCreate: () => void; onEdit: (member: TeamMember) => void }) => <>
+  <SectionHeading eyebrow="Content · People" title="Team directory" description="Add, edit, order and publish the people shown on the public team page." action={<button onClick={onCreate} className="group flex h-10 w-fit items-center gap-2 rounded-full bg-foreground px-4 font-mono text-[8px] uppercase tracking-[.14em] text-background transition-all hover:-translate-y-0.5 hover:shadow-lg"><Plus className="h-3.5 w-3.5 transition-transform group-hover:rotate-90" />New team member</button>} />
+  <div className="mb-4 flex items-center gap-3 rounded-full bg-muted px-4 md:hidden"><Search className="h-3.5 w-3.5 text-muted-foreground" /><input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Search team" className="h-11 w-full bg-transparent text-xs outline-none" /></div>
+  <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
+    {team.map((member, index) => <motion.article key={member.id} initial={{ opacity: 0, y: 14 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: index * .035 }} className={`${panelClass} group overflow-hidden`}>
+      <div className="relative aspect-[4/3] overflow-hidden bg-muted">{member.image ? <img src={member.image} alt={member.name} className="h-full w-full object-cover object-top transition-transform duration-700 group-hover:scale-[1.035]" /> : <div className="grid h-full place-items-center font-display text-6xl text-muted-foreground/35">{initials(member.name)}</div>}<div className="absolute inset-x-3 top-3 flex justify-between"><Status value={member.status} /><button onClick={() => onEdit(member)} aria-label={`Edit ${member.name}`} className="grid h-8 w-8 place-items-center rounded-full bg-background/90 backdrop-blur"><MoreHorizontal className="h-4 w-4" /></button></div>{member.featured && <span className="absolute bottom-3 left-3 rounded-full bg-slate-dark/80 px-2.5 py-1 font-mono text-[7px] uppercase tracking-[.13em] text-white backdrop-blur">Featured leader</span>}</div>
+      <div className="flex items-end justify-between gap-4 p-4"><div className="min-w-0"><h3 className="truncate text-lg">{member.name}</h3><p className="mt-1 text-[10px] text-muted-foreground">{member.role}</p><p className="mt-2 font-mono text-[7px] uppercase tracking-[.13em] text-muted-foreground">{String(member.sortOrder).padStart(2, "0")} · {member.discipline}</p></div><button onClick={() => onEdit(member)} aria-label={`Edit ${member.name}`} className="grid h-8 w-8 shrink-0 place-items-center rounded-full border border-border transition-colors hover:bg-foreground hover:text-background"><ChevronRight className="h-3.5 w-3.5" /></button></div>
+    </motion.article>)}
+  </div>
+  {team.length === 0 && <div className={panelClass}><EmptyState text="No team members match that search." /></div>}
 </>;
 
 const EnquiriesPanel = ({ enquiries, onOpen }: { enquiries: Enquiry[]; onOpen: (enquiry: Enquiry) => void }) => {
@@ -357,7 +373,7 @@ const PasswordSettings = () => {
 };
 
 const SettingsPanel = () => {
-  const { settings, updateSettings, projects, gallery, enquiries, activities } = useContent();
+  const { settings, updateSettings, projects, gallery, team, enquiries, activities } = useContent();
   const { toast } = useToast();
   const [form, setForm] = useState<SiteSettings>(settings);
   const change = (key: keyof SiteSettings, value: string) => setForm((current) => ({ ...current, [key]: value }));
@@ -374,7 +390,7 @@ const SettingsPanel = () => {
     }
   };
   const exportData = () => {
-    const blob = new Blob([JSON.stringify({ projects, gallery, enquiries, settings: form, activities }, null, 2)], { type: "application/json" });
+    const blob = new Blob([JSON.stringify({ projects, gallery, team, enquiries, settings: form, activities }, null, 2)], { type: "application/json" });
     const url = URL.createObjectURL(blob); const link = document.createElement("a"); link.href = url; link.download = `kansadco-content-${new Date().toISOString().slice(0, 10)}.json`; link.click(); URL.revokeObjectURL(url);
   };
   const groups: { title: string; icon: typeof Building2; fields: [string, keyof SiteSettings][] }[] = [
@@ -386,12 +402,12 @@ const SettingsPanel = () => {
 
 const EmptyState = ({ text }: { text: string }) => <div className="p-10 text-center"><Search className="mx-auto h-5 w-5 text-muted-foreground" /><p className="mt-3 text-xs text-muted-foreground">{text}</p></div>;
 
-const Composer = ({ close, reduceMotion, create }: { close: () => void; reduceMotion: boolean; create: (kind: "project" | "gallery") => void }) => (
+const Composer = ({ close, reduceMotion, create }: { close: () => void; reduceMotion: boolean; create: (kind: "project" | "gallery" | "team") => void }) => (
   <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: .25 }} className="fixed inset-0 z-[70] flex items-end justify-center bg-slate-dark/50 p-3 backdrop-blur-sm sm:items-center sm:p-5" role="dialog" aria-modal="true" aria-label="Create new entry">
     <button onClick={close} className="absolute inset-0" aria-label="Close create dialog" />
     <motion.div initial={reduceMotion ? { opacity: 1 } : { opacity: 0, y: 30, scale: .97 }} animate={{ opacity: 1, y: 0, scale: 1 }} exit={reduceMotion ? { opacity: 0 } : { opacity: 0, y: 22, scale: .98 }} transition={{ duration: .4, ease: [.2, .8, .2, 1] }} className="relative w-full max-w-xl rounded-[2rem] border border-border bg-background p-5 shadow-[0_30px_100px_rgba(8,16,12,.3)] sm:p-7">
       <div className="flex items-start justify-between gap-4"><div><p className="font-mono text-[8px] uppercase tracking-[.18em] text-muted-foreground">Quick create</p><h2 className="mt-2 text-[2.5rem] leading-none sm:text-5xl">Add to the workspace.</h2></div><button onClick={close} className="grid h-9 w-9 shrink-0 place-items-center rounded-full border border-border transition-colors hover:bg-foreground hover:text-background"><X className="h-4 w-4" /></button></div>
-      <div className="mt-7 grid grid-cols-2 gap-2 sm:gap-3">{([{ label: "Project", kind: "project" }, { label: "Gallery asset", kind: "gallery" }] as const).map((item, index) => <motion.button key={item.kind} initial={reduceMotion ? false : { opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: .1 + index * .05 }} onClick={() => create(item.kind)} className="group flex min-h-28 flex-col justify-between rounded-[1.25rem] border border-border p-3 text-left transition-all duration-300 hover:-translate-y-1 hover:bg-foreground hover:text-background sm:min-h-36 sm:p-4"><Plus className="h-4 w-4 transition-transform duration-300 group-hover:rotate-90" /><span><span className="block text-[11px] sm:text-sm">{item.label}</span><ArrowUpRight className="ml-auto mt-2 h-3.5 w-3.5 transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5" /></span></motion.button>)}</div>
+      <div className="mt-7 grid grid-cols-3 gap-2 sm:gap-3">{([{ label: "Project", kind: "project" }, { label: "Gallery asset", kind: "gallery" }, { label: "Team member", kind: "team" }] as const).map((item, index) => <motion.button key={item.kind} initial={reduceMotion ? false : { opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: .1 + index * .05 }} onClick={() => create(item.kind)} className="group flex min-h-28 flex-col justify-between rounded-[1.25rem] border border-border p-3 text-left transition-all duration-300 hover:-translate-y-1 hover:bg-foreground hover:text-background sm:min-h-36 sm:p-4"><Plus className="h-4 w-4 transition-transform duration-300 group-hover:rotate-90" /><span><span className="block text-[11px] sm:text-sm">{item.label}</span><ArrowUpRight className="ml-auto mt-2 h-3.5 w-3.5 transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5" /></span></motion.button>)}</div>
       <p className="mt-5 font-mono text-[7px] uppercase leading-5 tracking-[.13em] text-muted-foreground">New entries remain drafts until reviewed and published.</p>
     </motion.div>
   </motion.div>
@@ -501,6 +517,61 @@ const GalleryEditor = ({ asset, close }: { asset?: GalleryAsset; close: () => vo
       <label className={`${editorLabel} sm:col-span-2`}>Supabase media URL<input value={form.src} onChange={(e) => change("src", e.target.value)} required className={editorField} /></label>
       {form.src && <div className="sm:col-span-2"><img src={form.src} alt="Asset preview" className="h-56 w-full rounded-2xl object-cover" /></div>}
       <div className="mt-2 flex items-center justify-between gap-3 sm:col-span-2">{asset ? <button type="button" onClick={() => void remove()} disabled={saving || uploading} className="flex h-10 items-center gap-2 rounded-full border border-destructive/30 px-4 font-mono text-[7px] uppercase tracking-[.14em] text-destructive disabled:opacity-50"><Trash2 className="h-3.5 w-3.5" />Delete</button> : <span />}<button type="submit" disabled={saving || uploading} className="flex h-11 items-center gap-2 rounded-full bg-foreground px-6 font-mono text-[8px] uppercase tracking-[.15em] text-background disabled:opacity-60">{saving && <LoaderCircle className="h-3.5 w-3.5 animate-spin" />}{saving ? "Saving" : asset ? "Save changes" : "Add asset"}</button></div>
+    </form>
+  </EditorShell>;
+};
+
+const TeamEditor = ({ member, close }: { member?: TeamMember; close: () => void }) => {
+  const { team, settings, addTeamMember, updateTeamMember, deleteTeamMember, uploadMedia } = useContent();
+  const { toast } = useToast();
+  const [form, setForm] = useState({
+    name: member?.name ?? "", role: member?.role ?? "", discipline: member?.discipline ?? "",
+    bio: member?.bio ?? "", image: member?.image ?? "", email: member?.email ?? settings.primaryEmail,
+    featured: member?.featured ?? false, sortOrder: member?.sortOrder ?? (Math.max(0, ...team.map((item) => item.sortOrder)) + 1),
+    status: member?.status ?? "Draft" as TeamMemberStatus,
+  });
+  const [saving, setSaving] = useState(false);
+  const [uploading, setUploading] = useState(false);
+  const change = <K extends keyof typeof form>(key: K, value: typeof form[K]) => setForm((current) => ({ ...current, [key]: value }));
+  const chooseFile = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0]; if (!file) return;
+    setUploading(true);
+    try { change("image", await uploadMedia(file)); toast({ title: "Portrait uploaded" }); }
+    catch (error) { toast({ title: "Upload failed", description: error instanceof Error ? error.message : "Please try again.", variant: "destructive" }); }
+    finally { setUploading(false); event.target.value = ""; }
+  };
+  const submit = async (event: React.FormEvent) => {
+    event.preventDefault();
+    if (!form.image.trim()) {
+      toast({ title: "Portrait required", description: "Upload an image from your device or paste an image URL before saving.", variant: "destructive" });
+      return;
+    }
+    setSaving(true);
+    try { if (member) await updateTeamMember(member.id, form); else await addTeamMember(form); toast({ title: member ? "Team member updated" : "Team member added", description: `${form.name} is ${form.status.toLowerCase()}.` }); close(); }
+    catch (error) { toast({ title: "Team member could not be saved", description: error instanceof Error ? error.message : "Please try again.", variant: "destructive" }); }
+    finally { setSaving(false); }
+  };
+  const remove = async () => {
+    if (!member || !window.confirm(`Delete ${member.name}? This cannot be undone.`)) return;
+    setSaving(true);
+    try { await deleteTeamMember(member.id); toast({ title: "Team member deleted" }); close(); }
+    catch (error) { toast({ title: "Team member could not be deleted", description: error instanceof Error ? error.message : "Please try again.", variant: "destructive" }); }
+    finally { setSaving(false); }
+  };
+  return <EditorShell label={member ? "Team · Edit" : "Team · New"} title={member ? "Edit team member." : "Add a team member."} close={close}>
+    <form onSubmit={submit} className="grid gap-4 sm:grid-cols-2">
+      <label className={editorLabel}>Full name<input value={form.name} onChange={(e) => change("name", e.target.value)} minLength={2} required className={editorField} /></label>
+      <label className={editorLabel}>Role / title<input value={form.role} onChange={(e) => change("role", e.target.value)} minLength={2} required className={editorField} /></label>
+      <label className={editorLabel}>Discipline<input value={form.discipline} onChange={(e) => change("discipline", e.target.value)} minLength={2} required placeholder="Architecture · Design" className={editorField} /></label>
+      <label className={editorLabel}>Email<input type="email" value={form.email} onChange={(e) => change("email", e.target.value)} required className={editorField} /></label>
+      <label className={editorLabel}>Status<select value={form.status} onChange={(e) => change("status", e.target.value as TeamMemberStatus)} className={editorField}><option>Draft</option><option>Published</option></select></label>
+      <label className={editorLabel}>Display order<input type="number" min="1" value={form.sortOrder} onChange={(e) => change("sortOrder", Number(e.target.value))} required className={editorField} /></label>
+      <label className="flex items-center gap-3 rounded-xl border border-border px-3 py-3 text-xs sm:col-span-2"><input type="checkbox" checked={form.featured} onChange={(e) => change("featured", e.target.checked)} className="h-4 w-4 accent-current" /><span><span className="block font-medium">Feature as team leader</span><span className="mt-1 block text-[10px] text-muted-foreground">The first published featured profile becomes the large leadership card.</span></span></label>
+      <label className={`${editorLabel} sm:col-span-2`}>Biography<textarea value={form.bio} onChange={(e) => change("bio", e.target.value)} maxLength={4000} rows={4} className={`${editorField} h-auto py-3`} /></label>
+      <label className={editorLabel}>Upload from device<span className="relative mt-2 block"><input type="file" accept="image/jpeg,image/png,image/webp,image/avif,image/gif" onChange={(event) => void chooseFile(event)} disabled={uploading} className="block w-full text-[10px] file:mr-3 file:rounded-full file:border-0 file:bg-foreground file:px-3 file:py-2 file:text-[8px] file:uppercase file:text-background disabled:opacity-50" />{uploading && <span className="mt-2 flex items-center gap-2 text-[9px] normal-case tracking-normal"><LoaderCircle className="h-3 w-3 animate-spin" />Uploading securely…</span>}</span></label>
+      <label className={editorLabel}>Or paste image URL<input value={form.image} onChange={(e) => change("image", e.target.value)} placeholder="https://example.com/portrait.jpg" className={editorField} /></label>
+      {form.image && <div className="sm:col-span-2"><img src={form.image} alt="Team member preview" className="h-56 w-full rounded-2xl object-cover object-top" /></div>}
+      <div className="mt-2 flex items-center justify-between gap-3 sm:col-span-2">{member ? <button type="button" onClick={() => void remove()} disabled={saving || uploading} className="flex h-10 items-center gap-2 rounded-full border border-destructive/30 px-4 font-mono text-[7px] uppercase tracking-[.14em] text-destructive disabled:opacity-50"><Trash2 className="h-3.5 w-3.5" />Delete</button> : <span />}<button type="submit" disabled={saving || uploading} className="flex h-11 items-center gap-2 rounded-full bg-foreground px-6 font-mono text-[8px] uppercase tracking-[.15em] text-background disabled:opacity-60">{saving && <LoaderCircle className="h-3.5 w-3.5 animate-spin" />}{saving ? "Saving" : member ? "Save changes" : "Add member"}</button></div>
     </form>
   </EditorShell>;
 };
