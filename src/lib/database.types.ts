@@ -27,6 +27,12 @@ export type Database = {
         Update: Partial<Database["public"]["Tables"]["team_members"]["Insert"]>;
         Relationships: [];
       };
+      testimonials: {
+        Row: { id: string; quote: string; name: string; role: string; sort_order: number; status: "Published" | "Draft"; created_at: string; updated_at: string };
+        Insert: { id?: string; quote: string; name: string; role: string; sort_order?: number; status?: "Published" | "Draft"; created_at?: string; updated_at?: string };
+        Update: Partial<Database["public"]["Tables"]["testimonials"]["Insert"]>;
+        Relationships: [];
+      };
       enquiries: {
         Row: { id: string; name: string; email: string; phone: string; subject: string; message: string; status: "New" | "Review" | "Replied" | "Archived"; source: "Contact" | "Private tour" | "Admin"; notification_status: "Pending" | "Sent" | "Partial" | "Failed"; notification_message_id: string | null; acknowledgement_message_id: string | null; notification_error: string | null; notified_at: string | null; created_at: string; updated_at: string };
         Insert: { id?: string; name: string; email: string; phone?: string; subject: string; message: string; status?: "New" | "Review" | "Replied" | "Archived"; source?: "Contact" | "Private tour" | "Admin"; notification_status?: "Pending" | "Sent" | "Partial" | "Failed"; notification_message_id?: string | null; acknowledgement_message_id?: string | null; notification_error?: string | null; notified_at?: string | null; created_at?: string; updated_at?: string };
@@ -46,8 +52,8 @@ export type Database = {
         Relationships: [];
       };
       activities: {
-        Row: { id: string; message: string; type: "project" | "gallery" | "team" | "enquiry" | "settings"; read: boolean; created_at: string; actor_id: string | null };
-        Insert: { id?: string; message: string; type: "project" | "gallery" | "team" | "enquiry" | "settings"; read?: boolean; created_at?: string; actor_id?: string | null };
+        Row: { id: string; message: string; type: "project" | "gallery" | "team" | "testimonial" | "enquiry" | "settings"; read: boolean; created_at: string; actor_id: string | null };
+        Insert: { id?: string; message: string; type: "project" | "gallery" | "team" | "testimonial" | "enquiry" | "settings"; read?: boolean; created_at?: string; actor_id?: string | null };
         Update: { read?: boolean };
         Relationships: [];
       };

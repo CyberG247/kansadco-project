@@ -14,6 +14,7 @@ import { MEDIA_BUCKET, supabase } from "@/lib/supabase";
 export type ProjectStatus = "Published" | "In progress" | "Draft";
 export type AssetStatus = "Published" | "Draft";
 export type TeamMemberStatus = "Published" | "Draft";
+export type TestimonialStatus = "Published" | "Draft";
 export type EnquiryStatus = "New" | "Review" | "Replied" | "Archived";
 export type EnquiryNotificationStatus = "Pending" | "Sent" | "Partial" | "Failed";
 export type BackendStatus = "loading" | "connected" | "unconfigured" | "error";
@@ -73,6 +74,16 @@ export const getTeamLeader = (team: TeamMember[]) => {
   return published.find((member) => member.featured) ?? published[0];
 };
 
+export interface Testimonial {
+  id: string;
+  quote: string;
+  name: string;
+  role: string;
+  sortOrder: number;
+  status: TestimonialStatus;
+  updatedAt: string;
+}
+
 export interface Enquiry {
   id: string;
   name: string;
@@ -116,13 +127,14 @@ export interface Activity {
   message: string;
   createdAt: string;
   read: boolean;
-  type: "project" | "gallery" | "team" | "enquiry" | "settings";
+  type: "project" | "gallery" | "team" | "testimonial" | "enquiry" | "settings";
 }
 
 interface ContentState {
   projects: ManagedProject[];
   gallery: GalleryAsset[];
   team: TeamMember[];
+  testimonials: Testimonial[];
   enquiries: Enquiry[];
   enquiryReplies: EnquiryReply[];
   settings: SiteSettings;
@@ -132,6 +144,7 @@ interface ContentState {
 export type ProjectInput = Omit<ManagedProject, "id" | "updatedAt">;
 export type AssetInput = Omit<GalleryAsset, "id" | "createdAt">;
 export type TeamMemberInput = Omit<TeamMember, "id" | "updatedAt">;
+export type TestimonialInput = Omit<Testimonial, "id" | "updatedAt">;
 export type EnquiryInput = Omit<Enquiry, "id" | "createdAt" | "status" | "notificationStatus" | "notificationError" | "notifiedAt"> & {
   status?: EnquiryStatus;
   website?: string;
@@ -152,6 +165,9 @@ interface ContentContextValue extends ContentState {
   addTeamMember: (member: TeamMemberInput) => Promise<TeamMember>;
   updateTeamMember: (id: string, updates: Partial<TeamMemberInput>) => Promise<void>;
   deleteTeamMember: (id: string) => Promise<void>;
+  addTestimonial: (testimonial: TestimonialInput) => Promise<Testimonial>;
+  updateTestimonial: (id: string, updates: Partial<TestimonialInput>) => Promise<void>;
+  deleteTestimonial: (id: string) => Promise<void>;
   uploadMedia: (file: File) => Promise<string>;
   addEnquiry: (enquiry: EnquiryInput) => Promise<Enquiry>;
   replyToEnquiry: (id: string, subject: string, message: string) => Promise<void>;
@@ -190,6 +206,11 @@ const defaultState: ContentState = {
     { id: "team-grace", name: "Mrs. Grace Okonkwo", role: "Finance Director", discipline: "Finance · Governance", bio: "", image: "", email: "kansadco@gmail.com", featured: false, sortOrder: 6, status: "Published", updatedAt: "2026-08-13T08:00:00.000Z" },
     { id: "team-yusuf", name: "Mallam Yusuf Garba", role: "Head of Operations", discipline: "Operations · Quality", bio: "", image: "", email: "kansadco@gmail.com", featured: false, sortOrder: 7, status: "Published", updatedAt: "2026-08-13T08:00:00.000Z" },
     { id: "team-amaka", name: "Engr. Amaka Nwosu", role: "Project Manager", discipline: "Projects · Coordination", bio: "", image: "", email: "kansadco@gmail.com", featured: false, sortOrder: 8, status: "Published", updatedAt: "2026-08-13T08:00:00.000Z" },
+  ],
+  testimonials: [
+    { id: "testimonial-innova", quote: "KANSADCO brought unusual discipline to a complex brief. Every decision felt considered, every milestone was visible, and the finished place exceeded the promise.", name: "Abdullahi Bala Musa", role: "Managing Director, InnovaTech Consultancy", sortOrder: 1, status: "Published", updatedAt: "2026-08-14T08:00:00.000Z" },
+    { id: "testimonial-investor", quote: "They understand that property is both a financial asset and a lived experience. That balance is why we continue to invest with them.", name: "Ibrahim Suleiman", role: "Property Investor, Kano", sortOrder: 2, status: "Published", updatedAt: "2026-08-14T08:00:00.000Z" },
+    { id: "testimonial-resident", quote: "The quality is evident in the details you touch every day. Our home feels calm, resolved, and built for the long term.", name: "Dr. Amina Bello", role: "Resident, Rahmaniyya Estate", sortOrder: 3, status: "Published", updatedAt: "2026-08-14T08:00:00.000Z" },
   ],
   enquiries: [],
   enquiryReplies: [],
@@ -252,6 +273,11 @@ const mapTeamMember = (row: { id: string; name: string; role: string; discipline
   featured: row.featured, sortOrder: row.sort_order, status: row.status, updatedAt: row.updated_at,
 });
 
+const mapTestimonial = (row: { id: string; quote: string; name: string; role: string; sort_order: number; status: TestimonialStatus; updated_at: string }): Testimonial => ({
+  id: row.id, quote: row.quote, name: row.name, role: row.role,
+  sortOrder: row.sort_order, status: row.status, updatedAt: row.updated_at,
+});
+
 const mapEnquiry = (row: { id: string; name: string; email: string; phone: string; subject: string; message: string; status: EnquiryStatus; source: Enquiry["source"]; created_at: string; notification_status: EnquiryNotificationStatus; notification_error: string | null; notified_at: string | null }): Enquiry => ({
   id: row.id, name: row.name, email: row.email, phone: row.phone, subject: row.subject,
   message: row.message, status: row.status, source: row.source, createdAt: row.created_at,
@@ -288,6 +314,11 @@ const teamMemberRow = (member: TeamMemberInput) => ({
   featured: member.featured, sort_order: member.sortOrder, status: member.status,
 });
 
+const testimonialRow = (testimonial: TestimonialInput) => ({
+  quote: testimonial.quote.trim(), name: testimonial.name.trim(), role: testimonial.role.trim(),
+  sort_order: testimonial.sortOrder, status: testimonial.status,
+});
+
 const settingsRow = (settings: SiteSettings) => ({
   display_name: settings.displayName, primary_email: settings.primaryEmail, telephone: settings.telephone,
   abuja_address: settings.abujaAddress, kano_address: settings.kanoAddress, default_author: settings.defaultAuthor,
@@ -297,6 +328,9 @@ const settingsRow = (settings: SiteSettings) => ({
 const friendlyDatabaseError = (error: { code?: string; message: string }) => {
   if (error.code === "PGRST205" || error.message.includes("schema cache")) {
     return "Supabase is connected, but the KANSADCO database migration has not been installed.";
+  }
+  if (error.message.includes("projects_description_check")) {
+    return "Add a project summary with at least 2 characters.";
   }
   return error.message;
 };
@@ -372,6 +406,7 @@ export const ContentProvider = ({ children }: { children: ReactNode }) => {
     const projectRequest = supabase.from("projects").select("*").order("updated_at", { ascending: false });
     const galleryRequest = supabase.from("gallery_assets").select("*").order("created_at", { ascending: false });
     const teamRequest = supabase.from("team_members").select("*").order("sort_order", { ascending: true }).order("updated_at", { ascending: false });
+    const testimonialRequest = supabase.from("testimonials").select("*").order("sort_order", { ascending: true }).order("updated_at", { ascending: false });
     const settingsRequest = supabase.from("site_settings").select("*").eq("id", 1).maybeSingle();
     const enquiryRequest = isAuthorized
       ? supabase.from("enquiries").select("*").order("created_at", { ascending: false })
@@ -384,8 +419,8 @@ export const ContentProvider = ({ children }: { children: ReactNode }) => {
       : Promise.resolve({ data: [], error: null });
 
     try {
-      let [projectsResult, galleryResult, teamResult, settingsResult, enquiriesResult, repliesResult, activitiesResult] = await Promise.all([
-        projectRequest, galleryRequest, teamRequest, settingsRequest, enquiryRequest, replyRequest, activityRequest,
+      let [projectsResult, galleryResult, teamResult, testimonialsResult, settingsResult, enquiriesResult, repliesResult, activitiesResult] = await Promise.all([
+        projectRequest, galleryRequest, teamRequest, testimonialRequest, settingsRequest, enquiryRequest, replyRequest, activityRequest,
       ]);
       if (!isCurrentRefresh()) return;
 
@@ -434,10 +469,11 @@ export const ContentProvider = ({ children }: { children: ReactNode }) => {
         if (initializedError) throw initializedError;
         window.localStorage.removeItem("kansadco-content-v1");
 
-        [projectsResult, galleryResult, teamResult, settingsResult, enquiriesResult, repliesResult, activitiesResult] = await Promise.all([
+        [projectsResult, galleryResult, teamResult, testimonialsResult, settingsResult, enquiriesResult, repliesResult, activitiesResult] = await Promise.all([
           supabase.from("projects").select("*").order("updated_at", { ascending: false }),
           supabase.from("gallery_assets").select("*").order("created_at", { ascending: false }),
           supabase.from("team_members").select("*").order("sort_order", { ascending: true }).order("updated_at", { ascending: false }),
+          supabase.from("testimonials").select("*").order("sort_order", { ascending: true }).order("updated_at", { ascending: false }),
           supabase.from("site_settings").select("*").eq("id", 1).maybeSingle(),
           supabase.from("enquiries").select("*").order("created_at", { ascending: false }),
           supabase.from("enquiry_replies").select("*").order("created_at", { ascending: false }),
@@ -449,11 +485,12 @@ export const ContentProvider = ({ children }: { children: ReactNode }) => {
       }
 
       const useBundledContent = settingsResult.data?.content_initialized === false;
-      const optionalError = [teamResult.error, repliesResult.error, activitiesResult.error].find(Boolean);
+      const optionalError = [teamResult.error, testimonialsResult.error, repliesResult.error, activitiesResult.error].find(Boolean);
       setState((current) => ({
         projects: useBundledContent ? cloneDefaults().projects : (projectsResult.data ?? []).map(mapProject),
         gallery: useBundledContent ? cloneDefaults().gallery : (galleryResult.data ?? []).map(mapGallery),
         team: teamResult.error ? current.team : (teamResult.data ?? []).map(mapTeamMember),
+        testimonials: testimonialsResult.error ? current.testimonials : (testimonialsResult.data ?? []).map(mapTestimonial),
         enquiries: (enquiriesResult.data ?? []).map(mapEnquiry),
         enquiryReplies: repliesResult.error ? current.enquiryReplies : (repliesResult.data ?? []).map(mapEnquiryReply),
         settings: settingsResult.data ? mapSettings(settingsResult.data) : cloneDefaults().settings,
@@ -505,8 +542,8 @@ export const ContentProvider = ({ children }: { children: ReactNode }) => {
     };
   }, [isAuthorized, refreshContent, session?.user.id]);
 
-  const requireData = <T,>(data: T | null, error: { message: string } | null): T => {
-    if (error) throw new Error(error.message);
+  const requireData = <T,>(data: T | null, error: { code?: string; message: string } | null): T => {
+    if (error) throw new Error(friendlyDatabaseError(error));
     if (!data) throw new Error("Supabase returned no data.");
     return data;
   };
@@ -545,7 +582,7 @@ export const ContentProvider = ({ children }: { children: ReactNode }) => {
         ...(updates.galleryImages !== undefined && { gallery_images: updates.galleryImages }),
       };
       const { error } = await supabase.from("projects").update(payload).eq("id", id);
-      if (error) throw new Error(error.message);
+      if (error) throw new Error(friendlyDatabaseError(error));
       await refreshContent();
     },
     deleteProject: async (id) => {
@@ -590,6 +627,24 @@ export const ContentProvider = ({ children }: { children: ReactNode }) => {
     },
     deleteTeamMember: async (id) => {
       const { error } = await supabase.from("team_members").delete().eq("id", id);
+      if (error) throw new Error(error.message);
+      await refreshContent();
+    },
+    addTestimonial: async (input) => {
+      const result = await supabase.from("testimonials").insert(testimonialRow(input)).select("*").single();
+      const testimonial = mapTestimonial(requireData(result.data, result.error));
+      await refreshContent();
+      return testimonial;
+    },
+    updateTestimonial: async (id, updates) => {
+      const current = state.testimonials.find((testimonial) => testimonial.id === id);
+      if (!current) throw new Error("Testimonial not found.");
+      const { error } = await supabase.from("testimonials").update(testimonialRow({ ...current, ...updates })).eq("id", id);
+      if (error) throw new Error(error.message);
+      await refreshContent();
+    },
+    deleteTestimonial: async (id) => {
+      const { error } = await supabase.from("testimonials").delete().eq("id", id);
       if (error) throw new Error(error.message);
       await refreshContent();
     },
